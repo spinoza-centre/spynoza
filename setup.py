@@ -30,5 +30,6 @@ setup(
     author='Spinoza centre',
     license='MIT',
     platforms='Linux',
+    scripts=['bin/convert2bids'],
     packages=find_packages(),
     zip_safe=False)
