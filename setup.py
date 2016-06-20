@@ -11,7 +11,8 @@ install_requires = [
     'nibabel',
     'nipype',
     'numpy',
-    'scipy'
+    'scipy',
+    'pandas'
 ]
 
 setup(
