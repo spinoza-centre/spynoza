@@ -11,7 +11,8 @@ install_requires = [
     'nibabel',
     'nipype',
     'numpy',
-    'scipy'
+    'scipy',
+    'pandas'
 ]
 
 setup(
@@ -30,5 +31,6 @@ setup(
     author='Spinoza centre',
     license='MIT',
     platforms='Linux',
+    scripts=['bin/convert2bids'],
     packages=find_packages(),
     zip_safe=False)
