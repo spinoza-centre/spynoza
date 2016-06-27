@@ -31,6 +31,6 @@ setup(
     author='Spinoza centre',
     license='MIT',
     platforms='Linux',
-    scripts=['bin/convert2bids'],
+    scripts=['bin/convert2bids', 'bin/fetch_testdata'],
     packages=find_packages(),
     zip_safe=False)
