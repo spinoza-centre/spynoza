@@ -1,7 +1,8 @@
 import os.path as op
 import nipype.pipeline as pe
 from nipype.interfaces import fsl
-
+from nipype.interfaces.utility import IdentityInterface
+import nipype.interfaces.io as nio
 
 
 def create_T1_to_MNI_workflow(name = 'T1_to_MNI'):
