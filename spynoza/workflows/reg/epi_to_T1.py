@@ -17,7 +17,6 @@ input_node = pe.Node(IdentityInterface(
 output_node = pe.Node(IdentityInterface(fields='out_file'), name='outputnode')
 
 
-
 epi_to_T1_workflow = pe.Workflow(name='epi_to_T1')
 
 # first link the workflow's output_directory into the datasink.
@@ -36,8 +35,13 @@ if freesurfer_subject_ID not is '': # do BBRegister if no SJ ID
   # epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', datasink, FSL_REG_FILENAME)
   # epi_to_T1_workflow.connect(bbregister_N, 'out_reg_file', datasink, BBRegister_REG_FILENAME)
 
-  epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', output_node, 'out_fsl_file')
+  epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', output_node, 'out_matrix_file')
   epi_to_T1_workflow.connect(bbregister_N, 'out_reg_file', output_node, 'out_reg_file')
+
+  # the final invert node
+  invert_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name = 'invert_N')
+  epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', invert_N, 'in_file')
+  epi_to_T1_workflow.connect(invert_N, 'out_file', output_node, 'out_inv_matrix_file')
 
 else: # do flirt
   flirt_N = pe.Node(fsl.FLIRT(cost_func='bbr', output_type = 'NIFTI_GZ', dof = 12, interp = 'sinc'), 
@@ -48,7 +52,13 @@ else: # do flirt
 
   # epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', datasink, FSL_REG_FILENAME)
 
-  epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', output_node, 'out_fsl_file')
+  epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', output_node, 'out_matrix_file')
+
+  # the final invert node
+  invert_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name = 'invert_N')
+  epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', invert_N, 'in_file')
+  epi_to_T1_workflow.connect(invert_N, 'out_file', output_node, 'out_inv_matrix_file')
+
 
 if __name__ == '__main__':
 
