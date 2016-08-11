@@ -30,7 +30,7 @@ concat_N = pe.Node(fsl.ConvertXFM(concat_xfm = True), name = 'invert_N')
 concat_2_feat_workflow.connect(input_node, 'EPI_T1_matrix_file', concat_N, 'in_file')
 concat_2_feat_workflow.connect(input_node, 'T1_MNI_matrix_file', concat_N, 'in_file2')
 concat_2_feat_workflow.connect(concat_N, 'out_file', output_node, 'EPI_MNI_matrix_file')
-concat_2_feat_workflow.connect(concat_N, 'out_file', datasink, 'reg.example_func2standard.mat')
+concat_2_feat_workflow.connect(concat_N, 'out_file', datasink, 'reg.example_func2standard.@mat')
 
 
 ########################################################################################
@@ -39,7 +39,7 @@ concat_2_feat_workflow.connect(concat_N, 'out_file', datasink, 'reg.example_func
 invert_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name = 'invert_N')
 concat_2_feat_workflow.connect(concat_N, 'out_file', invert_N, 'in_file')
 concat_2_feat_workflow.connect(invert_N, 'out_file', output_node, 'MNI_EPI_matrix_file')
-concat_2_feat_workflow.connect(invert_N, 'out_file', datasink, 'reg.standard2example_func.mat')
+concat_2_feat_workflow.connect(invert_N, 'out_file', datasink, 'reg.standard2example_func.@mat')
 
 
 if __name__ == '__main__':

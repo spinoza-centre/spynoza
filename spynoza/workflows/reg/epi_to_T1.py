@@ -21,7 +21,7 @@ epi_to_T1_workflow = pe.Workflow(name='epi_to_T1')
 
 # first link the workflow's output_directory into the datasink.
 epi_to_T1_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
-T1_to_MNI_workflow.connect(input_node, 'EPI_space_file', datasink, 'reg.feat.example_func')
+T1_to_MNI_workflow.connect(input_node, 'EPI_space_file', datasink, 'reg.feat.example_func.@nii.@gz')
 
 
 if freesurfer_subject_ID is not '': # do BBRegister if no SJ ID
@@ -45,8 +45,8 @@ if freesurfer_subject_ID is not '': # do BBRegister if no SJ ID
   epi_to_T1_workflow.connect(invert_N, 'out_file', output_node, 'out_inv_matrix_file')
 
   # and, datasink.
-  epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', datasink, 'reg.feat.example_func2highres.mat')
-  epi_to_T1_workflow.connect(invert_N, 'out_file', datasink, 'reg.feat.highres2example_func.mat')
+  epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', datasink, 'reg.feat.example_func2highres.@mat')
+  epi_to_T1_workflow.connect(invert_N, 'out_file', datasink, 'reg.feat.highres2example_func.@mat')
   epi_to_T1_workflow.connect(bbregister_N, 'out_reg_file', datasink, 'reg.register')
 
 
@@ -66,8 +66,8 @@ else: # do flirt
   epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', invert_N, 'in_file')
   epi_to_T1_workflow.connect(invert_N, 'out_file', output_node, 'out_inv_matrix_file')
 
-  epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', datasink, 'reg.feat.example_func2highres.mat')
-  epi_to_T1_workflow.connect(invert_N, 'out_file', datasink, 'reg.feat.highres2example_func.mat')
+  epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', datasink, 'reg.feat.example_func2highres.@mat')
+  epi_to_T1_workflow.connect(invert_N, 'out_file', datasink, 'reg.feat.highres2example_func.@mat')
 
 
 if __name__ == '__main__':

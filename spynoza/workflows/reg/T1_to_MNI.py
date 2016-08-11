@@ -26,7 +26,7 @@ T1_to_MNI_workflow = pe.Workflow(name='T1_to_MNI')
 # first link the workflow's output_directory into the datasink.
 T1_to_MNI_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
 # and immediately attempt to datasink the standard file
-T1_to_MNI_workflow.connect(input_node, 'reference_file', datasink, 'reg.feat.standard.nii.gz')
+T1_to_MNI_workflow.connect(input_node, 'reference_file', datasink, 'reg.feat.standard.@nii.@gz')
 
 ########################################################################################
 # first take file from freesurfer subject directory, if necessary
@@ -42,7 +42,7 @@ if freesurfer_subject_ID is not '':
   T1_to_MNI_workflow.connect(FS_T1_file_node, 'T1_mgz_path', mriConvert_N, 'in_file')
   T1_to_MNI_workflow.connect(input_node, 'T1_file', mriConvert_N, 'out_file')
 
-  T1_to_MNI_workflow.connect(mriConvert_N, 'out_file', datasink, 'reg.feat.highres.nii.gz')
+  T1_to_MNI_workflow.connect(mriConvert_N, 'out_file', datasink, 'reg.feat.highres.@nii.@gz')
 
 
 ########################################################################################
@@ -57,7 +57,7 @@ T1_to_MNI_workflow.connect(input_node, 'EPI_space_file', flirt_N, 'in_file')
 T1_to_MNI_workflow.connect(flirt_N, 'out_matrix_file', output_node, 'out_matrix_file')
 T1_to_MNI_workflow.connect(flirt_N, 'out_file', output_node, 'T1_MNI_file')
 
-T1_to_MNI_workflow.connect(flirt_N, 'out_matrix_file', datasink, 'reg.feat.highres2standard.mat')
+T1_to_MNI_workflow.connect(flirt_N, 'out_matrix_file', datasink, 'reg.feat.highres2standard.@mat')
 
 
 ########################################################################################
@@ -67,7 +67,7 @@ invert_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name = 'invert_N')
 T1_to_MNI_workflow.connect(flirt_N, 'out_matrix_file', invert_N, 'in_file')
 T1_to_MNI_workflow.connect(invert_N, 'out_file', output_node, 'out_inv_matrix_file')
 
-T1_to_MNI_workflow.connect(invert_N, 'out_file', datasink, 'reg.feat.standard2highres.mat')
+T1_to_MNI_workflow.connect(invert_N, 'out_file', datasink, 'reg.feat.standard2highres.@mat')
 
 
 ########################################################################################
