@@ -67,7 +67,7 @@ topup_workflow.connect(PE_merge, 'merged_file', topup_node, 'in_file')
 topup_workflow.connect(topup_node, 'out_fieldcoef', unwarp, 'in_topup_fieldcoef')
 topup_workflow.connect(topup_node, 'out_movpar', unwarp, 'in_topup_movpar')
 
-topup_workflow.connect(unwarp, 'out_corrected', outputnode, 'out_file')
+topup_workflow.connect(unwarp, 'out_corrected', output_node, 'out_file')
 
 
 if __name__ == '__main__':
