@@ -4,7 +4,7 @@ from nipype.interfaces import fsl
 from nipype.interfaces import freesurfer
 
 
-def create_epi_to_T1_workflow(name = 'epi_to_T1'):
+def create_epi_to_T1_workflow(name = 'epi_to_T1', use_FS = True):
   """Registers session's EPI space to subject's T1 space
   uses either FLIRT or, when a FS segmentation is present, BBRegister
     Requires fsl and freesurfer tools
@@ -12,9 +12,11 @@ def create_epi_to_T1_workflow(name = 'epi_to_T1'):
     ----------
     name : string
         name of workflow
+    use_FS : bool
+        whether to use freesurfer's segmentation and BBRegister
     Example
     -------
-    >>> epi_to_T1 = create_epi_to_T1_workflow()
+    >>> epi_to_T1 = create_epi_to_T1_workflow('epi_to_T1', use_FS = True)
     >>> epi_to_T1.inputs.inputspec.output_directory = '/data/project/raw/BIDS/sj_1/'
     >>> epi_to_T1.inputs.inputspec.EPI_space_file = 'example_Func.nii.gz'
     >>> epi_to_T1.inputs.inputspec.T1_file = 'T1.nii.gz'
@@ -49,7 +51,7 @@ def create_epi_to_T1_workflow(name = 'epi_to_T1'):
   epi_to_T1_workflow.connect(input_node, 'EPI_space_file', datasink, 'reg.feat.example_func.@nii.@gz')
 
 
-  if freesurfer_subject_ID is not '': # do BBRegister if no SJ ID
+  if use_FS: # do BBRegister if no SJ ID
     bbregister_N = pe.Node(freesurfer.BBRegister(init = 'fsl', contast_type = 't2' ), 
                           name = 'bbregister_N')
 
