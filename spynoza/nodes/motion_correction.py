@@ -23,10 +23,16 @@ def find_middle_run(in_files):
 
     import numpy as np
 
-    idx = np.hstack([np.where(np.array(x.split('_')) == 'SENSE')[0] + 1 for x in in_files])
-    run_nrs = np.array([int(x.split('_')[i]) for x, i in zip(in_files, idx)])
-    middle_run = in_files[np.where(np.median(run_nrs) == run_nrs)[0][0]]
-    other_runs = [x for x in in_files if x != middle_run]
+    ## This is deprecated, because of new BIDS-structure
+    #idx = np.hstack([np.where(np.array(x.split('_')) == 'SENSE')[0] + 1 for x in in_files])
+    #run_nrs = np.array([int(x.split('_')[i]) for x, i in zip(in_files, idx)])
+    #middle_run = in_files[np.where(np.median(run_nrs) == run_nrs)[0][0]]
+    #other_runs = [x for x in in_files if x != middle_run]
+
+    middle_idx = int(np.floor(len(in_files) / 2))
+    other_idx = np.array([int(i) for i in range(len(in_files)) if i != middle_idx])
+    middle_run = in_files[middle_idx]
+    other_runs = in_files[other_idx]
 
     return middle_run, other_runs
 
