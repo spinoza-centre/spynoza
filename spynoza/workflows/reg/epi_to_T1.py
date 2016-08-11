@@ -14,7 +14,7 @@ input_node = pe.Node(IdentityInterface(
 # still have to choose which of these two output methods to use.
 
 # datasink = pe.Node(nio.DataSink(input_names=['output_directory']]), name='sinker')
-output_node = pe.Node(IdentityInterface(fields='out_file'), name='outputnode')
+output_node = pe.Node(IdentityInterface(fields=('out_inv_matrix_file', 'out_matrix_file', 'out_reg_file')), name='outputnode')
 
 
 epi_to_T1_workflow = pe.Workflow(name='epi_to_T1')
@@ -23,7 +23,7 @@ epi_to_T1_workflow = pe.Workflow(name='epi_to_T1')
 epi_to_T1_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
 
 
-if freesurfer_subject_ID not is '': # do BBRegister if no SJ ID
+if freesurfer_subject_ID is not '': # do BBRegister if no SJ ID
   bbregister_N = pe.Node(freesurfer.BBRegister(init = 'fsl', contast_type = 't2' ), 
                         name = 'bbregister_N')
 

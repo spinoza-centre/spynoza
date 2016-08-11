@@ -1,8 +1,6 @@
 import os.path as op
 import nipype.pipeline as pe
 from nipype.interfaces import fsl
-from nipype.interfaces import freesurfer
-from nipype.utils.filemanip import copyfile
 
 
 FSL_REG_FILENAME = 'register_fsl.mat'
@@ -32,7 +30,7 @@ T1_to_MNI_workflow.connect(input_node, 'output_directory', datasink, 'base_direc
 # first take file from freesurfer subject directory, if necessary
 # in which case we assume that there is no T1_file at present and overwrite it
 ########################################################################################
-if freesurfer_subject_ID not is '': 
+if freesurfer_subject_ID is not '': 
   mriConvert_N = pe.Node(freesurfer.MRIConvert(out_type = 'nii.gz'), 
                         name = 'mriConvert_N')
 
