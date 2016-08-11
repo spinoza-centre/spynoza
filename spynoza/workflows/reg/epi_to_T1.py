@@ -9,7 +9,7 @@ BBRegister_REG_FILENAME = 'register.dat'
 
 ### NODES
 input_node = pe.Node(IdentityInterface(
-    fields=['output_directory', 'freesurfer_subject_ID', 'freesurfer_subject_dir', 'T1_file']), name='inputnode')
+    fields=['EPI_space_file', 'output_directory', 'freesurfer_subject_ID', 'freesurfer_subject_dir', 'T1_file']), name='inputnode')
 
 # still have to choose which of these two output methods to use.
 
