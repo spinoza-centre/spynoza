@@ -4,4 +4,4 @@ from .T1_to_MNI import create_T1_to_MNI_workflow
 
 __all__ = ['create_concat_2_feat_workflow',
            'create_epi_to_T1_workflow',
-           'create_T1_to_MNI_workflow']
+           'create_T1_to_standard_workflow']
