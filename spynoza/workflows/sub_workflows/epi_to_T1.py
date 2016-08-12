@@ -38,7 +38,6 @@ def create_epi_to_T1_workflow(name = 'epi_to_T1', use_FS = True):
     input_node = pe.Node(IdentityInterface(
         fields=['EPI_space_file', 'output_directory', 'freesurfer_subject_ID', 'freesurfer_subject_dir', 'T1_file']), name='inputspec')
 
-    # still have to choose which of these two output methods to use.
     output_node = pe.Node(IdentityInterface(fields=('EPI_T1_matrix_file', 'T1_EPI_matrix_file', 'EPI_T1_register_file')), name='outputspec')
 
     epi_to_T1_workflow = pe.Workflow(name='epi_to_T1')

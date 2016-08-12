@@ -59,7 +59,7 @@ def create_motion_correction_workflow(name = 'moco', session_info ):
     EPI_file_selector_node = pe.Node(Function(input_names=['which_file', 'in_files'], output_names='raw_EPI_space_file',
                                        function=EPI_file_selector), name='EPI_file_selector_node')
 
-    motion_correct_EPI_space = pe.MapNode(interface=fsl.MCFLIRT(
+    motion_correct_EPI_space = pe.Node(interface=fsl.MCFLIRT(
     				save_mats = True, 
     				save_plots = True, 
     				cost = 'normmi', 
