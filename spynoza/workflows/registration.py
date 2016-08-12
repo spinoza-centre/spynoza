@@ -18,13 +18,11 @@ def create_registration_workflow(name = 'reg', session_info ):
     -------
     >>> registration_workflow = create_registration_workflow('registration_workflow', session_info = {'use_FS':True})
     >>> registration_workflow.inputs.inputspec.output_directory = '/data/project/raw/BIDS/sj_1/'
-    >>> registration_workflow.inputs.inputspec.EPI_space_file = 'example_Func.nii.gz'
-    >>> registration_workflow.inputs.inputspec.T1_file = 'T1.nii.gz' # optional if using freesurfer
+    >>> registration_workflow.inputs.inputspec.EPI_space_file = 'example_func.nii.gz'
+    >>> registration_workflow.inputs.inputspec.T1_file = 'T1.nii.gz' # if using freesurfer, this file will be created instead of used.
     >>> registration_workflow.inputs.inputspec.freesurfer_subject_ID = 'sub_01'
     >>> registration_workflow.inputs.inputspec.freesurfer_subject_dir = '$SUBJECTS_DIR'
     >>> registration_workflow.inputs.inputspec.reference_file = '/usr/local/fsl/data/standard/standard152_T1_2mm_brain.nii.gz'
-    >>> registration_workflow.inputs.inputspec.freesurfer_subject_dir = '$SUBJECTS_DIR'
-    >>> registration_workflow.inputs.inputspec.freesurfer_subject_dir = '$SUBJECTS_DIR'
  
     Inputs::
           inputspec.output_directory : directory in which to sink the result files
@@ -137,3 +135,4 @@ def create_registration_workflow(name = 'reg', session_info ):
     registration_workflow.connect(concat_2_feat_workflow, 'outputspec.EPI_standard_matrix_file', datasink, 'reg.feat.example_func2standard.@mat')
     registration_workflow.connect(concat_2_feat_workflow, 'outputspec.standard_EPI_matrix_file', datasink, 'reg.feat.standard2example_func.@mat')
 
+    return registration_workflow
