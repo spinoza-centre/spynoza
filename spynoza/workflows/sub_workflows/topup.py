@@ -41,9 +41,9 @@ def create_topup_workflow(name='topup'):
 
     input_node = pe.Node(IdentityInterface(
         fields=['in_file', 'alt_file', 'alt_t', 'conf_file',
-                'pe_direction', 'te', 'epi_factor']), name='inputnode')
+                'pe_direction', 'te', 'epi_factor']), name='inputspec')
 
-    output_node = pe.Node(IdentityInterface(fields='out_file'), name='outputnode')
+    output_node = pe.Node(IdentityInterface(fields='out_file'), name='outputspec')
 
     get_info = pe.Node(Function(input_names='in_file', output_names=['TR', 'shape', 'dyns', 'voxsize', 'affine'],
                                 function=get_scaninfo), name='get_scaninfo')

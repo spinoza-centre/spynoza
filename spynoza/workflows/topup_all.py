@@ -1,7 +1,27 @@
 import os.path as op
-import json
 import nipype.pipeline as pe
-from sub_workflows import *
+
+def find_config_file(conf_file):
+    if conf_file == '':
+        conf_file = op.join(op.abspath(__file__), 'sub_workflows', 'b02b0.cnf')
+
+    return conf_file
+
+def topup_workflow_wrapper(raw_file, alt_file, alt_t, conf_file, pe_direction, te, epi_factor):
+    """Wraps the function that creates the topup workflow for MapNode behavior"""
+    from sub_workflows.topup import create_topup_workflow
+
+    tu_wf = create_topup_workflow()
+    tu_wf.inputspec.raw_file = raw_file
+    tu_wf.inputspec.alt_file = alt_file
+    tu_wf.inputspec.alt_t = alt_t
+    tu_wf.inputspec.conf_file = conf_file
+    tu_wf.inputspec.pe_direction = pe_direction
+    tu_wf.inputspec.te = te
+    tu_wf.inputspec.epi_factor = epi_factor
+
+    return tu_wf
+
 
 def create_topup_all_workflow(name = 'topup_all', session_info ):
 	"""uses sub-workflows to perform different registration steps.
@@ -17,43 +37,68 @@ def create_topup_all_workflow(name = 'topup_all', session_info ):
     Example
     -------
     >>> topup_all_workflow = create_topup_all_workflow('topup_all_workflow', session_info = {'use_FS':True})
-    >>> topup_all_workflow.inputs.inputspec.raw_files = '/data/project/raw/BIDS/sj_1/'
-    >>> topup_all_workflow.inputs.inputspec.raw_topup_files = ['sub-001.nii.gz','sub-002.nii.gz']
-    >>> topup_all_workflow.inputs.inputspec.output_directory = 'middle'
-    >>> topup_all_workflow.inputs.inputspec.output_directory = 'middle'
+    >>> topup_all_workflow.inputs.inputspec.raw_files = ['sub-001.nii.gz','sub-002.nii.gz']
+    >>> topup_all_workflow.inputs.inputspec.alt_files = ['sub-001_topup.nii.gz','sub-002_topup.nii.gz']
+    >>> topup_all_workflow.inputs.inputspec.conf_file = '' # empty string defaults to included file
+    >>> topup_all_workflow.inputs.inputspec.output_directory = '/data/project/raw/BIDS/sj_1/'
  
     Inputs::
           inputspec.output_directory : directory in which to sink the result files
-          inputspec.in_files : list of functional files
-          inputspec.which_file_is_EPI_space : determines which file is the 'standard EPI space'
+          inputspec.raw_files : list of functional files to be topup-unwarped.
+          inputspec.alt_files : the opposite pe direction files. 
+          inputspec.conf_file : file to configure topup with. 
     Outputs::
-           outputspec.EPI_space_file : standard EPI space file, one timepoint
-           outputspec.motion_corrected_files : motion corrected files
-           outputspec.motion_correction_plots : motion correction plots
-           outputspec.motion_correction_parameters : motion correction parameters
+           outputspec.corrected_files : list of corrected files
     """
 
     ### NODES
-    input_node = pe.Node(IdentityInterface(fields=['raw_files', 'raw_topup_files', 'output_directory']), name='inputspec')
+    input_node = pe.Node(IdentityInterface(fields=['raw_files', 'alt_files', 'output_directory', 'conf_file']), name='inputspec')
     output_node = pe.Node(IdentityInterface(fields=([
-    			'corrected_files', ])), name='outputspec')
+    			'corrected_files' ])), name='outputspec')
+
+    find_config_node = pe.Node(Function(input_names='config_file', output_names='config_file',
+                                function=find_config_file), name='find_config_file')
+
+    ########################################################################################
+    # Topup for a single run is already a workflow, and we want to mapnode over this,
+    # preferentially. The only way to do this is wrap the workflow in a function, 
+    # and make a mapnode of this function. 
+    ########################################################################################
+
+    topup_workflow_wrapper_node = pe.MapNode(Function(input_names=
+        ['in_file', 'alt_file', 'alt_t', 'conf_file', 'pe_direction', 'te', 'epi_factor'], 
+        output_names='topup_workflow',
+        function=topup_workflow_wrapper), name='topup_workflow_wrapper_node', iterfield=['in_file', 'alt_file'])
+
+    topup_workflow_wrapper_node.inputs.alt_t = session_info['alt_t']
+    topup_workflow_wrapper_node.inputs.te = session_info['te']
+    topup_workflow_wrapper_node.inputs.pe_direction = session_info['pe_direction']
+    topup_workflow_wrapper_node.inputs.epi_factor = session_info['epi_factor']
+
+    ########################################################################################
+    # And the actual across-runs workflow.
+    ########################################################################################    
 
     topup_all_workflow = pe.Workflow(name='topup_all_workflow')
+    topup_all_workflow.connect(input_node, 'conf_file', find_config_node, 'conf_file')
+    topup_all_workflow.connect(find_config_node, 'conf_file', topup_workflow_wrapper_node, 'conf_file')
+    topup_all_workflow.connect(input_node, 'raw_files', topup_workflow_wrapper_node, 'in_file')
+    topup_all_workflow.connect(input_node, 'alt_files', topup_workflow_wrapper_node, 'alt_file')
 
-    topup = pe.MapNode(interface=create_topup_workflow(),
-                       name='topup', iterfield='in_file')
 
+    ########################################################################################
+    # and the output node. 
+    ########################################################################################    
+    topup_all_workflow.connect(topup_workflow_wrapper_node, 'out_file', output_node, 'corrected_files')
 
-    base_dir = '/media/lukas/data/Spynoza_data/data_tomas/sub-001'
-    raw_nii = op.join(base_dir, 'func', 'sub-001_task-mapper_acq-multiband_run-1_bold.nii.gz')
-    topup_raw_nii = op.join(base_dir, 'fmap', 'sub-001_task-mapper_acq-multiband_run-1_topup.nii.gz')
-    config_file = op.join(op.dirname(base_dir), 'b02b0.cnf')
+    ########################################################################################
+    # outputs via datasink
+    ########################################################################################
+    datasink = pe.Node(nio.DataSink(), name='sinker')
 
-    topup_workflow = create_topup_workflow()
-    topup_workflow.inputs.inputnode.in_file = raw_nii
-    topup_workflow.inputs.inputnode.alt_file = topup_raw_nii
-    topup_workflow.inputs.inputnode.alt_t = 0
-    topup_workflow.inputs.inputnode.conf_file = config_file
-    topup_workflow.inputs.inputnode.pe_direction = 'y'
-    topup_workflow.inputs.inputnode.te = 0.025
-    topup_workflow.inputs.inputnode.epi_factor = 37
+    # first link the workflow's output_directory into the datasink.
+    motion_correction_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
+    # and the rest
+    motion_correction_workflow.connect(topup_workflow_wrapper_node, 'out_file', datasink, 'tu')
+
+    return topup_all_workflow
