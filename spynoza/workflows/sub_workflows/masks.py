@@ -73,7 +73,7 @@ def create_transform_aseg_to_EPI_workflow(name = 'transform_aseg_to_EPI'):
     transform_aseg_to_EPI_workflow.connect(input_node, 'reg_file', vol_trans_node, 'reg_file')    
 
     transform_aseg_to_EPI_workflow.connect(vol_trans_node, 'transformed_file', mriConvert_N, 'in_file')
-    transform_aseg_to_EPI_workflow.connect(mriConvert_N, 'out_file', output_node, 'output_mask'))
+    transform_aseg_to_EPI_workflow.connect(mriConvert_N, 'out_file', output_node, 'output_mask')
 
     ########################################################################################
     # outputs via datasink
@@ -139,7 +139,7 @@ def create_transform_atlas_to_EPI_workflow(name = 'transform_atlas_to_EPI'):
     transform_atlas_to_EPI_workflow.connect(input_node, 'reg_file', vol_trans_node, 'in_matrix_file')
     transform_atlas_to_EPI_workflow.connect(input_node, 'EPI_space_file', vol_trans_node, 'reference')
 
-    transform_atlas_to_EPI_workflow.connect(vol_trans_node, 'out_file', output_node, 'output_mask'))
+    transform_atlas_to_EPI_workflow.connect(vol_trans_node, 'out_file', output_node, 'output_mask')
 
     ########################################################################################
     # outputs via datasink
@@ -203,7 +203,7 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
         import glob
         import os.path as op
 
-        label_list = glob.glob(op.join(freesurfer_subject_dir, freesurfer_subject_ID, 'label', label_directory, re)))
+        label_list = glob.glob(op.join(freesurfer_subject_dir, freesurfer_subject_ID, 'label', label_directory, re))
 
         return label_list
 
