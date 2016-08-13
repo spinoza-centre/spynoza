@@ -1,11 +1,12 @@
 import os.path as op
 import json
 import nipype.pipeline as pe
-from sub_workflows import *
+from nipype.interfaces.utility import Function, IdentityInterface
+from .sub_workflows import *
 
 
-def create_registration_workflow(name = 'reg', session_info ):
-	"""uses sub-workflows to perform different registration steps.
+def create_registration_workflow(session_info, name = 'reg'):
+    """uses sub-workflows to perform different registration steps.
     Requires fsl and freesurfer tools
     Parameters
     ----------
@@ -16,7 +17,7 @@ def create_registration_workflow(name = 'reg', session_info ):
         whether to use FreeSurfer or FLIRT etc.
     Example
     -------
-    >>> registration_workflow = create_registration_workflow('registration_workflow', session_info = {'use_FS':True})
+    >>> registration_workflow = create_registration_workflow(name = 'registration_workflow', session_info = {'use_FS':True})
     >>> registration_workflow.inputs.inputspec.output_directory = '/data/project/raw/BIDS/sj_1/'
     >>> registration_workflow.inputs.inputspec.EPI_space_file = 'example_func.nii.gz'
     >>> registration_workflow.inputs.inputspec.T1_file = 'T1.nii.gz' # if using freesurfer, this file will be created instead of used.
@@ -37,10 +38,12 @@ def create_registration_workflow(name = 'reg', session_info ):
     """
 
     ### NODES
-    input_node = pe.Node(IdentityInterface(
-        fields=['EPI_space_file', 'output_directory', 'freesurfer_subject_ID', 'freesurfer_subject_dir', 'T1_file',
-        	'standard_file'
-        ]), name='inputspec')
+    input_node = pe.Node(IdentityInterface(fields=['EPI_space_file',
+                                                'output_directory', 
+                                                'freesurfer_subject_ID', 
+                                                'freesurfer_subject_dir', 
+                                                'T1_file',
+                                                'standard_file']), name='inputspec')
 
     ### Workflow to be returned
     registration_workflow = pe.Workflow(name='registration_workflow')
@@ -109,7 +112,7 @@ def create_registration_workflow(name = 'reg', session_info ):
     registration_workflow.connect([(T1_to_standard, concat_2_feat, [
                                             ('outputspec.T1_standard_matrix_file', 'inputspec.T1_standard_matrix_file'),
                                             ('outputspec.standard_T1_matrix_file', 'inputspec.standard_T1_matrix_file')
-
+                                            ])])
 
     # outputs via datasink
     datasink = pe.Node(nio.DataSink(), name='sinker')

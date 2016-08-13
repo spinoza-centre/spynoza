@@ -1,7 +1,7 @@
 import os.path as op
 import nipype.pipeline as pe
 from nipype.interfaces import fsl
-from nipype.interfaces.utility import IdentityInterface
+from nipype.interfaces.utility import Function, IdentityInterface
 import nipype.interfaces.io as nio
 
 
@@ -73,14 +73,14 @@ def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True):
     # in which case we assume that there is no T1_file at present and overwrite it
     ########################################################################################
     if use_FS: 
-    mriConvert_N = pe.Node(freesurfer.MRIConvert(out_type = 'nii.gz'), 
+        mriConvert_N = pe.Node(freesurfer.MRIConvert(out_type = 'nii.gz'), 
                           name = 'mriConvert_N')
 
-    T1_to_standard_workflow.connect(input_node, 'freesurfer_subject_ID', FS_T1_file_node, 'freesurfer_subject_ID')
-    T1_to_standard_workflow.connect(input_node, 'freesurfer_subject_dir', FS_T1_file_node, 'freesurfer_subject_dir')
+        T1_to_standard_workflow.connect(input_node, 'freesurfer_subject_ID', FS_T1_file_node, 'freesurfer_subject_ID')
+        T1_to_standard_workflow.connect(input_node, 'freesurfer_subject_dir', FS_T1_file_node, 'freesurfer_subject_dir')
 
-    T1_to_standard_workflow.connect(FS_T1_file_node, 'T1_mgz_path', mriConvert_N, 'in_file')
-    T1_to_standard_workflow.connect(input_node, 'T1_file', mriConvert_N, 'out_file')
+        T1_to_standard_workflow.connect(FS_T1_file_node, 'T1_mgz_path', mriConvert_N, 'in_file')
+        T1_to_standard_workflow.connect(mriConvert_N, 'out_file', input_node, 'T1_file')
 
 
     ########################################################################################
@@ -124,7 +124,3 @@ def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True):
     T1_to_standard_workflow.connect(fnirt_N, 'out_intensitymap_file', output_node, 'out_intensitymap_file')
 
     return T1_to_standard_workflow
-
-if __name__ == '__main__':
-
-pass

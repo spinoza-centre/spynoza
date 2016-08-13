@@ -1,38 +1,36 @@
 import os.path as op
 import json
 import nipype.pipeline as pe
-from sub_workflows import *
+from nipype.interfaces.utility import Function, IdentityInterface
+from .sub_workflows import *
 
 
 def EPI_file_selector(which_file, in_files):
-	"""Selects which EPI file will be the standard EPI space.
-	Choices are: 'middle', 'last', 'first', or any integer in the list
-	"""
-	import math
+    """Selects which EPI file will be the standard EPI space.
+    Choices are: 'middle', 'last', 'first', or any integer in the list
+    """
+    import math
 
-	if which_file == 'middle':
-		return in_files[int(math.floor(len(in_files)/2))]
-	elif which_file == 'first':
-		return in_files[0]
-	elif which_file == 'last':
-		return in_files[-1]
-	elif type(which_file) == int:
-		return in_files[which_file]
+    if which_file == 'middle':
+        return in_files[int(math.floor(len(in_files)/2))]
+    elif which_file == 'first':
+        return in_files[0]
+    elif which_file == 'last':
+        return in_files[-1]
+    elif type(which_file) == int:
+        return in_files[which_file]
 
-def create_motion_correction_workflow(name = 'moco', session_info ):
-	"""uses sub-workflows to perform different registration steps.
+def create_motion_correction_workflow(name = 'moco'):
+    """uses sub-workflows to perform different registration steps.
     Requires fsl and freesurfer tools
     Parameters
     ----------
     name : string
         name of workflow
-    session_info : dict 
-        contains session information needed for workflow, such as
-        which file to moco to, etc.
     
     Example
     -------
-    >>> motion_correction_workflow = create_motion_correction_workflow('motion_correction_workflow', session_info = {'use_FS':True})
+    >>> motion_correction_workflow = create_motion_correction_workflow('motion_correction_workflow')
     >>> motion_correction_workflow.inputs.inputspec.output_directory = '/data/project/raw/BIDS/sj_1/'
     >>> motion_correction_workflow.inputs.inputspec.in_files = ['sub-001.nii.gz','sub-002.nii.gz']
     >>> motion_correction_workflow.inputs.inputspec.which_file_is_EPI_space = 'middle'
@@ -51,29 +49,29 @@ def create_motion_correction_workflow(name = 'moco', session_info ):
     ### NODES
     input_node = pe.Node(IdentityInterface(fields=['in_files', 'output_directory', 'which_file_is_EPI_space']), name='inputspec')
     output_node = pe.Node(IdentityInterface(fields=([
-    			'motion_corrected_files', 
-    			'EPI_space_file', 
-    			'motion_correction_plots', 
-    			'motion_correction_parameters'])), name='outputspec')
+                'motion_corrected_files', 
+                'EPI_space_file', 
+                'motion_correction_plots', 
+                'motion_correction_parameters'])), name='outputspec')
 
     EPI_file_selector_node = pe.Node(Function(input_names=['which_file', 'in_files'], output_names='raw_EPI_space_file',
                                        function=EPI_file_selector), name='EPI_file_selector_node')
 
     motion_correct_EPI_space = pe.Node(interface=fsl.MCFLIRT(
-    				save_mats = True, 
-    				save_plots = True, 
-    				cost = 'normmi', 
-    				interpolation = 'sinc'
-    				), name='realign_space')
+                    save_mats = True, 
+                    save_plots = True, 
+                    cost = 'normmi', 
+                    interpolation = 'sinc'
+                    ), name='realign_space')
 
     mean_bold = pe.Node(interface=fsl.maths.MeanImage(dimension='T'), name='mean_space')
 
     motion_correct_all = pe.MapNode(interface=fsl.MCFLIRT(
-   					save_mats = True, 
-    				save_plots = True, 
-    				cost = 'normmi', 
-    				interpolation = 'sinc',
-    				stats_imgs = 'True'
+                       save_mats = True, 
+                    save_plots = True, 
+                    cost = 'normmi', 
+                    interpolation = 'sinc',
+                    stats_imgs = 'True'
                     ), name='realign_all',
                                 iterfield = 'in_file')
 

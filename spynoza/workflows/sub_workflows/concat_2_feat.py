@@ -2,7 +2,7 @@ import os.path as op
 import nipype.pipeline as pe
 from nipype.interfaces import fsl
 from nipype.interfaces import freesurfer
-from nipype.interfaces.utility import IdentityInterface
+from nipype.interfaces.utility import Function, IdentityInterface
 import nipype.interfaces.io as nio
 
 

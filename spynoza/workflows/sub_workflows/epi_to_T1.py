@@ -2,7 +2,7 @@ import os.path as op
 import nipype.pipeline as pe
 from nipype.interfaces import fsl
 from nipype.interfaces import freesurfer
-from nipype.interfaces.utility import IdentityInterface
+from nipype.interfaces.utility import Function, IdentityInterface
 import nipype.interfaces.io as nio
 
 
@@ -76,7 +76,3 @@ def create_epi_to_T1_workflow(name = 'epi_to_T1', use_FS = True):
 
 
     return epi_to_T1_workflow
-
-if __name__ == '__main__':
-
-    pass

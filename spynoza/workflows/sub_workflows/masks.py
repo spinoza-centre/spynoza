@@ -3,7 +3,7 @@ import glob
 import nipype.pipeline as pe
 from nipype.interfaces import fsl
 from nipype.interfaces import freesurfer
-from nipype.interfaces.utility import IdentityInterface
+from nipype.interfaces.utility import Function, IdentityInterface
 
 def create_transform_aseg_to_EPI_workflow(name = 'transform_aseg_to_EPI'):
     """Transforms freesurfer volume-aseg to EPI space and dumps it in the masks folder

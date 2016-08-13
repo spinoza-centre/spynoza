@@ -3,8 +3,6 @@ import nipype.pipeline as pe
 from nipype.interfaces import fsl
 from nipype.interfaces.utility import Function, Merge, IdentityInterface
 from spynoza.nodes.utils import get_scaninfo
-from spynoza.nodes.topup import topup_scan_params, apply_scan_params
-
 
 def dyns_min_1(dyns):
     dyns_1 = dyns - 1
@@ -14,13 +12,14 @@ def topup_scan_params(pe_direction='y', te=0.025, epi_factor=37):
 
     import numpy as np
     import os
+    import tempdir
 
     scan_param_array = np.zeros((2, 4))
     scan_param_array[0, ['x', 'y', 'z'].index(pe_direction)] = 1
     scan_param_array[1, ['x', 'y', 'z'].index(pe_direction)] = -1
     scan_param_array[:, -1] = te * epi_factor
 
-    fn = os.path.abspath('scan_params.txt')
+    fn = os.path.join(tempfile.gettempdir(), 'scan_params.txt')
     np.savetxt(fn, scan_param_array, fmt='%1.3f')
     return fn
 
@@ -28,12 +27,13 @@ def apply_scan_params(pe_direction='y', te=0.025, epi_factor=37, nr_trs=1):
 
     import numpy as np
     import os
+    import tempdir
 
     scan_param_array = np.zeros((nr_trs, 4))
     scan_param_array[:, ['x', 'y', 'z'].index(pe_direction)] = 1
     scan_param_array[:, -1] = te * epi_factor
 
-    fn = os.path.abspath('scan_params_apply.txt')
+    fn = os.path.join(tempfile.gettempdir(), 'scan_params_apply.txt')
     np.savetxt(fn, scan_param_array, fmt='%1.3f')
     return fn
 
@@ -99,24 +99,4 @@ def create_topup_workflow(name='topup'):
     topup_workflow.connect(unwarp, 'out_corrected', output_node, 'out_file')
 
     return topup_workflow
-
-
-if __name__ == '__main__':
-
-    base_dir = '/media/lukas/data/Spynoza_data/data_tomas/sub-001'
-    raw_nii = op.join(base_dir, 'func', 'sub-001_task-mapper_acq-multiband_run-1_bold.nii.gz')
-    topup_raw_nii = op.join(base_dir, 'fmap', 'sub-001_task-mapper_acq-multiband_run-1_topup.nii.gz')
-    config_file = op.join(op.dirname(base_dir), 'b02b0.cnf')
-
-    topup_workflow = create_topup_workflow()
-    topup_workflow.inputs.inputnode.in_file = raw_nii
-    topup_workflow.inputs.inputnode.alt_file = topup_raw_nii
-    topup_workflow.inputs.inputnode.alt_t = 0
-    topup_workflow.inputs.inputnode.conf_file = config_file
-    topup_workflow.inputs.inputnode.pe_direction = 'y'
-    topup_workflow.inputs.inputnode.te = 0.025
-    topup_workflow.inputs.inputnode.epi_factor = 37
-
-    topup_workflow.write_graph()
-    topup_workflow.base_dir = base_dir
-    topup_workflow.run()
+    

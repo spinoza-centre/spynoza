@@ -1,3 +1,5 @@
+from nipype import config
+config.enable_debug_mode()
 # Importing necessary packages
 import os
 import os.path as op
@@ -17,7 +19,8 @@ from IPython.display import Image
 
 # Importing of custom nodes from spynoza packages; assumes that spynoza is installed:
 # pip install git+https://github.com/spinoza-centre/spynoza.git@master
-from spynoza.nodes import apply_sg_filter, find_middle_run, get_scaninfo
+from spynoza.nodes import apply_sg_filter, get_scaninfo
+from spynoza.workflows import create_topup_all_workflow
 
 # we will create a workflow from a BIDS formatted input, at first for the specific use case 
 # of a 7T PRF experiment's preprocessing. 
@@ -56,9 +59,9 @@ datasource1.inputs.template_args = dict(func=[['run_nr']],
 datasource1.inputs.run_nr = list(range(1,8))
 res = datasource1.run()
 
-tua_wf = create_topup_all_workflow(name = 'topup_all')
-tua_wf.inputspec.raw_files = datasource1.outputs.func
-tua_wf.inputspec.alt_files = datasource1.outputs.topup
-tua_wf.inputspec.output_directory = op.join(preprocessed_data_dir, present_subject)
-tua_wf.inputspec.conf_file = ''
+tua_wf = create_topup_all_workflow(session_info = {'te': 0.025,'alt_t': 0,'pe_direction': 'y','epi_factor': 37}, name = 'topup_all')
+tua_wf.inputs.inputspec.raw_files = res.outputs.func
+tua_wf.inputs.inputspec.alt_files = res.outputs.topup
+tua_wf.inputs.inputspec.output_directory = op.join(preprocessed_data_dir, present_subject)
+tua_wf.inputs.inputspec.conf_file = ''
 tua_wf.run()
