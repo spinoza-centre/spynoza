@@ -24,7 +24,7 @@ setup(
     classifiers=[
         'Development Status :: 1 - Planning',
         'Intended Audience :: Science/Research',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Scientific/Engineering :: Bio-Informatics'],
     keywords="fMRI nipype preprocessing",
     url='https://github.com/spinoza-centre',
