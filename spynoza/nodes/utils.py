@@ -35,3 +35,37 @@ def get_scaninfo(in_file):
     TR = float(nifti.header['pixdim'][4])
 
     return TR, shape, dyns, voxsize, affine
+
+
+def dyns_min_1(dyns):
+    dyns_1 = dyns - 1
+    return dyns_1
+
+def topup_scan_params(pe_direction='y', te=0.025, epi_factor=37):
+
+    import numpy as np
+    import os
+    import tempfile
+
+    scan_param_array = np.zeros((2, 4))
+    scan_param_array[0, ['x', 'y', 'z'].index(pe_direction)] = 1
+    scan_param_array[1, ['x', 'y', 'z'].index(pe_direction)] = -1
+    scan_param_array[:, -1] = te * epi_factor
+
+    fn = os.path.join(tempfile.gettempdir(), 'scan_params.txt')
+    np.savetxt(fn, scan_param_array, fmt='%1.3f')
+    return fn
+
+def apply_scan_params(pe_direction='y', te=0.025, epi_factor=37, nr_trs=1):
+
+    import numpy as np
+    import os
+    import tempfile
+
+    scan_param_array = np.zeros((nr_trs, 4))
+    scan_param_array[:, ['x', 'y', 'z'].index(pe_direction)] = 1
+    scan_param_array[:, -1] = te * epi_factor
+
+    fn = os.path.join(tempfile.gettempdir(), 'scan_params_apply.txt')
+    np.savetxt(fn, scan_param_array, fmt='%1.3f')
+    return fn

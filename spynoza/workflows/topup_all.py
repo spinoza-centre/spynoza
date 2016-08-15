@@ -2,6 +2,7 @@ import os.path as op
 import nipype.pipeline as pe
 from .sub_workflows import *
 from nipype.interfaces.utility import Function, IdentityInterface
+import nipype.interfaces.io as nio
 
 # def find_config_file(conf_file):
 #     import os.path as op
@@ -77,23 +78,24 @@ def create_topup_all_workflow(session_info, name = 'topup_all' ):
     # find_config_node = pe.Node(Function(input_names='conf_file', output_names='out_file',
     #                             function=find_config_file), name='find_config_node')
 
-    join_node = pe.JoinNode(IdentityInterface(fields=['topup_outputs']), # 
-            joinsource = 'topup_workflow_wrapper_node', 
-            joinfield = 'topup_outputs', 
-            name = 'joiner')
+    # join_node = pe.JoinNode(IdentityInterface(fields=['topup_outputs']), # 
+    #         joinsource = 'topup_workflow_wrapper_node', 
+    #         joinfield = 'topup_outputs', 
+    #         name = 'joiner')
     ########################################################################################
     # Topup for a single run is already a workflow, and we want to mapnode over this,
     # preferentially. The only way to do this is wrap the workflow in a function, 
     # and make a mapnode of this function. 
     ########################################################################################
 
-    topup_workflow_wrapper_node = pe.MapNode(Function(output_names='outputspec.out_file', input_names='name',
-        function=create_topup_workflow), name='topup_workflow_wrapper_node', iterfield=['inputspec.in_file', 'inputspec.alt_file'])
+    topup_workflow_wrapper_node = pe.MapNode(Function(output_names='topup_workflow', input_names=['name', 'alt_t', 'conf_file',
+                'pe_direction', 'te', 'epi_factor', 'in_file', 'alt_file'],
+        function=create_topup_workflow), name='topup_workflow_wrapper_node', iterfield=['in_file', 'alt_file'])
 
-    topup_workflow_wrapper_node.inputs.inputspec.alt_t = session_info['alt_t']
-    topup_workflow_wrapper_node.inputs.inputspec.te = session_info['te']
-    topup_workflow_wrapper_node.inputs.inputspec.pe_direction = session_info['pe_direction']
-    topup_workflow_wrapper_node.inputs.inputspec.epi_factor = session_info['epi_factor']
+    topup_workflow_wrapper_node.inputs.alt_t = session_info['alt_t']
+    topup_workflow_wrapper_node.inputs.te = session_info['te']
+    topup_workflow_wrapper_node.inputs.pe_direction = session_info['pe_direction']
+    topup_workflow_wrapper_node.inputs.epi_factor = session_info['epi_factor']
 
     ########################################################################################
     # And the actual across-runs workflow.
@@ -102,14 +104,14 @@ def create_topup_all_workflow(session_info, name = 'topup_all' ):
     topup_all_workflow = pe.Workflow(name='topup_all_workflow')
     # topup_all_workflow.connect(input_node, 'conf_file', find_config_node, 'conf_file')
     # topup_all_workflow.connect(find_config_node, 'out_file', topup_workflow_wrapper_node, 'inputspec.conf_file')
-    topup_all_workflow.connect(input_node, 'conf_file', topup_workflow_wrapper_node, 'inputspec.conf_file')
-    topup_all_workflow.connect(input_node, 'in_files', topup_workflow_wrapper_node, 'inputspec.in_file')
-    topup_all_workflow.connect(input_node, 'alt_files', topup_workflow_wrapper_node, 'inputspec.alt_file')
+    topup_all_workflow.connect(input_node, 'conf_file', topup_workflow_wrapper_node, 'conf_file')
+    topup_all_workflow.connect(input_node, 'in_files', topup_workflow_wrapper_node, 'in_file')
+    topup_all_workflow.connect(input_node, 'alt_files', topup_workflow_wrapper_node, 'alt_file')
 
     ########################################################################################
     # and the output. 
     ########################################################################################    
-    topup_all_workflow.connect(topup_workflow_wrapper_node, 'outputspec.out_file', output_node, 'corrected_files')
+    topup_all_workflow.connect(topup_workflow_wrapper_node, 'topup_workflow.outputspec.out_file', output_node, 'corrected_files')
     # topup_all_workflow.connect(topup_workflow_wrapper_node, 'outputspec.out_file', join_node, 'topup_outputs')
     # topup_all_workflow.connect(join_node, 'topup_outputs', output_node, 'corrected_files')
 
@@ -123,6 +125,6 @@ def create_topup_all_workflow(session_info, name = 'topup_all' ):
     topup_all_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
     # and the rest
     # topup_all_workflow.connect(join_node, 'topup_outputs', datasink, 'topup')
-    topup_all_workflow.connect(topup_workflow_wrapper_node, 'outputspec.out_file', datasink, 'topup')
+    topup_all_workflow.connect(topup_workflow_wrapper_node, 'topup_workflow.outputspec.out_file', datasink, 'topup')
 
     return topup_all_workflow

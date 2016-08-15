@@ -4,51 +4,31 @@ from nipype.interfaces import fsl
 from nipype.interfaces.utility import Function, Merge, IdentityInterface
 from spynoza.nodes.utils import get_scaninfo
 
-def dyns_min_1(dyns):
-    dyns_1 = dyns - 1
-    return dyns_1
-
-def topup_scan_params(pe_direction='y', te=0.025, epi_factor=37):
-
-    import numpy as np
-    import os
-    import tempfile
-
-    scan_param_array = np.zeros((2, 4))
-    scan_param_array[0, ['x', 'y', 'z'].index(pe_direction)] = 1
-    scan_param_array[1, ['x', 'y', 'z'].index(pe_direction)] = -1
-    scan_param_array[:, -1] = te * epi_factor
-
-    fn = os.path.join(tempfile.gettempdir(), 'scan_params.txt')
-    np.savetxt(fn, scan_param_array, fmt='%1.3f')
-    return fn
-
-def apply_scan_params(pe_direction='y', te=0.025, epi_factor=37, nr_trs=1):
-
-    import numpy as np
-    import os
-    import tempfile
-
-    scan_param_array = np.zeros((nr_trs, 4))
-    scan_param_array[:, ['x', 'y', 'z'].index(pe_direction)] = 1
-    scan_param_array[:, -1] = te * epi_factor
-
-    fn = os.path.join(tempfile.gettempdir(), 'scan_params_apply.txt')
-    np.savetxt(fn, scan_param_array, fmt='%1.3f')
-    return fn
-
-def create_topup_workflow(name='topup'):
+def create_topup_workflow(name='topup', alt_t = 0, conf_file = 'b0b02.cnf',
+                pe_direction = 'y', te = 0.0025, epi_factor = 37, in_file = '', alt_file = ''):
     import os.path as op
     import nipype.pipeline as pe
     from nipype.interfaces import fsl
     from nipype.interfaces.utility import Function, Merge, IdentityInterface
-    from spynoza.nodes.utils import get_scaninfo
+    from spynoza.nodes.utils import get_scaninfo, dyns_min_1, topup_scan_params, apply_scan_params
 
     # if we wrap this into a MapNode(Function())
     # interface, shouldn't we accept direct arguments to this function?
+    # older version:
+    # input_node = pe.Node(IdentityInterface(
+    #     fields=['in_file', 'alt_file', 'alt_t', 'conf_file',
+    #             'pe_direction', 'te', 'epi_factor']), name='inputspec')
+
     input_node = pe.Node(IdentityInterface(
         fields=['in_file', 'alt_file', 'alt_t', 'conf_file',
                 'pe_direction', 'te', 'epi_factor']), name='inputspec')
+    input_node.in_file = in_file
+    input_node.alt_file = alt_file
+    input_node.epi_factor = epi_factor
+    input_node.te = te
+    input_node.pe_direction = pe_direction
+    input_node.conf_file = conf_file
+    input_node.alt_t = alt_t
 
     output_node = pe.Node(IdentityInterface(fields='out_file'), name='outputspec')
 
