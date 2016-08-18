@@ -49,7 +49,7 @@ def create_topup_workflow(name='topup', alt_t = 0, conf_file = 'b0b02.cnf',
                                      name='apply_scan_params')
 
     PE_ref = pe.Node(fsl.ExtractROI(t_size=1), name='PE_ref')
-    PE_alt = pe.Node(fsl.ExtractROI(t_size=1), name='PE_alt')
+    PE_alt = pe.Node(fsl.ExtractROI(t_min=0, t_size=1), name='PE_alt')
     PE_comb = pe.Node(Merge(2), name='PE_list')
     PE_merge = pe.Node(fsl.Merge(dimension='t'), name='PE_merged')
 
