@@ -20,8 +20,7 @@ from IPython.display import Image
 # Importing of custom nodes from spynoza packages; assumes that spynoza is installed:
 # pip install git+https://github.com/spinoza-centre/spynoza.git@master
 from spynoza.nodes import apply_sg_filter, get_scaninfo
-from spynoza.workflows.topup_all import create_topup_all_workflow
-from spynoza.workflows.sub_workflows import create_topup_workflow
+from spynoza.workflows.topup import create_topup_workflow
 
 # we will create a workflow from a BIDS formatted input, at first for the specific use case 
 # of a 7T PRF experiment's preprocessing. 
@@ -56,7 +55,7 @@ datasource1.inputs.template_args = dict(func=[['run_nr']],
                                        events=[['run_nr']],
                                        eye=[['run_nr']])
 
-datasource1.inputs.run_nr = list(range(1,3))
+datasource1.inputs.run_nr = list(range(1,2))
 res = datasource1.run()
 
 # datasource_templates = dict(func=present_subject + '/func/*{run_nr}_bold.nii.gz',
@@ -68,10 +67,11 @@ res = datasource1.run()
 # datasource = SelectFiles(base_directory = raw_data_dir, sort_filelist = True, datasource_templates)
 # res = datasource.run()
 
-tua_wf = create_topup_all_workflow(session_info = {'te': 0.025,'alt_t': 0,'pe_direction': 'y','epi_factor': 37}, name = 'topup_all')
+tua_wf = create_topup_workflow(session_info = {'te': 0.025, 'pe_direction': 'y','epi_factor': 37}, name = 'topup_all')
 tua_wf.inputs.inputspec.in_files = res.outputs.func
 tua_wf.inputs.inputspec.alt_files = res.outputs.topup
 tua_wf.inputs.inputspec.output_directory = op.join(preprocessed_data_dir, present_subject)
 tua_wf.inputs.inputspec.conf_file = '/usr/share/fsl/5.0/etc/flirtsch/b02b0-empty.cnf'
+# tua_wf.inputs.inputspec.conf_file = '/usr/share/fsl/5.0/etc/flirtsch/b02b0.cnf'
 tua_wf.run()
 # tua_wf.run('MultiProc', plugin_args={'n_procs': -1})

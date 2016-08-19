@@ -52,7 +52,12 @@ def topup_scan_params(pe_direction='y', te=0.025, epi_factor=37):
     scan_param_array[1, ['x', 'y', 'z'].index(pe_direction)] = -1
     scan_param_array[:, -1] = te * epi_factor
 
+    spa_txt = str('\n'.join(['\t'.join(['%1.3f'%s for s in sp]) for sp in scan_param_array]))
+
     fn = os.path.join(tempfile.gettempdir(), 'scan_params.txt')
+    # with open(fn, 'wt', encoding='utf-8') as f:
+    #     f.write(spa_txt)
+
     np.savetxt(fn, scan_param_array, fmt='%1.3f')
     return fn
 
@@ -66,6 +71,11 @@ def apply_scan_params(pe_direction='y', te=0.025, epi_factor=37, nr_trs=1):
     scan_param_array[:, ['x', 'y', 'z'].index(pe_direction)] = 1
     scan_param_array[:, -1] = te * epi_factor
 
+    spa_txt = str('\n'.join(['\t'.join(['%1.3f'%s for s in sp]) for sp in scan_param_array]))
+
     fn = os.path.join(tempfile.gettempdir(), 'scan_params_apply.txt')
+    # with open(fn, 'wt', encoding='utf-8') as f:
+    #     f.write(spa_txt)
+
     np.savetxt(fn, scan_param_array, fmt='%1.3f')
     return fn
