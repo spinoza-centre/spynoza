@@ -88,7 +88,7 @@ def create_motion_correction_workflow(name = 'moco'):
                             name='plot_motion',
                             iterfield=['in_file'])
 
-    rename = pe.Node(niu.Rename(format_string='for_registration',
+    rename = pe.Node(niu.Rename(format_string='session_EPI_space',
                             keep_ext=True),
                     name='namer')
 
@@ -130,7 +130,7 @@ def create_motion_correction_workflow(name = 'moco'):
 
     motion_correction_workflow.connect(motion_correct_all, 'out_file', datasink, 'mcf')
     motion_correction_workflow.connect(motion_correct_all, 'par_file', datasink, 'motion_pars')
-    motion_correction_workflow.connect(plot_motion, 'out_file', datasink, 'motion_pars.@')
+    motion_correction_workflow.connect(plot_motion, 'out_file', datasink, 'motion_plots')
 
     return motion_correction_workflow
 

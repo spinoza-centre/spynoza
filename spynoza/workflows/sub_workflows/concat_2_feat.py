@@ -8,9 +8,6 @@ def create_concat_2_feat_workflow(name = 'concat_2_feat'):
     Example
     -------
     >>> concat_2_feat = create_concat_2_feat_workflow()
-    >>> concat_2_feat.inputs.inputspec.T1_file = 'T1.nii.gz'
-    >>> concat_2_feat.inputs.inputspec.reference_file = 'standard.nii.gz'
-    >>> concat_2_feat.inputs.inputspec.EPI_space_file = 'EPI.nii.gz'
     >>> concat_2_feat.inputs.inputspec.T1_standard_matrix_file = 'highres2standard.mat'
     >>> concat_2_feat.inputs.inputspec.standard_T1_matrix_file = 'standard2highres.mat'
     >>> concat_2_feat.inputs.inputspec.EPI_T1_matrix_file = 'example_func2highres.mat'
@@ -38,13 +35,9 @@ def create_concat_2_feat_workflow(name = 'concat_2_feat'):
     import nipype.interfaces.io as nio
     ### NODES
     input_node = pe.Node(IdentityInterface(
-    fields=['T1_file', 'reference_file', 'EPI_space_file',
-            'T1_standard_matrix_file', 'standard_T1_matrix_file', 'EPI_T1_matrix_file', 'T1_EPI_matrix_file'
-           ]), name='inputspec')
+    fields=['T1_standard_matrix_file', 'EPI_T1_matrix_file']), name='inputspec')
 
-    # still have to choose which of these two output methods to use.
-
-    output_node = pe.Node(IdentityInterface(fields='out_file'), name='outputspec')
+    output_node = pe.Node(IdentityInterface(fields=['EPI_standard_matrix_file','standard_EPI_matrix_file']), name='outputspec')
 
     concat_2_feat_workflow = pe.Workflow(name=name)
 
@@ -65,5 +58,8 @@ def create_concat_2_feat_workflow(name = 'concat_2_feat'):
     invert_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name = 'invert_N')
     concat_2_feat_workflow.connect(concat_N, 'out_file', invert_N, 'in_file')
     concat_2_feat_workflow.connect(invert_N, 'out_file', output_node, 'standard_EPI_matrix_file')
+
+
+
 
     return concat_2_feat_workflow

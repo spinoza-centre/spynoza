@@ -41,15 +41,15 @@ def create_epi_to_T1_workflow(name = 'epi_to_T1', use_FS = True):
 
     epi_to_T1_workflow = pe.Workflow(name='epi_to_T1')
 
-    if use_FS: # do BBRegister if no SJ ID
-        bbregister_N = pe.Node(freesurfer.BBRegister(init = 'fsl', contrast_type = 't2' ),
+    if use_FS: # do BBRegister
+        bbregister_N = pe.Node(freesurfer.BBRegister(init = 'fsl', contrast_type = 't2', out_fsl_file = True ),
                                name = 'bbregister_N')
 
         epi_to_T1_workflow.connect(input_node, 'EPI_space_file', bbregister_N, 'source_file')
         epi_to_T1_workflow.connect(input_node, 'freesurfer_subject_ID', bbregister_N, 'subject_id')
         epi_to_T1_workflow.connect(input_node, 'freesurfer_subject_dir', bbregister_N, 'subjects_dir')
 
-        epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', output_node, 'out_matrix_file')
+        epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', output_node, 'EPI_T1_matrix_file')
         epi_to_T1_workflow.connect(bbregister_N, 'out_reg_file', output_node, 'EPI_T1_register_file')
 
         # the final invert node
@@ -63,9 +63,17 @@ def create_epi_to_T1_workflow(name = 'epi_to_T1', use_FS = True):
                           name = 'flirt_N')
         epi_to_T1_workflow.connect(input_node, 'EPI_space_file', flirt_N, 'in_file')
         epi_to_T1_workflow.connect(input_node, 'T1_file', flirt_N, 'reference')
-        epi_to_T1_workflow.connect(input_node, 'EPI_space_file', flirt_N, 'in_file')
-
         epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', output_node, 'EPI_T1_matrix_file')
+
+        # we convert the flirt output matrix to register format so that we at least have a file to copy
+        # this makes the rest of the workflow work without conditionals and if-statements. 
+        tkr_N = pe.Node(freesurfer.Tkregister2(), name = 'tkr_N')
+        epi_to_T1_workflow.connect(input_node, 'EPI_space_file', tkr_N, 'moving_image')
+        epi_to_T1_workflow.connect(input_node, 'freesurfer_subject_ID', tkr_N, 'subject_id')
+        epi_to_T1_workflow.connect(input_node, 'freesurfer_subject_dir', tkr_N, 'subjects_dir')
+
+        epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', tkr_N, 'fsl_in_matrix')
+        epi_to_T1_workflow.connect(tkr_N, 'fsl_in_matrix', output_node, 'EPI_T1_register_file')
 
         # the final invert node
         invert_EPI_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name = 'invert_EPI_N')

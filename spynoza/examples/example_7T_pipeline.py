@@ -43,7 +43,7 @@ FS_subject_dir = '/Users/knapen/subjects/'
 # for now, testing on a single subject, with appropriate FS ID, this will have to be masked.
 present_subject, FS_ID = 'sub-NA', 'NA_220813_12'
 
-session_info = {'te': 0.025, 'pe_direction': 'y','epi_factor': 37, 'use_FS': True}
+session_info = {'te': 0.025, 'pe_direction': 'y','epi_factor': 37, 'use_FS': True, 'do_fnirt': False}
 
 if not op.isdir(preprocessed_data_dir):
     os.makedirs(preprocessed_data_dir)
@@ -63,34 +63,36 @@ res = datasource.run()
 print(res.outputs.func)
 print(res.outputs.topup)
 
-tua_wf = create_topup_workflow(session_info, name = 'topup_all')
-tua_wf.inputs.inputspec.in_files = res.outputs.func
-tua_wf.inputs.inputspec.alt_files = res.outputs.topup
-tua_wf.inputs.inputspec.output_directory = op.join(preprocessed_data_dir, present_subject)
-tua_wf.inputs.inputspec.conf_file = '/usr/local/fsl/etc/flirtsch/b02b0-empty.cnf'
-tua_wf.inputs.inputspec.conf_file = '/usr/share/fsl/5.0/etc/flirtsch/b02b0.cnf'
+# tua_wf = create_topup_workflow(session_info, name = 'topup_all')
+# tua_wf.inputs.inputspec.in_files = res.outputs.func
+# tua_wf.inputs.inputspec.alt_files = res.outputs.topup
+# tua_wf.inputs.inputspec.output_directory = op.join(preprocessed_data_dir, present_subject)
+# tua_wf.inputs.inputspec.conf_file = '/usr/local/fsl/etc/flirtsch/b02b0-empty.cnf'
+# tua_wf.inputs.inputspec.conf_file = '/usr/share/fsl/5.0/etc/flirtsch/b02b0.cnf'
 # tua_wf.run()
+# tua_wf.run('MultiProc', plugin_args={'n_procs': -1})
 
-motion_proc = create_motion_correction_workflow('moco')
-motion_proc.inputs.inputspec.in_files = res.outputs.func
+# motion_proc = create_motion_correction_workflow('moco')
+# motion_proc.inputs.inputspec.in_files = res.outputs.func
 
-# motion_proc.inputs.inputspec.in_files = tua_wf.outputs.outputspec.out_files
-motion_proc.inputs.inputspec.output_directory = op.join(preprocessed_data_dir, present_subject)
-motion_proc.inputs.inputspec.which_file_is_EPI_space = 'middle'
+# # motion_proc.inputs.inputspec.in_files = tua_wf.outputs.outputspec.out_files
+# motion_proc.inputs.inputspec.output_directory = op.join(preprocessed_data_dir, present_subject)
+# motion_proc.inputs.inputspec.which_file_is_EPI_space = 'middle'
 
 # motion_proc.run()
 
 reg = create_registration_workflow(session_info, name = 'reg')
-reg.inputs.inputspec.EPI_space_file = motion_proc.outputs.outputspec.EPI_space_file
+# reg.inputs.inputspec.EPI_space_file = motion_proc.outputs.outputspec.EPI_space_file
+reg.inputs.inputspec.EPI_space_file = '/Users/knapen/Documents/projects/spynoza/data/preprocessed/sub-NA/reg/for_registration/sub-NA_task-mapper_acq-multiband_run-4_bold_mcf_mean.nii.gz'
 reg.inputs.inputspec.output_directory = op.join(preprocessed_data_dir, present_subject)
+
 reg.inputs.inputspec.freesurfer_subject_ID = FS_ID
 reg.inputs.inputspec.freesurfer_subject_dir = FS_subject_dir
-reg.inputs.inputspec.T1_file = ''
+reg.inputs.inputspec.T1_file = None
 reg.inputs.inputspec.standard_file = '/usr/local/fsl/data/standard/MNI152_T1_1mm_brain.nii.gz'
 
 reg.run()
 
 
-tua_wf.run('MultiProc', plugin_args={'n_procs': -1})
 
 
