@@ -1,10 +1,3 @@
-import os.path as op
-import nipype.pipeline as pe
-from nipype.interfaces import fsl
-from nipype.interfaces.utility import Function, IdentityInterface
-import nipype.interfaces.io as nio
-
-
 def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True):
     """Registers subject's T1 to standard space using FLIRT and FNIRT.
     Requires fsl tools
@@ -37,6 +30,12 @@ def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True):
            outputspec.out_intensitymap_file : FNIRT intensity map
 
     """
+    import os.path as op
+    import nipype.pipeline as pe
+    from nipype.interfaces import fsl
+    from nipype.interfaces import freesurfer
+    from nipype.interfaces.utility import Function, IdentityInterface
+    import nipype.interfaces.io as nio
 
     ### NODES
     input_node = pe.Node(IdentityInterface(
@@ -73,7 +72,7 @@ def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True):
     # in which case we assume that there is no T1_file at present and overwrite it
     ########################################################################################
     if use_FS: 
-        mriConvert_N = pe.Node(freesurfer.MRIConvert(out_type = 'nii.gz'), 
+        mriConvert_N = pe.Node(freesurfer.MRIConvert(out_type = 'niigz'), 
                           name = 'mriConvert_N')
 
         T1_to_standard_workflow.connect(input_node, 'freesurfer_subject_ID', FS_T1_file_node, 'freesurfer_subject_ID')
@@ -90,7 +89,6 @@ def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True):
                         name = 'flirt_N')
     T1_to_standard_workflow.connect(input_node, 'T1_file', flirt_N, 'in_file')
     T1_to_standard_workflow.connect(input_node, 'standard_file', flirt_N, 'reference')
-    T1_to_standard_workflow.connect(input_node, 'EPI_space_file', flirt_N, 'in_file')
 
     T1_to_standard_workflow.connect(flirt_N, 'out_matrix_file', output_node, 'T1_standard_matrix_file')
     T1_to_standard_workflow.connect(flirt_N, 'out_file', output_node, 'T1_standard_file')
@@ -110,8 +108,7 @@ def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True):
     fnirt_N = pe.Node(fsl.FNIRT(in_fwhm = [8, 4, 2, 2], 
                               subsampling_scheme = [4, 2, 1, 1], 
                               warp_resolution = (6, 6, 6), 
-                              output_type = 'NIFTI_GZ', 
-                              interp = 'sinc'), 
+                              output_type = 'NIFTI_GZ'), 
                         name = 'fnirt_N')
 
     T1_to_standard_workflow.connect(flirt_N, 'out_matrix_file', fnirt_N, 'affine_file')

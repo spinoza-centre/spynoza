@@ -39,16 +39,16 @@ def create_topup_workflow(session_info, name='topup'):
 
     PE_ref = pe.MapNode(fsl.ExtractROI(t_size=1), name='PE_ref', iterfield = ['in_file', 't_min'])
     PE_alt = pe.MapNode(fsl.ExtractROI(t_min=0, t_size=1), name='PE_alt', iterfield = ['in_file']) # hard-coded the timepoint for this node, no more need for alt_t.
-    PE_comb = pe.Node(Merge(2), name='PE_list')
-    PE_merge = pe.Node(fsl.Merge(dimension='t'), name='PE_merged')
+    PE_comb = pe.MapNode(Merge(2), name='PE_list', iterfield = ['in1', 'in2'])
+    PE_merge = pe.MapNode(fsl.Merge(dimension='t'), name='PE_merged', iterfield = ['in_files'])
 
     # implementing the contents of b02b0.cnf in the args, 
     # while supplying an emtpy text file as a --config option 
     # gets topup going on our server. 
     topup_args = """--warpres=20,16,14,12,10,6,4,4,4 --subsamp=1,1,1,1,1,1,1,1,1 --fwhm=8,6,4,3,3,2,1,0,0 --miter=5,5,5,5,5,10,10,20,20 --lambda=0.005,0.001,0.0001,0.000015,0.000005,0.0000005,0.00000005,0.0000000005,0.00000000001 --ssqlambda=1 --regmod=bending_energy --estmov=1,1,1,1,1,0,0,0,0 --minmet=0,0,0,0,0,1,1,1,1 --splineorder=3 --numprec=double --interp=spline --scale=1 -v"""
-    # topup_node = pe.MapNode(fsl.TOPUP(args = topup_args), name='topup', iterfield=['in_file'])
-    topup_node = pe.MapNode(fsl.TOPUP(), name='topup', iterfield=['in_file'])
-    unwarp = pe.MapNode(fsl.ApplyTOPUP(in_index=[1], method='jac'), name='unwarp', iterfield = ['in_file', 'in_topup_fieldcoef', 'in_topup_movpar', 'encoding_file'])
+    topup_node = pe.MapNode(fsl.TOPUP(args = topup_args), name='topup', iterfield=['in_file'])
+    # topup_node = pe.MapNode(fsl.TOPUP(), name='topup', iterfield=['in_file'])
+    unwarp = pe.MapNode(fsl.ApplyTOPUP(in_index=[1], method='jac'), name='unwarp', iterfield = ['in_files', 'in_topup_fieldcoef', 'in_topup_movpar', 'encoding_file'])
 
     ########################################################################################
     # WORKFLOW
@@ -63,7 +63,6 @@ def create_topup_workflow(session_info, name='topup'):
     # these are now mapnodes because they split up over files
     topup_workflow.connect(input_node, 'in_files', get_info, 'in_file')
     topup_workflow.connect(input_node, 'in_files', PE_ref, 'in_file')
-    topup_workflow.connect(input_node, 'in_files', unwarp, 'in_file')
     topup_workflow.connect(input_node, 'alt_files', PE_alt, 'in_file')
 
     # this is a simple node, connecting to the input node
@@ -81,19 +80,20 @@ def create_topup_workflow(session_info, name='topup'):
     topup_workflow.connect(get_info, 'dyns', dyns_min_1_node, 'dyns')
     topup_workflow.connect(dyns_min_1_node, 'dyns_1', PE_ref, 't_min')
 
-    # and linking the encoding files, with the in_files and alt_files inputs
-    topup_workflow.connect(topup_scan_params_node, 'fn', topup_node, 'encoding_file')
-    topup_workflow.connect(apply_scan_params_node, 'fn', unwarp, 'encoding_file')
-
     topup_workflow.connect(PE_ref, 'roi_file', PE_comb, 'in1')
     topup_workflow.connect(PE_alt, 'roi_file', PE_comb, 'in2')
     topup_workflow.connect(PE_comb, 'out', PE_merge, 'in_files')
+
+    topup_workflow.connect(topup_scan_params_node, 'fn', topup_node, 'encoding_file')
     topup_workflow.connect(PE_merge, 'merged_file', topup_node, 'in_file')
     topup_workflow.connect(input_node, 'conf_file', topup_node, 'config')
+
+    topup_workflow.connect(input_node, 'in_files', unwarp, 'in_files')
+    topup_workflow.connect(apply_scan_params_node, 'fn', unwarp, 'encoding_file')
     topup_workflow.connect(topup_node, 'out_fieldcoef', unwarp, 'in_topup_fieldcoef')
     topup_workflow.connect(topup_node, 'out_movpar', unwarp, 'in_topup_movpar')
 
-    topup_workflow.connect(unwarp, 'out_corrected', output_node, 'corrected_files')
+    topup_workflow.connect(unwarp, 'out_corrected', output_node, 'out_files')
 
     ########################################################################################
     # outputs via datasink

@@ -1,9 +1,12 @@
 import os.path as op
 import json
 import nipype.pipeline as pe
+import nipype.interfaces.fsl as fsl
+import nipype.interfaces.utility as util
+import nipype.interfaces.io as nio
 from nipype.interfaces.utility import Function, IdentityInterface
 from .sub_workflows import *
-
+import nipype.interfaces.utility as niu
 
 def EPI_file_selector(which_file, in_files):
     """Selects which EPI file will be the standard EPI space.
@@ -45,7 +48,13 @@ def create_motion_correction_workflow(name = 'moco'):
            outputspec.motion_correction_plots : motion correction plots
            outputspec.motion_correction_parameters : motion correction parameters
     """
-
+    import os.path as op
+    import nipype.pipeline as pe
+    import nipype.interfaces.fsl as fsl
+    import nipype.interfaces.utility as util
+    import nipype.interfaces.io as nio
+    from nipype.interfaces.utility import Function, IdentityInterface
+    import nipype.interfaces.utility as niu
     ### NODES
     input_node = pe.Node(IdentityInterface(fields=['in_files', 'output_directory', 'which_file_is_EPI_space']), name='inputspec')
     output_node = pe.Node(IdentityInterface(fields=([
@@ -71,13 +80,18 @@ def create_motion_correction_workflow(name = 'moco'):
                     save_plots = True, 
                     cost = 'normmi', 
                     interpolation = 'sinc',
-                    stats_imgs = 'True'
+                    stats_imgs = True
                     ), name='realign_all',
                                 iterfield = 'in_file')
 
     plot_motion = pe.MapNode(interface=fsl.PlotMotionParams(in_source='fsl'),
                             name='plot_motion',
                             iterfield=['in_file'])
+
+    rename = pe.Node(niu.Rename(format_string='for_registration',
+                            keep_ext=True),
+                    name='namer')
+
 
     ### Workflow to be returned
     motion_correction_workflow = pe.Workflow(name='motion_correction_workflow')
@@ -90,9 +104,9 @@ def create_motion_correction_workflow(name = 'moco'):
     motion_correction_workflow.connect(mean_bold, 'out_file', motion_correct_all, 'ref_file')
     motion_correction_workflow.connect(input_node, 'in_files', motion_correct_all, 'in_file')
 
-    motion_correction_workflow.connect(mean_bold, 'out_file', outputnode, 'EPI_space_file')
-    motion_correction_workflow.connect(motion_correct_all, 'par_file', outputnode, 'motion_correction_parameters')
-    motion_correction_workflow.connect(motion_correct_all, 'out_file', outputnode, 'motion_corrected_files')
+    motion_correction_workflow.connect(mean_bold, 'out_file', output_node, 'EPI_space_file')
+    motion_correction_workflow.connect(motion_correct_all, 'par_file', output_node, 'motion_correction_parameters')
+    motion_correction_workflow.connect(motion_correct_all, 'out_file', output_node, 'motion_corrected_files')
 
     ########################################################################################
     # Plot the estimated motion parameters
@@ -100,7 +114,7 @@ def create_motion_correction_workflow(name = 'moco'):
 
     plot_motion.iterables = ('plot_type', ['rotations', 'translations'])
     motion_correction_workflow.connect(motion_correct_all, 'par_file', plot_motion, 'in_file')
-    motion_correction_workflow.connect(plot_motion, 'out_file', outputnode, 'motion_correction_plots')
+    motion_correction_workflow.connect(plot_motion, 'out_file', output_node, 'motion_correction_plots')
 
     ########################################################################################
     # outputs via datasink
@@ -110,10 +124,13 @@ def create_motion_correction_workflow(name = 'moco'):
     # first link the workflow's output_directory into the datasink.
     motion_correction_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
     # and the rest
-    motion_correction_workflow.connect(mean_bold, 'out_file', datasink, 'reg.for_registration')
+
+    motion_correction_workflow.connect(mean_bold, 'out_file', rename, 'in_file')
+    motion_correction_workflow.connect(rename, 'out_file', datasink, 'reg')
+
     motion_correction_workflow.connect(motion_correct_all, 'out_file', datasink, 'mcf')
-    motion_correction_workflow.connect(motion_correct_all, 'par_file', datasink, 'motion.@par')
-    motion_correction_workflow.connect(plot_motion, 'out_file', datasink, 'motion_pars')
+    motion_correction_workflow.connect(motion_correct_all, 'par_file', datasink, 'motion_pars')
+    motion_correction_workflow.connect(plot_motion, 'out_file', datasink, 'motion_pars.@')
 
     return motion_correction_workflow
 

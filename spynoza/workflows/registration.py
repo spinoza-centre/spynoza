@@ -69,7 +69,7 @@ def create_registration_workflow(session_info, name = 'reg'):
     # EPI to T1
     ########################################################################################
 
-    registration_workflow.connect([(inputnode, epi_2_T1, [
+    registration_workflow.connect([(input_node, epi_2_T1, [
                                             ('EPI_space_file','inputspec.EPI_space_file'),
                                             ('output_directory', 'inputspec.output_directory'),
                                             ('freesurfer_subject_ID', 'inputspec.freesurfer_subject_ID'),
@@ -81,8 +81,7 @@ def create_registration_workflow(session_info, name = 'reg'):
     # T1 to standard
     ########################################################################################
 
-    registration_workflow.connect([(inputnode, T1_to_standard, [
-                                            ('output_directory', 'inputspec.output_directory'),
+    registration_workflow.connect([(input_node, T1_to_standard, [
                                             ('freesurfer_subject_ID', 'inputspec.freesurfer_subject_ID'),
                                             ('freesurfer_subject_dir', 'inputspec.freesurfer_subject_dir'),
                                             ('T1_file', 'inputspec.T1_file'),
@@ -94,7 +93,7 @@ def create_registration_workflow(session_info, name = 'reg'):
     ########################################################################################
 
     # first the inputs from the input node
-    registration_workflow.connect([(inputnode, concat_2_feat, [
+    registration_workflow.connect([(input_node, concat_2_feat, [
                                             ('output_directory', 'inputspec.output_directory'),
                                             ('freesurfer_subject_ID', 'inputspec.freesurfer_subject_ID'),
                                             ('freesurfer_subject_dir', 'inputspec.freesurfer_subject_dir'),

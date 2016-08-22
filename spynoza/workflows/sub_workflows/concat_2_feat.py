@@ -1,11 +1,3 @@
-import os.path as op
-import nipype.pipeline as pe
-from nipype.interfaces import fsl
-from nipype.interfaces import freesurfer
-from nipype.interfaces.utility import Function, IdentityInterface
-import nipype.interfaces.io as nio
-
-
 def create_concat_2_feat_workflow(name = 'concat_2_feat'):
     """Concatenates and inverts previously created fsl mat registration files.
     Requires fsl tools
@@ -38,7 +30,12 @@ def create_concat_2_feat_workflow(name = 'concat_2_feat'):
            outputspec.EPI_standard_matrix_file : registration file that maps EPI image to
                                  standard space
     """
-
+    import os.path as op
+    import nipype.pipeline as pe
+    from nipype.interfaces import fsl
+    from nipype.interfaces import freesurfer
+    from nipype.interfaces.utility import Function, IdentityInterface
+    import nipype.interfaces.io as nio
     ### NODES
     input_node = pe.Node(IdentityInterface(
     fields=['T1_file', 'reference_file', 'EPI_space_file',
@@ -52,12 +49,12 @@ def create_concat_2_feat_workflow(name = 'concat_2_feat'):
     concat_2_feat_workflow = pe.Workflow(name=name)
 
     # first link the workflow's output_directory into the datasink.
-    concat_2_feat_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
+    # concat_2_feat_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
 
     ########################################################################################
     # concat step, from EPI to T1 to standard
     ########################################################################################
-    concat_N = pe.Node(fsl.ConvertXFM(concat_xfm = True), name = 'invert_N')
+    concat_N = pe.Node(fsl.ConvertXFM(concat_xfm = True), name = 'concat_N')
     concat_2_feat_workflow.connect(input_node, 'EPI_T1_matrix_file', concat_N, 'in_file')
     concat_2_feat_workflow.connect(input_node, 'T1_standard_matrix_file', concat_N, 'in_file2')
     concat_2_feat_workflow.connect(concat_N, 'out_file', output_node, 'EPI_standard_matrix_file')
