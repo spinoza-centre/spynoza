@@ -51,7 +51,7 @@ def create_registration_workflow(session_info, name = 'reg'):
                                                 'standard_file']), name='inputspec')
 
     ### Workflow to be returned
-    registration_workflow = pe.Workflow(name='registration_workflow')
+    registration_workflow = pe.Workflow(name=name)
 
     ### sub-workflows
     epi_2_T1 = create_epi_to_T1_workflow( name = 'epi', use_FS = session_info['use_FS'] )
@@ -161,19 +161,19 @@ def create_registration_workflow(session_info, name = 'reg'):
     registration_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
     # put the nifti and mat files, renamed above, in the reg/feat directory.
     # don't yet know what's wrong with this merge to datasink
-    registration_workflow.connect(merge_for_reg_N, 'out', datasink, 'reg')
+    # registration_workflow.connect(merge_for_reg_N, 'out', datasink, 'reg')
 
-    # registration_workflow.connect(epi_2_T1, 'outputspec.EPI_T1_register_file', datasink, 'reg.register.@dat')
-    # registration_workflow.connect(input_node, 'EPI_space_file', datasink, 'reg.example_func')
-    # registration_workflow.connect(input_node, 'standard_file', datasink, 'reg.standard')
-    # registration_workflow.connect(T1_to_standard, 'outputspec.T1_file', datasink, 'reg.highres')
+    registration_workflow.connect(epi_2_T1, 'outputspec.EPI_T1_register_file', datasink, 'reg.register.@dat')
+    registration_workflow.connect(input_node, 'EPI_space_file', datasink, 'reg.example_func')
+    registration_workflow.connect(input_node, 'standard_file', datasink, 'reg.standard')
+    registration_workflow.connect(T1_to_standard, 'outputspec.T1_file', datasink, 'reg.highres')
 
-    # registration_workflow.connect(epi_2_T1, 'outputspec.EPI_T1_matrix_file', datasink, 'reg.example_func2highres.@mat')
-    # registration_workflow.connect(epi_2_T1, 'outputspec.T1_EPI_matrix_file', datasink, 'reg.highres2example_func.@mat')
-    # registration_workflow.connect(T1_to_standard, 'outputspec.T1_standard_matrix_file', datasink, 'reg.highres2standard.@mat')
-    # registration_workflow.connect(T1_to_standard, 'outputspec.standard_T1_matrix_file', datasink, 'reg.standard2highres.@mat')
-    # registration_workflow.connect(concat_2_feat, 'outputspec.standard_EPI_matrix_file', datasink, 'reg.standard2example_func.@mat')
-    # registration_workflow.connect(concat_2_feat, 'outputspec.EPI_standard_matrix_file', datasink, 'reg.example_func2standard.@mat')
+    registration_workflow.connect(epi_2_T1, 'outputspec.EPI_T1_matrix_file', datasink, 'reg.example_func2highres.@mat')
+    registration_workflow.connect(epi_2_T1, 'outputspec.T1_EPI_matrix_file', datasink, 'reg.highres2example_func.@mat')
+    registration_workflow.connect(T1_to_standard, 'outputspec.T1_standard_matrix_file', datasink, 'reg.highres2standard.@mat')
+    registration_workflow.connect(T1_to_standard, 'outputspec.standard_T1_matrix_file', datasink, 'reg.standard2highres.@mat')
+    registration_workflow.connect(concat_2_feat, 'outputspec.standard_EPI_matrix_file', datasink, 'reg.standard2example_func.@mat')
+    registration_workflow.connect(concat_2_feat, 'outputspec.EPI_standard_matrix_file', datasink, 'reg.example_func2standard.@mat')
 
 
     return registration_workflow

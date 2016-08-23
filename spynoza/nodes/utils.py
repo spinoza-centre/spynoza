@@ -79,3 +79,53 @@ def apply_scan_params(pe_direction='y', te=0.025, epi_factor=37, nr_trs=1):
 
     np.savetxt(fn, scan_param_array, fmt='%1.3f')
     return fn
+
+def pickfirst(files):
+    if isinstance(files, list):
+        if len(files) > 0:
+            return files[0]
+        else:
+            return files
+    else:
+        return files
+
+def percent_signal_change(in_file, func = 'mean'):
+    """Converts data in a nifti-file to percent signal change.
+
+    Takes a 4D fMRI nifti-file and subtracts the
+    mean data from the original data, after which division 
+    by the mean or median and multiplication with 100.
+
+    Parameters
+    ----------
+    in_file : str
+        Absolute path to nifti-file.
+    func : string ['mean', 'median'] (default: 'mean')
+        the function used to calculate the first moment
+
+    Returns
+    -------
+    out_file : str
+        Absolute path to converted nifti-file.
+    """
+
+    import nibabel as nib
+    import numpy as np
+    import os
+
+    data = nib.load(in_file)
+    dims = data.shape
+    affine = data.affine
+
+    if func == 'mean':
+        data_m = data.get_data().mean(axis = -1)
+    elif func == 'median':
+        data_m = np.median(data.get_data(), axis = -1)
+    data_psc = 100.0 * (data.get_data() - data_m) / data_m
+    img = nib.Nifti1Image(data_filt, affine)
+
+    new_name = os.path.basename(in_file).split('.')[:-2][0] + '_psc.nii.gz'
+    out_file = os.path.abspath(new_name)
+    nib.save(img, out_file)
+
+    return out_file

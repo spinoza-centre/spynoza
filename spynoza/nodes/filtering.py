@@ -4,7 +4,7 @@
 from __future__ import division
 
 
-def apply_sg_filter(in_file, polyorder=5, deriv=0):
+def apply_sg_filter(in_file, polyorder=3, deriv=0, window_length = 120):
     """ Applies a savitsky-golay filter to a nifti-file.
 
     Fits a savitsky-golay filter to a 4D fMRI nifti-file and subtracts the
@@ -21,6 +21,8 @@ def apply_sg_filter(in_file, polyorder=5, deriv=0):
         Order of polynomials to use in filter.
     deriv : int (default: 0)
         Number of derivatives to use in filter.
+    window_length : int (default: 200)
+        Window length in seconds.
 
     Returns
     -------
@@ -41,7 +43,7 @@ def apply_sg_filter(in_file, polyorder=5, deriv=0):
     if tr < 0.01:
         tr = np.round(tr * 1000, decimals=3)
 
-    window = np.int(200 / tr)
+    window = np.int(window_length / tr)
 
     # Window must be odd
     if window % 2 == 0:
@@ -49,7 +51,7 @@ def apply_sg_filter(in_file, polyorder=5, deriv=0):
 
     data = data.get_data().reshape((np.prod(data.shape[:-1]), data.shape[-1]))
     data_filt = savgol_filter(data, window_length=window, polyorder=polyorder,
-                              deriv=deriv, axis=1)
+                              deriv=deriv, axis=1, mode = 'nearest')
 
     data_filt = data - data_filt
     data_filt = data_filt.reshape(dims)

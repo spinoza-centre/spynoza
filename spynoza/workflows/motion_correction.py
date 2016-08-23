@@ -94,7 +94,7 @@ def create_motion_correction_workflow(name = 'moco'):
 
 
     ### Workflow to be returned
-    motion_correction_workflow = pe.Workflow(name='motion_correction_workflow')
+    motion_correction_workflow = pe.Workflow(name=name)
 
     motion_correction_workflow.connect(input_node, 'which_file_is_EPI_space', EPI_file_selector_node, 'which_file')
     motion_correction_workflow.connect(input_node, 'in_files', EPI_file_selector_node, 'in_files')
