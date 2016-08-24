@@ -16,7 +16,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     from spynoza.workflows.registration import create_registration_workflow
 
     input_node = pe.Node(IdentityInterface(
-        fields=['raw_directory','output_directory', 'FS_ID', 'FS_subject_dir',
+        fields=['raw_directory', 'output_directory', 'FS_ID', 'FS_subject_dir',
                 'present_subject', 'run_nrs', 'topup_conf_file', 'which_file_is_EPI_space',
                 'standard_file', 'psc_func']), name='inputspec')
 
@@ -45,20 +45,24 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(datasource, 'outputs.func', tua_wf, 'inputspec.in_files')
     all_7T_workflow.connect(datasource, 'outputs.topup', tua_wf, 'inputspec.alt_files')
     
+    # debugging
+    print(dir(tua_wf.outputs))
+    print(tua_wf.list_node_names())
+    print(tua_wf.outputs.outputspec)
 
     # motion correction
     motion_proc = create_motion_correction_workflow('moco')
     all_7T_workflow.connect(input_node, 'output_directory', motion_proc, 'inputspec.output_directory')
     all_7T_workflow.connect(input_node, 'which_file_is_EPI_space', motion_proc, 'inputspec.which_file_is_EPI_space')
-    all_7T_workflow.connect(tua_wf, 'outputs.outputspec.out_files', motion_proc, 'inputspec.in_files')
+    all_7T_workflow.connect(tua_wf, 'outputspec.out_files', motion_proc, 'inputspec.in_files')
 
 
     # registration
     reg = create_registration_workflow(session_info, name = 'reg')
-    all_7T_workflow.connect(motion_proc, 'outputs.outputspec.EPI_space_file', reg, 'inputs.inputspec.EPI_space_file')
+    all_7T_workflow.connect(motion_proc, 'outputspec.EPI_space_file', reg, 'inputspec.EPI_space_file')
     all_7T_workflow.connect(input_node, 'output_directory', reg, 'inputspec.output_directory')
-    all_7T_workflow.connect(input_node, 'FS_ID', reg, 'inputspec.FS_ID')
-    all_7T_workflow.connect(input_node, 'FS_subject_dir', reg, 'inputspec.FS_subject_dir')
+    all_7T_workflow.connect(input_node, 'FS_ID', reg, 'inputspec.freesurfer_subject_ID')
+    all_7T_workflow.connect(input_node, 'FS_subject_dir', reg, 'inputspec.freesurfer_subject_dir')
     all_7T_workflow.connect(input_node, 'standard_file', reg, 'inputspec.standard_file')
     # the T1_file entry could be empty sometimes, depending on the output of the
     # datasource. Check this.
@@ -66,7 +70,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
 
 
     # node for temporal filtering
-    sgfilter = pe.MapNode(util.Function(input_names=['in_file'],
+    sgfilter = pe.MapNode(Function(input_names=['in_file'],
                                     output_names=['out_file'],
                                     function=apply_sg_filter),
                       name='sgfilter', iterfield=['in_file'])
@@ -74,7 +78,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
 
 
     # node for percent signal change
-    psc = pe.MapNode(util.Function(input_names=['in_file', 'func'],
+    psc = pe.MapNode(Function(input_names=['in_file', 'func'],
                                     output_names=['out_file'],
                                     function=percent_signal_change),
                       name='percent_signal_change', iterfield=['in_file'])

@@ -1,5 +1,5 @@
-from nipype import config
-config.enable_debug_mode()
+# from nipype import config
+# config.enable_debug_mode()
 # Importing necessary packages
 import os
 import os.path as op
@@ -66,4 +66,4 @@ all_7T_workflow.inputs.inputspec.standard_file = op.join(os.environ['FSL_DIR'], 
 all_7T_workflow.inputs.inputspec.psc_func = 'median'
 
 
-all_7T_workflow.run('MultiProc', plugin_args={'n_procs': -1})
+all_7T_workflow.run('MultiProc', plugin_args={'n_procs': 4})

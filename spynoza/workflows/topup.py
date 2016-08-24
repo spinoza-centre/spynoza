@@ -16,7 +16,7 @@ def create_topup_workflow(session_info, name='topup'):
         fields=['in_files', 'alt_files', 'conf_file', 'output_directory',
                 'pe_direction', 'te', 'epi_factor']), name='inputspec')
 
-    output_node = pe.Node(IdentityInterface(fields='out_files'), name='outputspec')
+    output_node = pe.Node(IdentityInterface(fields=['out_files']), name='outputspec')
 
     get_info = pe.MapNode(Function(input_names='in_file', output_names=['TR', 'shape', 'dyns', 'voxsize', 'affine'],
                                 function=get_scaninfo), name='get_scaninfo',
