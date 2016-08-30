@@ -154,8 +154,6 @@ def create_transform_atlas_to_EPI_workflow(name = 'transform_atlas_to_EPI'):
     return transform_aseg_to_EPI_workflow
 
 
-
-
 def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     """Creates EPI space masks from surface labels
     Requires fsl and freesurfer tools
@@ -199,7 +197,7 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     output_node = pe.Node(IdentityInterface(fields=('output_masks')), name='outputspec')
 
     # housekeeping function for finding label files in FS directory
-    def FS_label_list(freesurfer_subject_ID, freesurfer_subject_dir, label_directory):
+    def FS_label_list(freesurfer_subject_ID, freesurfer_subject_dir, label_directory, re):
         import glob
         import os.path as op
 
@@ -231,6 +229,9 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     masks_from_surface_workflow.connect(input_node, 'freesurfer_subject_dir', label_2_vol_node, 'subjects_dir')
     masks_from_surface_workflow.connect(input_node, 'freesurfer_subject_ID', label_2_vol_node, 'subject_id')
 
+    # and the iter field filled in from the label collection node
+    masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_2_vol_node, 'label_file')
+
     masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', output_node, 'output_masks')
 
     ########################################################################################
@@ -245,3 +246,80 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
 
     return masks_from_surface_workflow
 
+
+
+def create_fast2mask_workflow(name = 'fast2mask'):
+    """Performs tissue segmentation FSL-Fast from T1, and transforms the resulting
+    masks to EPI space masks
+    Requires fsl
+    Parameters
+    ----------
+    name : string
+        name of workflow
+    Example
+    -------
+    >>> masks_from_surface = create_fast2mask_workflow('fast2mask')
+    >>> masks_from_surface.inputs.inputspec.EPI_space_file = 'example_func.nii.gz'
+    >>> masks_from_surface.inputs.inputspec.anatomical_file = 'retmap'
+    >>> masks_from_surface.inputs.inputspec.output_directory = 'sub_01'
+    >>> masks_from_surface.inputs.inputspec.registration_matrix_file = 'highres2example_func.nii.gz'
+ 
+    Inputs::
+          inputspec.EPI_space_file : EPI session file
+          inputspec.anatomical_file : EPI session registration file
+          inputspec.registration_matrix_file :  FSL style registration matrix, from anatomical to EPI space
+          inputspec.output_directory : output directory in which a subfolder 
+                                        with the name of label_directory is placed.
+    Outputs::
+           outputspec.output_masks : the output masks that are created.
+           outputspec.EPI_T1_matrix_file : FLIRT registration file that maps EPI space to T1
+           outputspec.T1_EPI_matrix_file : FLIRT registration file that maps T1 space to EPI
+    """
+    ### NODES
+    input_node = pe.Node(IdentityInterface(
+        fields=['EPI_space_file', 
+        'anatomical_file',
+        'output_directory', 
+        'registration_matrix_file']), name='inputspec')
+    output_node = pe.Node(IdentityInterface(fields=('output_masks')), name='outputspec')
+
+    fast_node = pe.Node(interface=fsl.FAST(img_type = 1), name='fast')
+
+    ########################################################################################
+    # actual workflow
+    ########################################################################################
+
+    fast2mask_workflow = pe.Workflow(name=name)
+
+    fast2mask_workflow.connect(ipnut_node, 'anatomical_file', fast_node, 'in_files')
+
+
+
+    masks_from_surface_workflow.connect(input_node, 'freesurfer_subject_ID', FS_label_list_node, 'freesurfer_subject_ID')    
+    masks_from_surface_workflow.connect(input_node, 'freesurfer_subject_dir', FS_label_list_node, 'freesurfer_subject_dir')
+    masks_from_surface_workflow.connect(input_node, 'label_directory', FS_label_list_node, 'label_directory')
+    masks_from_surface_workflow.connect(input_node, 're', FS_label_list_node, 're')
+
+    masks_from_surface_workflow.connect(input_node, 'reg_file', label_2_vol_node, 'reg_file')
+    masks_from_surface_workflow.connect(input_node, 'EPI_space_file', label_2_vol_node, 'template')
+    masks_from_surface_workflow.connect(input_node, 'fill_thresh', label_2_vol_node, 'fill_thresh')
+
+    masks_from_surface_workflow.connect(input_node, 'freesurfer_subject_dir', label_2_vol_node, 'subjects_dir')
+    masks_from_surface_workflow.connect(input_node, 'freesurfer_subject_ID', label_2_vol_node, 'subject_id')
+
+    # and the iter field filled in from the label collection node
+    masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_2_vol_node, 'label_file')
+
+    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', output_node, 'output_masks')
+
+    ########################################################################################
+    # outputs via datasink
+    ########################################################################################
+    datasink = pe.Node(nio.DataSink(), name='sinker')
+
+    # first link the workflow's output_directory into the datasink.
+    masks_from_surface_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
+    # and the rest
+    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', datasink, 'masks')
+
+    return masks_from_surface_workflow
