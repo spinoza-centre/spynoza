@@ -3,7 +3,7 @@ import glob
 import nipype.pipeline as pe
 from nipype.interfaces import fsl
 from nipype.interfaces import freesurfer
-from nipype.interfaces.utility import Function, IdentityInterface
+from nipype.interfaces.utility import Function, IdentityInterface, Merge
 
 def create_transform_aseg_to_EPI_workflow(name = 'transform_aseg_to_EPI'):
     """Transforms freesurfer volume-aseg to EPI space and dumps it in the masks folder
@@ -250,7 +250,7 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
 
 def create_fast2mask_workflow(name = 'fast2mask'):
     """Performs tissue segmentation FSL-Fast from T1, and transforms the resulting
-    masks to EPI space masks
+    masks to EPI space masks. Assumes T1 anatomical for now.
     Requires fsl
     Parameters
     ----------
@@ -281,9 +281,13 @@ def create_fast2mask_workflow(name = 'fast2mask'):
         'anatomical_file',
         'output_directory', 
         'registration_matrix_file']), name='inputspec')
-    output_node = pe.Node(IdentityInterface(fields=('output_masks')), name='outputspec')
+    output_node = pe.Node(IdentityInterface(fields=('bin_masks', 'prob_masks')), name='outputspec')
 
-    fast_node = pe.Node(interface=fsl.FAST(img_type = 1), name='fast')
+    fast_node = pe.Node(interface=fsl.FAST(img_type = 1, probability_maps = True), name='fast')
+
+    fast_output_merge_node = pe.Node(Merge(2), infields = ['bin', 'prob'])
+
+    apply_xfm_node = pe.MapNode(fsl.ApplyXfm(), iterfield = ['in_file'])
 
     ########################################################################################
     # actual workflow
@@ -291,22 +295,13 @@ def create_fast2mask_workflow(name = 'fast2mask'):
 
     fast2mask_workflow = pe.Workflow(name=name)
 
-    fast2mask_workflow.connect(ipnut_node, 'anatomical_file', fast_node, 'in_files')
+    fast2mask_workflow.connect(input_node, 'anatomical_file', fast_node, 'in_files')
+
+    fast2mask_workflow.connect(fast_node, 'probability_maps', fast_output_merge_node, 'prob')
+    fast2mask_workflow.connect(fast_node, 'tissue_class_files', fast_output_merge_node, 'bin')
 
 
-
-    masks_from_surface_workflow.connect(input_node, 'freesurfer_subject_ID', FS_label_list_node, 'freesurfer_subject_ID')    
-    masks_from_surface_workflow.connect(input_node, 'freesurfer_subject_dir', FS_label_list_node, 'freesurfer_subject_dir')
-    masks_from_surface_workflow.connect(input_node, 'label_directory', FS_label_list_node, 'label_directory')
-    masks_from_surface_workflow.connect(input_node, 're', FS_label_list_node, 're')
-
-    masks_from_surface_workflow.connect(input_node, 'reg_file', label_2_vol_node, 'reg_file')
-    masks_from_surface_workflow.connect(input_node, 'EPI_space_file', label_2_vol_node, 'template')
-    masks_from_surface_workflow.connect(input_node, 'fill_thresh', label_2_vol_node, 'fill_thresh')
-
-    masks_from_surface_workflow.connect(input_node, 'freesurfer_subject_dir', label_2_vol_node, 'subjects_dir')
-    masks_from_surface_workflow.connect(input_node, 'freesurfer_subject_ID', label_2_vol_node, 'subject_id')
-
+ 
     # and the iter field filled in from the label collection node
     masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_2_vol_node, 'label_file')
 
