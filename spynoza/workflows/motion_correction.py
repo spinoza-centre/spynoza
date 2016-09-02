@@ -56,7 +56,8 @@ def create_motion_correction_workflow(name = 'moco'):
     from nipype.interfaces.utility import Function, IdentityInterface
     import nipype.interfaces.utility as niu
     ### NODES
-    input_node = pe.Node(IdentityInterface(fields=['in_files', 'output_directory', 'which_file_is_EPI_space']), name='inputspec')
+    input_node = pe.Node(IdentityInterface(fields=['in_files', 'output_directory', 'which_file_is_EPI_space',
+                                                   'sub_id']), name='inputspec')
     output_node = pe.Node(IdentityInterface(fields=([
                 'motion_corrected_files', 
                 'EPI_space_file', 
@@ -92,7 +93,6 @@ def create_motion_correction_workflow(name = 'moco'):
                             keep_ext=True),
                     name='namer')
 
-
     ### Workflow to be returned
     motion_correction_workflow = pe.Workflow(name=name)
 
@@ -120,9 +120,12 @@ def create_motion_correction_workflow(name = 'moco'):
     # outputs via datasink
     ########################################################################################
     datasink = pe.Node(nio.DataSink(), name='sinker')
+    datasink.inputs.parameterization = False
 
     # first link the workflow's output_directory into the datasink.
     motion_correction_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
+    motion_correction_workflow.connect(input_node, 'sub_id', datasink, 'container')
+
     # and the rest
 
     motion_correction_workflow.connect(mean_bold, 'out_file', rename, 'in_file')
