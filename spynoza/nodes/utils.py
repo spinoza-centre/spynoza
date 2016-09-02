@@ -41,6 +41,34 @@ def dyns_min_1(dyns):
     dyns_1 = dyns - 1
     return dyns_1
 
+
+def concat_iterables(sub, sess=None):
+    """ Concatenates subject and session iterables.
+
+    Generates a subject/session output-directory for datasink.inputs.container.
+
+    Inputs
+    ------
+    sub : str
+        Subject-id (e.g. sub-001)
+    sess : str
+        Session-id (e.g. sess-001)
+
+    Returns
+    -------
+    out_name : str
+        Concatenation of iterables (if sess is defined)
+    """
+    import os
+
+    if sess is None:
+        out_name = sub
+    else:
+        out_name = os.path.join(sub, sess)
+
+    return out_name
+
+
 def topup_scan_params(pe_direction='y', te=0.025, epi_factor=37):
 
     import numpy as np
