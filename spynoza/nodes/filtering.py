@@ -51,7 +51,7 @@ def apply_sg_filter(in_file, polyorder=3, deriv=0, window_length = 120):
 
     data = data.get_data().reshape((np.prod(data.shape[:-1]), data.shape[-1]))
     data_filt = savgol_filter(data, window_length=window, polyorder=polyorder,
-                              deriv=deriv, axis=1, mode = 'nearest')
+                              deriv=deriv, axis=1, mode='nearest')
 
     data_filt = data - data_filt
     data_filt = data_filt.reshape(dims)
