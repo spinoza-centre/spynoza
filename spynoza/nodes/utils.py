@@ -1,6 +1,22 @@
 from __future__ import division, print_function
 
 
+def EPI_file_selector(which_file, in_files):
+    """Selects which EPI file will be the standard EPI space.
+    Choices are: 'middle', 'last', 'first', or any integer in the list
+    """
+    import math
+
+    if which_file == 'middle':
+        return in_files[int(math.floor(len(in_files)/2))]
+    elif which_file == 'first':
+        return in_files[0]
+    elif which_file == 'last':
+        return in_files[-1]
+    elif type(which_file) == int:
+        return in_files[which_file]
+
+
 def get_scaninfo(in_file):
     """ Extracts info from nifti file.
 
@@ -89,6 +105,7 @@ def topup_scan_params(pe_direction='y', te=0.025, epi_factor=37):
     np.savetxt(fn, scan_param_array, fmt='%1.3f')
     return fn
 
+
 def apply_scan_params(pe_direction='y', te=0.025, epi_factor=37, nr_trs=1):
 
     import numpy as np
@@ -108,6 +125,7 @@ def apply_scan_params(pe_direction='y', te=0.025, epi_factor=37, nr_trs=1):
     np.savetxt(fn, scan_param_array, fmt='%1.3f')
     return fn
 
+
 def pickfirst(files):
     if isinstance(files, list):
         if len(files) > 0:
@@ -116,6 +134,7 @@ def pickfirst(files):
             return files
     else:
         return files
+
 
 def percent_signal_change(in_file, func = 'mean'):
     """Converts data in a nifti-file to percent signal change.
@@ -146,11 +165,12 @@ def percent_signal_change(in_file, func = 'mean'):
     affine = data.affine
 
     if func == 'mean':
-        data_m = data.get_data().mean(axis = -1)
+        data_m = data.get_data().mean(axis=-1)
     elif func == 'median':
-        data_m = np.median(data.get_data(), axis = -1)
+        data_m = np.median(data.get_data(), axis=-1)
+
     data_psc = 100.0 * (data.get_data() - data_m) / data_m
-    img = nib.Nifti1Image(data_filt, affine)
+    img = nib.Nifti1Image(data_psc, affine)
 
     new_name = os.path.basename(in_file).split('.')[:-2][0] + '_psc.nii.gz'
     out_file = os.path.abspath(new_name)
