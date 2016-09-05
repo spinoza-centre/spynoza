@@ -9,7 +9,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
 
     # Importing of custom nodes from spynoza packages; assumes that spynoza is installed:
     # pip install git+https://github.com/spinoza-centre/spynoza.git@master
-    from spynoza.nodes.filtering import apply_sg_filter
+    from spynoza.nodes.filtering import savgol_filter
     from spynoza.nodes.utils import get_scaninfo, pickfirst, percent_signal_change
     from spynoza.workflows.topup import create_topup_workflow
     from spynoza.workflows.motion_correction import create_motion_correction_workflow
@@ -72,7 +72,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     # node for temporal filtering
     sgfilter = pe.MapNode(Function(input_names=['in_file'],
                                     output_names=['out_file'],
-                                    function=apply_sg_filter),
+                                    function=savgol_filter),
                       name='sgfilter', iterfield=['in_file'])
     all_7T_workflow.connect(motion_proc, 'outputspec.motion_corrected_files', sgfilter, 'in_file')
 

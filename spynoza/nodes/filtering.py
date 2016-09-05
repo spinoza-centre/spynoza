@@ -4,7 +4,7 @@
 from __future__ import division
 
 
-def apply_sg_filter(in_file, polyorder=3, deriv=0, window_length = 120):
+def savgol_filter(in_file, polyorder=3, deriv=0, window_length = 120):
     """ Applies a savitsky-golay filter to a nifti-file.
 
     Fits a savitsky-golay filter to a 4D fMRI nifti-file and subtracts the
