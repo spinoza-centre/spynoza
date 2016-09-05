@@ -1,27 +1,5 @@
-import os.path as op
-import json
-import nipype.pipeline as pe
-import nipype.interfaces.fsl as fsl
-import nipype.interfaces.utility as util
-import nipype.interfaces.io as nio
-from nipype.interfaces.utility import Function, IdentityInterface
-from .sub_workflows import *
-import nipype.interfaces.utility as niu
+from ..nodes import EPI_file_selector
 
-def EPI_file_selector(which_file, in_files):
-    """Selects which EPI file will be the standard EPI space.
-    Choices are: 'middle', 'last', 'first', or any integer in the list
-    """
-    import math
-
-    if which_file == 'middle':
-        return in_files[int(math.floor(len(in_files)/2))]
-    elif which_file == 'first':
-        return in_files[0]
-    elif which_file == 'last':
-        return in_files[-1]
-    elif type(which_file) == int:
-        return in_files[which_file]
 
 def create_motion_correction_workflow(name = 'moco'):
     """uses sub-workflows to perform different registration steps.
