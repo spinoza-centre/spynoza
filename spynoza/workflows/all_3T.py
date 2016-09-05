@@ -48,11 +48,11 @@ def create_all_3T_workflow(session_info, name='all_3T'):
     import nipype.pipeline as pe
     from nipype.interfaces import fsl
     from nipype.interfaces.utility import Function, IdentityInterface
-    from nipype.interfaces.io import SelectFiles, DataSink
+    from nipype.interfaces.io import DataSink
     from spynoza.nodes.utils import pickfirst, get_scaninfo, concat_iterables
     from spynoza.workflows.motion_correction import create_motion_correction_workflow
     from spynoza.workflows.registration import create_registration_workflow
-    from spynoza.nodes import apply_sg_filter
+    from spynoza.nodes import savgol_filter
 
     # the actual top-level workflow
     all_3T_workflow = pe.Workflow(name=name)
@@ -133,7 +133,7 @@ def create_all_3T_workflow(session_info, name='all_3T'):
     # node for temporal filtering
     sgfilter = pe.MapNode(Function(input_names=['in_file'],
                                    output_names=['out_file'],
-                                   function=apply_sg_filter),
+                                   function=savgol_filter),
                           name='sgfilter', iterfield=['in_file'])
 
     all_3T_workflow.connect(smooth, 'out_file', sgfilter, 'in_file')
