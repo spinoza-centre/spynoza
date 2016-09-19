@@ -12,6 +12,10 @@ import nipype.interfaces.utility as niu
 TODO: remove some imports on top
 """
 
+def _output_filename(in_file):
+    import os
+    return os.path.basename(in_file).split('.')[:-2][0] + '_B0.nii.gz'
+
 def _compute_echo_spacing(wfs, etl, acceleration):
     return ((1000.0 * wfs)/(434.215 * (etl+1))/acceleration) / 1000.0
 
@@ -85,8 +89,8 @@ def create_unwarping_workflow(name = 'unwarp',):
         inputnode.in_file - The volume acquired with EPI sequence
         inputnode.fieldmap_mag - The magnitude of the fieldmap
         inputnode.fieldmap_pha - The phase difference of the fieldmap
-        inputnode.wfs - The water-fat-shift
-        inputnode.etl - ??
+        inputnode.wfs - The water-fat-shift in mm
+        inputnode.etl - epi factor
         inputnode.acceleration - Acceleration factor used for EPI parallel imaging (GRAPPA)
         inputnode.te_diff' - Time difference between TE in seconds.
         inputnode.unwarp_direction
@@ -131,12 +135,16 @@ def create_unwarping_workflow(name = 'unwarp',):
     # Unwarp with FSL Fugue
     fugue = pe.Node(fsl.FUGUE(unwarp_direction='y', median_2dfilter=True), name='fugue')
     
+    # Convert unwrapped fieldmap phase to radials per second:
+    out_file = pe.Node(niu.Function(input_names=['in_file',], output_names=['out_file'], function=_output_filename), name='out_file')
+    
     # Define output node
     outputnode = pe.Node(niu.IdentityInterface(fields=['epi_corrected']), name='outputnode')
     
     # Connect
     unwarp_workflow.connect([
-                    (inputnode,             norm_pha, [('fieldmap_pha', 'in_file')])
+                    (inputnode,             out_file, [('in_file', 'in_file')])
+                    ,(inputnode,            norm_pha, [('fieldmap_pha', 'in_file')])
                     ,(inputnode,            mask_mag, [('fieldmap_mag', 'in_file')])
                     ,(mask_mag,             mask_mag_dil, [('mask_file', 'in_file')])
                     ,(inputnode,            prelude, [('fieldmap_mag', 'magnitude_file')])
@@ -153,7 +161,7 @@ def create_unwarping_workflow(name = 'unwarp',):
                     ,(inputnode,            echo_spacing, [('etl', 'etl')])  
                     ,(inputnode,            echo_spacing, [('acceleration', 'acceleration')])
                     ,(inputnode,            fugue, [('in_file', 'in_file')])
-                    ,(inputnode,            fugue, [('in_file', 'unwarped_file')])  
+                    ,(out_file,             fugue, [('out_file', 'unwarped_file')])  
                     ,(applyxfm,             fugue, [('out_file', 'fmap_in_file')])  
                     ,(echo_spacing,         fugue, [('out_file', 'dwell_time')])  
                     ,(inputnode,            fugue, [('te_diff', 'asym_se_time')])  
