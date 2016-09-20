@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
     session_info = {'use_FS': False,
                     'do_fnirt': False,
-                    'subjects': ['sub-0102', 'sub-0103']}
+                    'subjects': ['sub-0028', 'sub-0029']}
 
     all_3T = create_all_3T_workflow(session_info)
     all_3T.base_dir = '/media/lukas/data/Spynoza_data/data_piop'
@@ -163,4 +163,4 @@ if __name__ == '__main__':
                      'keep_inputs': True,
                      'remove_unnecessary_outputs': True}}
 
-    graph = all_3T.run('MultiProc', plugin_args={'n_procs': 5})
+    graph = all_3T.run('MultiProc', plugin_args={'n_procs': 1})
