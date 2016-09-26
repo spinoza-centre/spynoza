@@ -1,27 +1,5 @@
-import os.path as op
-import json
-import nipype.pipeline as pe
-import nipype.interfaces.fsl as fsl
-import nipype.interfaces.utility as util
-import nipype.interfaces.io as nio
-from nipype.interfaces.utility import Function, IdentityInterface
-from .sub_workflows import *
-import nipype.interfaces.utility as niu
+from ..nodes import EPI_file_selector
 
-def EPI_file_selector(which_file, in_files):
-    """Selects which EPI file will be the standard EPI space.
-    Choices are: 'middle', 'last', 'first', or any integer in the list
-    """
-    import math
-
-    if which_file == 'middle':
-        return in_files[int(math.floor(len(in_files)/2))]
-    elif which_file == 'first':
-        return in_files[0]
-    elif which_file == 'last':
-        return in_files[-1]
-    elif type(which_file) == int:
-        return in_files[which_file]
 
 def create_motion_correction_workflow(name = 'moco'):
     """uses sub-workflows to perform different registration steps.
@@ -56,7 +34,8 @@ def create_motion_correction_workflow(name = 'moco'):
     from nipype.interfaces.utility import Function, IdentityInterface
     import nipype.interfaces.utility as niu
     ### NODES
-    input_node = pe.Node(IdentityInterface(fields=['in_files', 'output_directory', 'which_file_is_EPI_space']), name='inputspec')
+    input_node = pe.Node(IdentityInterface(fields=['in_files', 'output_directory', 'which_file_is_EPI_space',
+                                                   'sub_id']), name='inputspec')
     output_node = pe.Node(IdentityInterface(fields=([
                 'motion_corrected_files', 
                 'EPI_space_file', 
@@ -92,7 +71,6 @@ def create_motion_correction_workflow(name = 'moco'):
                             keep_ext=True),
                     name='namer')
 
-
     ### Workflow to be returned
     motion_correction_workflow = pe.Workflow(name=name)
 
@@ -120,9 +98,12 @@ def create_motion_correction_workflow(name = 'moco'):
     # outputs via datasink
     ########################################################################################
     datasink = pe.Node(nio.DataSink(), name='sinker')
+    datasink.inputs.parameterization = False
 
     # first link the workflow's output_directory into the datasink.
     motion_correction_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
+    motion_correction_workflow.connect(input_node, 'sub_id', datasink, 'container')
+
     # and the rest
 
     motion_correction_workflow.connect(mean_bold, 'out_file', rename, 'in_file')

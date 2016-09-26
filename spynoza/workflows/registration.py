@@ -1,8 +1,3 @@
-import os.path as op
-import json
-import nipype.pipeline as pe
-from nipype.interfaces.utility import Function, IdentityInterface
-import nipype.interfaces.io as nio
 from .sub_workflows import *
 
 
@@ -48,14 +43,15 @@ def create_registration_workflow(session_info, name = 'reg'):
                                                 'freesurfer_subject_ID', 
                                                 'freesurfer_subject_dir', 
                                                 'T1_file',
-                                                'standard_file']), name='inputspec')
+                                                'standard_file',
+                                                'sub_id']), name='inputspec')
 
     ### Workflow to be returned
     registration_workflow = pe.Workflow(name=name)
 
     ### sub-workflows
     epi_2_T1 = create_epi_to_T1_workflow( name = 'epi', use_FS = session_info['use_FS'] )
-    T1_to_standard = create_T1_to_standard_workflow( name = 'T1_to_standard', use_FS = session_info['use_FS'], do_fnirt =  session_info['do_fnirt'])
+    T1_to_standard = create_T1_to_standard_workflow( name = 'T1_to_standard', use_FS = session_info['use_FS'], do_fnirt = session_info['do_fnirt'])
     concat_2_feat = create_concat_2_feat_workflow( name = 'concat_2_feat' )
 
     output_node = pe.Node(IdentityInterface(fields=('EPI_T1_matrix_file',  
@@ -109,8 +105,10 @@ def create_registration_workflow(session_info, name = 'reg'):
     ########################################################################################
     # Rename nodes, for the datasink
     ########################################################################################
-    rename_register = pe.Node(niu.Rename(format_string='register.dat', keep_ext=False), name='rename_register')
-    registration_workflow.connect(epi_2_T1, 'outputspec.EPI_T1_register_file', rename_register, 'in_file')
+
+    if session_info['use_FS']:
+        rename_register = pe.Node(niu.Rename(format_string='register.dat', keep_ext=False), name='rename_register')
+        registration_workflow.connect(epi_2_T1, 'outputspec.EPI_T1_register_file', rename_register, 'in_file')
 
     rename_example_func = pe.Node(niu.Rename(format_string='example_func', keep_ext=True), name='rename_example_func')
     registration_workflow.connect(input_node, 'EPI_space_file', rename_example_func, 'in_file')
@@ -139,41 +137,28 @@ def create_registration_workflow(session_info, name = 'reg'):
     rename_standard2highres = pe.Node(niu.Rename(format_string='standard2highres.mat', keep_ext=False), name='rename_standard2highres')
     registration_workflow.connect(T1_to_standard, 'outputspec.standard_T1_matrix_file', rename_standard2highres, 'in_file')
 
-    merge_for_reg_N = pe.Node(Merge(10), infields =
-                        ['register','example_func','highres','standard',
-                        'example_func2standard', 'example_func2highres', 'highres2standard',
-                        'standard2example_func', 'highres2example_func', 'standard2highres'
-                        ], name='merge_for_reg_N')
-
-    registration_workflow.connect(rename_register, 'out_file', merge_for_reg_N, 'register')
-    registration_workflow.connect(rename_example_func, 'out_file', merge_for_reg_N, 'example_func')
-    registration_workflow.connect(rename_highres, 'out_file', merge_for_reg_N, 'highres')
-    registration_workflow.connect(rename_standard, 'out_file', merge_for_reg_N, 'standard')
-    registration_workflow.connect(rename_example_func2highres, 'out_file', merge_for_reg_N, 'example_func2highres')
-    registration_workflow.connect(rename_highres2example_func, 'out_file', merge_for_reg_N, 'highres2example_func')
-    registration_workflow.connect(rename_highres2standard, 'out_file', merge_for_reg_N, 'highres2standard')
-    registration_workflow.connect(rename_standard2highres, 'out_file', merge_for_reg_N, 'standard2highres')
-    registration_workflow.connect(rename_example_func2standard, 'out_file', merge_for_reg_N, 'example_func2standard')
-    registration_workflow.connect(rename_standard2example_func, 'out_file', merge_for_reg_N, 'standard2example_func')
-   
     # outputs via datasink
     datasink = pe.Node(nio.DataSink(infields=['reg']), name='sinker')
+    datasink.inputs.parameterization = False
     registration_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
+    registration_workflow.connect(input_node, 'sub_id', datasink, 'container')
+
+    # NEW SETUP WITH RENAME (WITHOUT MERGER)
+    if session_info['use_FS']:
+        registration_workflow.connect(rename_register, 'out_file', datasink, 'reg.@dat')
+
+    registration_workflow.connect(rename_example_func, 'out_file', datasink, 'reg.@example_func')
+    registration_workflow.connect(rename_standard, 'out_file', datasink, 'reg.@standard')
+    registration_workflow.connect(rename_highres, 'out_file', datasink, 'reg.@highres')
+    registration_workflow.connect(rename_example_func2highres, 'out_file', datasink, 'reg.@example_func2highres')
+    registration_workflow.connect(rename_highres2example_func, 'out_file', datasink, 'reg.@highres2example_func')
+    registration_workflow.connect(rename_highres2standard, 'out_file', datasink, 'reg.@highres2standard')
+    registration_workflow.connect(rename_standard2highres, 'out_file', datasink, 'reg.@standard2highres')
+    registration_workflow.connect(rename_standard2example_func, 'out_file', datasink, 'reg.@standard2example_func')
+    registration_workflow.connect(rename_example_func2standard, 'out_file', datasink, 'reg.@example_func2standard')
+
     # put the nifti and mat files, renamed above, in the reg/feat directory.
     # don't yet know what's wrong with this merge to datasink
     # registration_workflow.connect(merge_for_reg_N, 'out', datasink, 'reg')
-
-    registration_workflow.connect(epi_2_T1, 'outputspec.EPI_T1_register_file', datasink, 'reg.register.@dat')
-    registration_workflow.connect(input_node, 'EPI_space_file', datasink, 'reg.example_func')
-    registration_workflow.connect(input_node, 'standard_file', datasink, 'reg.standard')
-    registration_workflow.connect(T1_to_standard, 'outputspec.T1_file', datasink, 'reg.highres')
-
-    registration_workflow.connect(epi_2_T1, 'outputspec.EPI_T1_matrix_file', datasink, 'reg.example_func2highres.@mat')
-    registration_workflow.connect(epi_2_T1, 'outputspec.T1_EPI_matrix_file', datasink, 'reg.highres2example_func.@mat')
-    registration_workflow.connect(T1_to_standard, 'outputspec.T1_standard_matrix_file', datasink, 'reg.highres2standard.@mat')
-    registration_workflow.connect(T1_to_standard, 'outputspec.standard_T1_matrix_file', datasink, 'reg.standard2highres.@mat')
-    registration_workflow.connect(concat_2_feat, 'outputspec.standard_EPI_matrix_file', datasink, 'reg.standard2example_func.@mat')
-    registration_workflow.connect(concat_2_feat, 'outputspec.EPI_standard_matrix_file', datasink, 'reg.example_func2standard.@mat')
-
 
     return registration_workflow

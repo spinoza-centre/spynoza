@@ -4,7 +4,7 @@
 from __future__ import division
 
 
-def apply_sg_filter(in_file, polyorder=3, deriv=0, window_length = 120):
+def savgol_filter(in_file, polyorder=3, deriv=0, window_length = 120):
     """ Applies a savitsky-golay filter to a nifti-file.
 
     Fits a savitsky-golay filter to a 4D fMRI nifti-file and subtracts the
@@ -51,9 +51,9 @@ def apply_sg_filter(in_file, polyorder=3, deriv=0, window_length = 120):
 
     data = data.get_data().reshape((np.prod(data.shape[:-1]), data.shape[-1]))
     data_filt = savgol_filter(data, window_length=window, polyorder=polyorder,
-                              deriv=deriv, axis=1, mode = 'nearest')
+                              deriv=deriv, axis=1, mode='nearest')
 
-    data_filt = data - data_filt
+    data_filt = data - data_filt + data_filt.mean(axis=-1)[:, np.newaxis]
     data_filt = data_filt.reshape(dims)
     img = nib.Nifti1Image(data_filt, affine)
     new_name = os.path.basename(in_file).split('.')[:-2][0] + '_sg.nii.gz'
