@@ -16,8 +16,8 @@ def _output_filename(in_file):
     import os
     return os.path.basename(in_file).split('.')[:-2][0] + '_B0.nii.gz'
 
-def _compute_echo_spacing(wfs, etl, acceleration):
-    return ((1000.0 * wfs)/(434.215 * (etl+1))/acceleration) / 1000.0
+def _compute_echo_spacing(wfs, epi_factor, acceleration):
+    return ((1000.0 * wfs)/(434.215 * epi_factor)/acceleration) / 1000.0
 
 def _prepare_phasediff(in_file):
     import nibabel as nib
@@ -29,7 +29,7 @@ def _prepare_phasediff(in_file):
     A = (2.0 * np.pi)/(max_diff-min_diff)
     B = np.pi - (A * max_diff)
     diff_norm = img.get_data() * A + B
-
+    
     name, fext = os.path.splitext(os.path.basename(in_file))
     if fext == '.gz':
         name, _ = os.path.splitext(name)
@@ -74,26 +74,26 @@ def create_unwarping_workflow(name = 'unwarp',):
     
     Example
     -------
-    >>> nipype_epicorrect = create_epidewarp_pipeline('nipype_epidewarp', fieldmap_registration=False)
-    >>> nipype_epicorrect.inputs.inputnode.in_file - The volume acquired with EPI sequence
-    >>> nipype_epicorrect.inputs.inputnode.fieldmap_mag - The magnitude of the fieldmap
-    >>> nipype_epicorrect.inputs.inputnode.fieldmap_pha - The phase difference of the fieldmap
-    >>> nipype_epicorrect.inputs.inputnode.wfs - The water-fat-shift
-    >>> nipype_epicorrect.inputs.inputnode.etl - ??
-    >>> nipype_epicorrect.inputs.inputnode.acceleration - Acceleration factor used for EPI parallel imaging (GRAPPA)
-    >>> nipype_epicorrect.inputs.inputnode.te_diff' - Time difference between TE in seconds.
-    >>> nipype_epicorrect.inputs.inputnode.unwarp_direction
+    >>> nipype_epicorrect = create_unwarping_workflow('unwarp',)
+    >>> unwarp.inputs.inputnode.in_file = 'subj1_run1_bold.nii.gz'
+    >>> unwarp.inputs.inputnode.fieldmap_mag = 'subj1_run1_mag.nii.gz'
+    >>> unwarp.inputs.inputnode.fieldmap_pha = 'subj1_run1_phas.nii.gz'
+    >>> unwarp.inputs.inputnode.wfs = 12.223
+    >>> unwarp.inputs.inputnode.epi_factor = 35.0
+    >>> unwarp.inputs.inputnode.acceleration = 3.0
+    >>> unwarp.inputs.inputnode.te_diff = 0.005
+    >>> unwarp.inputs.inputnode.unwarp_direction = 'y'
     >>> nipype_epicorrect.run()
     
     Inputs::
-        inputnode.in_file - The volume acquired with EPI sequence
-        inputnode.fieldmap_mag - The magnitude of the fieldmap
-        inputnode.fieldmap_pha - The phase difference of the fieldmap
-        inputnode.wfs - The water-fat-shift in mm
-        inputnode.etl - epi factor
-        inputnode.acceleration - Acceleration factor used for EPI parallel imaging (GRAPPA)
-        inputnode.te_diff' - Time difference between TE in seconds.
-        inputnode.unwarp_direction
+        inputnode.in_file - Volume acquired with EPI sequence
+        inputnode.fieldmap_mag - Magnitude of the fieldmap
+        inputnode.fieldmap_pha - Phase difference of the fieldmap
+        inputnode.wfs - Water-fat-shift in pixels
+        inputnode.epi_factor - EPI factor
+        inputnode.acceleration - Acceleration factor used for EPI parallel imaging (SENSE)
+        inputnode.te_diff - Time difference between TE in seconds.
+        inputnode.unwarp_direction - Unwarp direction (default should be "y")
     Outputs::
         outputnode.epi_corrected
     """
@@ -103,7 +103,7 @@ def create_unwarping_workflow(name = 'unwarp',):
                                                     'fieldmap_mag',
                                                     'fieldmap_pha',
                                                     'wfs', 
-                                                    'etl', 
+                                                    'epi_factor', 
                                                     'acceleration', 
                                                     'te_diff', 
                                                     'unwarp_direction'
@@ -116,21 +116,21 @@ def create_unwarping_workflow(name = 'unwarp',):
     # Mask the magnitude of the fieldmap
     mask_mag = pe.Node(fsl.BET(mask=True), name='mask_magnitude')
     mask_mag_dil = pe.Node(niu.Function(input_names=['in_file'], output_names=['out_file'], function=_dilate_mask), name='mask_dilate')
-
+    
     # Unwrap fieldmap phase using FSL PRELUDE
     prelude = pe.Node(fsl.PRELUDE(process3d=True), name='phase_unwrap')
     
     # Convert unwrapped fieldmap phase to radials per second:
     radials_per_second = pe.Node(niu.Function(input_names=['in_file', 'asym'], output_names=['out_file'], function=_radials_per_second), name='radials_ps')
     
-	# Register unwrapped fieldmap (rad/s) to epi, using the magnitude of the fieldmap
+    # Register unwrapped fieldmap (rad/s) to epi, using the magnitude of the fieldmap
     registration = pe.Node(fsl.FLIRT(bins=256, cost='corratio', dof=6, interp='trilinear',  searchr_x=[-10, 10], searchr_y=[-10, 10], searchr_z=[-10, 10]), name='registration')
    
     # transform unwrapped fieldmap (rad/s)
     applyxfm = pe.Node(fsl.ApplyXfm(interp='trilinear'), name='apply_xfm')
     
     # compute effective echospacing:
-    echo_spacing = pe.Node(niu.Function(input_names=['wfs', 'etl', 'acceleration'], output_names=['out_file'], function=_compute_echo_spacing), name='echo_spacing')
+    echo_spacing = pe.Node(niu.Function(input_names=['wfs', 'epi_factor', 'acceleration'], output_names=['out_file'], function=_compute_echo_spacing), name='echo_spacing')
     
     # Unwarp with FSL Fugue
     fugue = pe.Node(fsl.FUGUE(unwarp_direction='y', median_2dfilter=True), name='fugue')
@@ -158,7 +158,7 @@ def create_unwarping_workflow(name = 'unwarp',):
                     ,(registration,         applyxfm, [('out_matrix_file', 'in_matrix_file')]) 
                     ,(inputnode,            applyxfm, [('in_file', 'reference')])  
                     ,(inputnode,            echo_spacing, [('wfs', 'wfs')])
-                    ,(inputnode,            echo_spacing, [('etl', 'etl')])  
+                    ,(inputnode,            echo_spacing, [('epi_factor', 'epi_factor')])  
                     ,(inputnode,            echo_spacing, [('acceleration', 'acceleration')])
                     ,(inputnode,            fugue, [('in_file', 'in_file')])
                     ,(out_file,             fugue, [('out_file', 'unwarped_file')])  
