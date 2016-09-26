@@ -108,6 +108,8 @@ def create_unwarping_workflow(name = 'unwarp',):
                                                     'te_diff', 
                                                     'unwarp_direction'
                                                     ]), name='inputnode')
+
+    inputnode.inputs.unwarp_direction = 'y'
     unwarp_workflow = pe.Workflow(name=name)
     
     # Normalize phase difference of the fieldmap phase to be [-pi, pi)
@@ -133,7 +135,7 @@ def create_unwarping_workflow(name = 'unwarp',):
     echo_spacing = pe.Node(niu.Function(input_names=['wfs', 'epi_factor', 'acceleration'], output_names=['out_file'], function=_compute_echo_spacing), name='echo_spacing')
     
     # Unwarp with FSL Fugue
-    fugue = pe.Node(fsl.FUGUE(unwarp_direction='y', median_2dfilter=True), name='fugue')
+    fugue = pe.Node(fsl.FUGUE(median_2dfilter=True), name='fugue')
     
     # Convert unwrapped fieldmap phase to radials per second:
     out_file = pe.Node(niu.Function(input_names=['in_file',], output_names=['out_file'], function=_output_filename), name='out_file')
