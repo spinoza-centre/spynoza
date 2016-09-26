@@ -79,7 +79,7 @@ def create_unwarping_workflow(name = 'unwarp',):
     >>> nipype_epicorrect.inputs.inputnode.fieldmap_mag - The magnitude of the fieldmap
     >>> nipype_epicorrect.inputs.inputnode.fieldmap_pha - The phase difference of the fieldmap
     >>> nipype_epicorrect.inputs.inputnode.wfs - The water-fat-shift
-    >>> nipype_epicorrect.inputs.inputnode.etl - ??
+    >>> nipype_epicorrect.inputs.inputnode.etl - Echo train length ("EPI factor")
     >>> nipype_epicorrect.inputs.inputnode.acceleration - Acceleration factor used for EPI parallel imaging (GRAPPA)
     >>> nipype_epicorrect.inputs.inputnode.te_diff' - Time difference between TE in seconds.
     >>> nipype_epicorrect.inputs.inputnode.unwarp_direction
@@ -89,11 +89,11 @@ def create_unwarping_workflow(name = 'unwarp',):
         inputnode.in_file - The volume acquired with EPI sequence
         inputnode.fieldmap_mag - The magnitude of the fieldmap
         inputnode.fieldmap_pha - The phase difference of the fieldmap
-        inputnode.wfs - The water-fat-shift in mm
-        inputnode.etl - epi factor
+        inputnode.wfs - The water-fat-shift in pixels
+        inputnode.etl - Echo train length ("EPI factor")
         inputnode.acceleration - Acceleration factor used for EPI parallel imaging (GRAPPA)
         inputnode.te_diff' - Time difference between TE in seconds.
-        inputnode.unwarp_direction
+        inputnode.unwarp_direction - Direction of phase encoding (usually "y" or "y-")
     Outputs::
         outputnode.epi_corrected
     """
@@ -165,6 +165,7 @@ def create_unwarping_workflow(name = 'unwarp',):
                     ,(applyxfm,             fugue, [('out_file', 'fmap_in_file')])  
                     ,(echo_spacing,         fugue, [('out_file', 'dwell_time')])  
                     ,(inputnode,            fugue, [('te_diff', 'asym_se_time')])  
+                    ,(inputnode,            fugue, [('unwarp_direction', 'unwarp_direction')])  
                     ,(fugue,                outputnode, [('unwarped_file', 'epi_corrected')])
                     ])
     
