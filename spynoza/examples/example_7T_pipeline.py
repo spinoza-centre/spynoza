@@ -43,7 +43,7 @@ sub_id, FS_ID = 'sub-NA', 'NA_220813_12'
 opd = op.join(preprocessed_data_dir, sub_id)
 
 # some settings, such as scan parameters, and analysis prescription
-session_info = {'te': 0.025, 'pe_direction': 'y','epi_factor': 37, 'use_FS': True, 'do_fnirt': False}
+session_info = {'te': 0.025, 'pe_direction': 'y','epi_factor': 37, 'use_FS': True, 'do_fnirt': False, 'MB_factor': 3, 'nr_dummies' = 6}
 
 if not op.isdir(preprocessed_data_dir):
     os.makedirs(preprocessed_data_dir)
@@ -67,7 +67,10 @@ all_7T_workflow.inputs.inputspec.standard_file = op.join(os.environ['FSL_DIR'], 
 all_7T_workflow.inputs.inputspec.psc_func = 'median'
 all_7T_workflow.inputs.inputspec.av_func = 'median'
 
-# shell()
-all_7T_workflow.write_graph('bla.png')
+all_7T_workflow.inputs.inputspec.MB_factor = session_info['MB_factor']
+all_7T_workflow.inputs.inputspec.nr_dummies = session_info['nr_dummies']
+
+
+all_7T_workflow.write_graph(os.path.join(preprocessed_data_dir,'7T.pdf'))
 all_7T_workflow.run('MultiProc', plugin_args={'n_procs': 8})
 # all_7T_workflow.run()

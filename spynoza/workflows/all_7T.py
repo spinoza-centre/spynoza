@@ -14,6 +14,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     from spynoza.workflows.topup import create_topup_workflow
     from spynoza.workflows.motion_correction import create_motion_correction_workflow
     from spynoza.workflows.registration import create_registration_workflow
+    from spynoza.workflows.retroicor import create_retroicor_workflow
 
     ########################################################################################
     # nodes
@@ -22,7 +23,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     input_node = pe.Node(IdentityInterface(
         fields=['raw_directory', 'output_directory', 'FS_ID', 'FS_subject_dir',
                 'sub_id', 'topup_conf_file', 'which_file_is_EPI_space',
-                'standard_file', 'psc_func', 'av_func']), name='inputspec')
+                'standard_file', 'psc_func', 'av_func', 'MB_factor', 'nr_dummies']), name='inputspec')
 
     # i/o node
     datasource_templates = dict(func='{sub_id}/func/*_bold.nii.gz',
@@ -117,6 +118,14 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(input_node, 'av_func', av, 'func')
     all_7T_workflow.connect(psc, 'out_file', av, 'in_files')
 
+    # retroicor functionality
+    retr = create_retroicor_workflow(name = 'retroicor')
+
+    all_7T_workflow.connect(sgfilter, 'out_file', retr, 'inputspec.in_files')
+    all_7T_workflow.connect(datasource, 'physio', retr, 'inputspec.phys_files')
+    all_7T_workflow.connect(input_node, 'nr_dummies', retr, 'inputspec.nr_dummies')
+    all_7T_workflow.connect(input_node, 'MB_factor', retr, 'inputspec.MB_factor')
+
     ########################################################################################
     # outputs via datasink
     ########################################################################################
@@ -126,5 +135,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(sgfilter, 'out_file', datasink, 'tf')
     all_7T_workflow.connect(psc, 'out_file', datasink, 'psc')
     all_7T_workflow.connect(av, 'out_file', datasink, 'av')
+    all_7T_workflow.connect(retr, 'outputspec.new_phys', datasink, 'phys')
+    all_7T_workflow.connect(retr, 'outputspec.fig_file', datasink, 'phys.figs')
 
     return all_7T_workflow

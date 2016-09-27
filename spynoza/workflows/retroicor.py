@@ -12,7 +12,7 @@ import nipype.interfaces.utility as niu
 TODO: remove some imports on top
 """
 
-def _slice_times(in_file, phys_file, nr_dummies):
+def _slice_times(in_file, phys_file, nr_dummies, MB_factor = 1):
     import os
     import numpy as np
     import nibabel as nib
@@ -30,7 +30,7 @@ def _slice_times(in_file, phys_file, nr_dummies):
     
     # load nifti and attributes:
     nifti = nib.load(in_file)
-    nr_slices = nifti.header.get_data_shape()[2]
+    nr_slices = nifti.header.get_data_shape()[2] / MB_factor
     nr_volumes = nifti.header.get_data_shape()[3]
 
     # load physio data:
@@ -117,25 +117,29 @@ def create_retroicor_workflow(name = 'retroicor',):
     """
     
     # Define input and workflow:
-    inputnode = pe.Node(niu.IdentityInterface(fields=['in_file',
-                                                    'phys_file',
-                                                    'nr_dummies'
-                                                    ]), name='inputnode')
+    input_node = pe.Node(niu.IdentityInterface(fields=['in_files',
+                                                    'phys_files',
+                                                    'nr_dummies',
+                                                    'MB_factor'
+                                                    ]), name='inputspec')
     retroicor_workflow = pe.Workflow(name=name)
 
     # Normalize phase difference of the fieldmap phase to be [-pi, pi)
-    slice_times = pe.Node(niu.Function(input_names=['in_file', 'phys_file', 'nr_dummies'], output_names=['out_file', 'fig_file'], function=_slice_times), name='slice_times')
+    slice_times = pe.MapNode(niu.Function(input_names=['in_file', 'phys_file', 'nr_dummies', 'MB_factor'], 
+                        output_names=['out_file', 'fig_file'], 
+                        function=_slice_times), name='slice_times', iterfield = ['in_file','phys_file'])
     
     # Define output node
-    outputnode = pe.Node(niu.IdentityInterface(fields=['new_phys', 'fig_file']), name='outputnode')
+    output_node = pe.Node(niu.IdentityInterface(fields=['new_phys', 'fig_file']), name='outputspec')
     
     # Connect
     retroicor_workflow.connect([
-                    (inputnode,              slice_times, [('in_file', 'in_file')])
-                    ,(inputnode,             slice_times, [('phys_file', 'phys_file')])
-                    ,(inputnode,             slice_times, [('nr_dummies', 'nr_dummies')])
-                    ,(slice_times,           outputnode, [('out_file', 'new_phys')])
-                    ,(slice_times,           outputnode, [('fig_file', 'fig_file')])
+                    (input_node,              slice_times, [('in_files', 'in_file')])
+                    ,(input_node,             slice_times, [('phys_files', 'phys_file')])
+                    ,(input_node,             slice_times, [('nr_dummies', 'nr_dummies')])
+                    ,(input_node,             slice_times, [('MB_factor', 'MB_factor')])
+                    ,(slice_times,           output_node, [('out_file', 'new_phys')])
+                    ,(slice_times,           output_node, [('fig_file', 'fig_file')])
                     ])
     
     return retroicor_workflow

@@ -110,8 +110,8 @@ def create_motion_correction_workflow(name = 'moco'):
     motion_correction_workflow.connect(rename, 'out_file', datasink, 'reg')
 
     motion_correction_workflow.connect(motion_correct_all, 'out_file', datasink, 'mcf')
-    motion_correction_workflow.connect(motion_correct_all, 'par_file', datasink, 'motion_pars')
-    motion_correction_workflow.connect(plot_motion, 'out_file', datasink, 'motion_plots')
+    motion_correction_workflow.connect(motion_correct_all, 'par_file', datasink, 'mcf.motion_pars')
+    motion_correction_workflow.connect(plot_motion, 'out_file', datasink, 'mcf.motion_plots')
 
     return motion_correction_workflow
 
