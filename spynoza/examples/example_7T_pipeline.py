@@ -43,7 +43,7 @@ sub_id, FS_ID = 'sub-NA', 'NA_220813_12'
 opd = op.join(preprocessed_data_dir, sub_id)
 
 # some settings, such as scan parameters, and analysis prescription
-session_info = {'te': 0.025, 'pe_direction': 'y','epi_factor': 37, 'use_FS': True, 'do_fnirt': False, 'MB_factor': 3, 'nr_dummies' = 6}
+session_info = {'te': 0.025, 'pe_direction': 'y','epi_factor': 37, 'use_FS': True, 'do_fnirt': False, 'MB_factor': 3, 'nr_dummies' : 9}
 
 if not op.isdir(preprocessed_data_dir):
     os.makedirs(preprocessed_data_dir)
