@@ -157,6 +157,9 @@ def create_registration_workflow(session_info, name = 'reg'):
     registration_workflow.connect(rename_standard2example_func, 'out_file', datasink, 'reg.@standard2example_func')
     registration_workflow.connect(rename_example_func2standard, 'out_file', datasink, 'reg.@example_func2standard')
 
+    registration_workflow.connect(rename_highres, 'out_file', output_node, 'T1_file')
+
+
     # put the nifti and mat files, renamed above, in the reg/feat directory.
     # don't yet know what's wrong with this merge to datasink
     # registration_workflow.connect(merge_for_reg_N, 'out', datasink, 'reg')
