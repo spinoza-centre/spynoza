@@ -74,7 +74,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
                                     function=percent_signal_change),
                       name='percent_signal_change', iterfield=['in_file'])
 
-    # node for percent signal change
+    # node for nuisance regression
     fit_nuis = pe.MapNode(Function(input_names=['in_file', 'regressor_list'],
                                     output_names=['res_file', 'rsq_file', 'beta_file'],
                                     function=fit_nuisances),
@@ -183,7 +183,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(sgfilter, 'out_file', datasink, 'tf')
     all_7T_workflow.connect(psc, 'out_file', datasink, 'psc')
     all_7T_workflow.connect(av, 'out_file', datasink, 'av')
-    
+
     all_7T_workflow.connect(retr, 'outputspec.new_phys', datasink, 'phys.log')
     all_7T_workflow.connect(retr, 'outputspec.fig_file', datasink, 'phys.figs')
     all_7T_workflow.connect(retr, 'outputspec.evs', datasink, 'phys.evs')
