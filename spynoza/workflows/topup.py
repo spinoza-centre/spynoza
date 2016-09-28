@@ -101,12 +101,12 @@ def create_topup_workflow(session_info, name='topup'):
     ########################################################################################
     # outputs via datasink
     ########################################################################################
-    datasink = pe.Node(nio.DataSink(infields=['topup'], container = ''), name='sinker')
+    # datasink = pe.Node(nio.DataSink(infields=['topup'], container = ''), name='sinker')
 
-    # first link the workflow's output_directory into the datasink.
-    topup_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
-    # and the rest
-    topup_workflow.connect(unwarp, 'out_corrected', datasink, 'topup')
+    # # first link the workflow's output_directory into the datasink.
+    # topup_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
+    # # and the rest
+    # topup_workflow.connect(unwarp, 'out_corrected', datasink, 'topup')
 
 
     return topup_workflow

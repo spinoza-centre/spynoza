@@ -56,7 +56,8 @@ class PNMtoEVsInput(FSLCommandInputSpec):
     order_cardiac = traits.Int(default_value=4, argstr='--oc=%d', usedefault=True,
                                desc='order of basic cardiac regressors (number of Fourier pairs) - default=4')
     order_resp = traits.Int(default_value=4, argstr='--or=%d',
-                               desc='order of basic respiratory regressors (number of Fourier pairs) - default=4', usedefault=True,)    
+                               desc='order of basic respiratory regressors (number of Fourier pairs) - default=4', 
+                                            usedefault=True,)    
     order_cardiac_interact = traits.Int(default_value=2, argstr='--multc=%d',
                                            usedefault=True,
                                desc='order of basic cardiac regressors (number of Fourier pairs) - default=2')

@@ -13,13 +13,12 @@ import nipype.interfaces.utility as niu
 TODO: remove some imports on top
 """
 
-def _slice_times_to_txt_file(slice_times, tr):
+def _slice_times_to_txt_file(slice_times):
     import os
     import numpy as np
 
     # output:
-    name, fext = os.path.splitext(os.path.basename(in_file))
-    out_file = os.path.abspath('./%s_st.txt' % name)
+    out_file = os.path.abspath('slice_times.txt')
 
     if type(slice_times) == list:
         np.savetxt(out_file, slice_times)
@@ -116,7 +115,7 @@ def _distill_slice_times_from_gradients(in_file, phys_file, nr_dummies, MB_facto
     
     return out_file, fig_file
 
-def create_retroicor_workflow(name = 'retroicor',):
+def create_retroicor_workflow(name = 'retroicor', order_or_timing = 'order'):
     
     """
     
@@ -139,7 +138,8 @@ def create_retroicor_workflow(name = 'retroicor',):
                                                     'tr',
                                                     'slice_direction',
                                                     'phys_sample_rate',
-                                                    'slice_timing'
+                                                    'slice_timing',
+                                                    'slice_order',
                                                     ]), name='inputspec')
 
     # the slice time preprocessing node before we go into popp (PreparePNM)
@@ -147,16 +147,16 @@ def create_retroicor_workflow(name = 'retroicor',):
                         output_names=['out_file', 'fig_file'], 
                         function=_distill_slice_times_from_gradients), name='slice_times_from_gradients', iterfield = ['in_file','phys_file'])
     
-    slice_times_to_txt_file = pe.Node(niu.Function(input_names=['slice_times', 'tr'], 
+    slice_times_to_txt_file = pe.Node(niu.Function(input_names=['slice_times'], 
                         output_names=['out_file'], 
                         function=_slice_times_to_txt_file), name='slice_times_to_txt_file')
 
-    prepare_pnm = pe.MapNode(PreparePNM(), name='prepare_pnm', iterfield = ['in_file','phys_file'])
+    prepare_pnm = pe.MapNode(PreparePNM(), name='prepare_pnm', iterfield = ['in_file'])
 
     pnm_evs = pe.MapNode(PNMtoEVs(), name='pnm_evs', iterfield = ['functional_epi','cardiac','resp'])
 
     # Define output node
-    output_node = pe.Node(niu.IdentityInterface(fields=['new_phys', 'fig_file']), name='outputspec')
+    output_node = pe.Node(niu.IdentityInterface(fields=['new_phys', 'fig_file', 'evs']), name='outputspec')
 
     ########################################################################################
     # workflow
@@ -169,12 +169,12 @@ def create_retroicor_workflow(name = 'retroicor',):
     retroicor_workflow.connect(input_node, 'nr_dummies', slice_times_from_gradients, 'nr_dummies')
     retroicor_workflow.connect(input_node, 'MB_factor', slice_times_from_gradients, 'MB_factor')
 
-    # need conditional here, for the creation of a separate slice timing file
-    # - now implementing it as if certain
-    retroicor_workflow.connect(input_node, 'slice_timing', slice_times_to_txt_file, 'slice_timing')
-    retroicor_workflow.connect(input_node, 'tr', slice_times_to_txt_file, 'tr')
+    # conditional here, for the creation of a separate slice timing file if order_or_timing is 'timing'
+    # order_or_timing can also be 'order'
+    if order_or_timing ==   'timing':
+        retroicor_workflow.connect(input_node, 'slice_timing', slice_times_to_txt_file, 'slice_times')
 
-    retroicor_workflow.connect(input_node, 'phys_sample_rate', prepare_pnm, 'sample_rate')
+    retroicor_workflow.connect(input_node, 'phys_sample_rate', prepare_pnm, 'sampling_rate')
     retroicor_workflow.connect(input_node, 'tr', prepare_pnm, 'tr')
 
     retroicor_workflow.connect(slice_times_from_gradients, 'out_file', prepare_pnm, 'in_file')
@@ -183,7 +183,11 @@ def create_retroicor_workflow(name = 'retroicor',):
     retroicor_workflow.connect(input_node, 'slice_direction', pnm_evs, 'slice_dir')
     retroicor_workflow.connect(input_node, 'tr', pnm_evs, 'tr')
 
-    retroicor_workflow.connect(slice_times_to_txt_file, 'out_file', pnm_evs, 'slice_timing')
+    # here the input to pnm_evs is conditional on order_or_timing again.
+    if order_or_timing ==   'timing':
+        retroicor_workflow.connect(slice_times_to_txt_file, 'out_file', pnm_evs, 'slice_timing')
+    elif order_or_timing == 'order':
+        retroicor_workflow.connect(input_node, 'slice_order', pnm_evs, 'slice_order')
 
     retroicor_workflow.connect(prepare_pnm, 'card', pnm_evs, 'cardiac')
     retroicor_workflow.connect(prepare_pnm, 'resp', pnm_evs, 'resp')

@@ -31,7 +31,12 @@ def create_all_7T_workflow(session_info, name='all_7T'):
                     'standard_file', 
                     'psc_func', 
                     'av_func', 
-                    'MB_factor', 
+                    'MB_factor',
+                    'tr',
+                    'slice_direction',
+                    'phys_sample_rate',
+                    'slice_timing',
+                    'slice_order',
                     'nr_dummies']), name='inputspec')
 
     # i/o node
@@ -136,12 +141,18 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(psc, 'out_file', av, 'in_files')
 
     # retroicor functionality
-    retr = create_retroicor_workflow(name = 'retroicor')
+    retr = create_retroicor_workflow(name = 'retroicor', order_or_timing = session_info['retroicor_order_or_timing'])
 
     all_7T_workflow.connect(sgfilter, 'out_file', retr, 'inputspec.in_files')
+    
     all_7T_workflow.connect(datasource, 'physio', retr, 'inputspec.phys_files')
     all_7T_workflow.connect(input_node, 'nr_dummies', retr, 'inputspec.nr_dummies')
     all_7T_workflow.connect(input_node, 'MB_factor', retr, 'inputspec.MB_factor')
+    all_7T_workflow.connect(input_node, 'tr', retr, 'inputspec.tr')
+    all_7T_workflow.connect(input_node, 'slice_direction', retr, 'inputspec.slice_direction')
+    all_7T_workflow.connect(input_node, 'slice_timing', retr, 'inputspec.slice_timing')
+    all_7T_workflow.connect(input_node, 'slice_order', retr, 'inputspec.slice_order')
+    all_7T_workflow.connect(input_node, 'phys_sample_rate', retr, 'inputspec.phys_sample_rate')
 
     ########################################################################################
     # outputs via datasink
