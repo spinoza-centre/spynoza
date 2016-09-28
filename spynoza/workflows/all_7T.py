@@ -80,11 +80,16 @@ def create_all_7T_workflow(session_info, name='all_7T'):
                                     function=fit_nuisances),
                       name='fit_nuisances', iterfield=['in_file', 'regressor_list'])
 
-    # node for averaging across runs
+    # node for averaging across runs for un-retroicor'ed runs
     av = pe.Node(Function(input_names=['in_files'],
                                     output_names=['out_file'],
                                     function=average_over_runs),
                       name='average_over_runs')
+    # node for averaging across runs for un-retroicor'ed runs
+    av_r = pe.Node(Function(input_names=['in_files'],
+                                    output_names=['out_file'],
+                                    function=average_over_runs),
+                      name='average_over_runs_retroicor')
    
 
     datasink = pe.Node(DataSink(), name='sinker')
@@ -166,6 +171,9 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(retr, 'outputspec.evs', fit_nuis, 'regressor_list')
     all_7T_workflow.connect(psc, 'out_file', fit_nuis, 'in_file')
 
+    all_7T_workflow.connect(fit_nuis, 'res_file', av_r, 'in_files')
+
+
 
     ########################################################################################
     # outputs via datasink
@@ -189,9 +197,11 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(retr, 'outputspec.fig_file', datasink, 'phys.figs')
     all_7T_workflow.connect(retr, 'outputspec.evs', datasink, 'phys.evs')
 
-    all_7T_workflow.connect(fit_nuis, 'res_file', datasink, 'phys.betas')
+    all_7T_workflow.connect(fit_nuis, 'res_file', datasink, 'phys.res')
     all_7T_workflow.connect(fit_nuis, 'rsq_file', datasink, 'phys.rsq')
-    all_7T_workflow.connect(fit_nuis, 'beta_file', datasink, 'phys.res')
+    all_7T_workflow.connect(fit_nuis, 'beta_file', datasink, 'phys.betas')
+
+    all_7T_workflow.connect(av_r, 'out_file', datasink, 'av_r')
 
 
     return all_7T_workflow

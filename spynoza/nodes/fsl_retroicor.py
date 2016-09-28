@@ -93,6 +93,6 @@ class PNMtoEVs(FSLCommand):
         
         outputs['evs'] = []
         for i in np.arange(1, n_evs+1):
-            outputs['evs'].append(os.path.abspath(self.inputs.functional_epi.split('.nii.gz')[0] + 'ev%03d.nii.gz' % i))
+            outputs['evs'].append(os.path.abspath(self.inputs.functional_epi[:-7] + 'ev%03d.nii.gz' % i))
          
         return outputs
