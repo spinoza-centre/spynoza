@@ -150,6 +150,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     # retroicor functionality
     retr = create_retroicor_workflow(name = 'retroicor', order_or_timing = session_info['retroicor_order_or_timing'])
 
+    # retroicor can take the crudest form of epi file, so that it proceeds quickly
     all_7T_workflow.connect(reorient_epi, 'out_file', retr, 'inputspec.in_files')
 
     all_7T_workflow.connect(datasource, 'physio', retr, 'inputspec.phys_files')

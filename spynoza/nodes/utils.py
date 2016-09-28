@@ -159,15 +159,16 @@ def percent_signal_change(in_file, func = 'mean'):
     import nibabel as nib
     import numpy as np
     import os
+    import bottleneck as bn
 
     data = nib.load(in_file)
     dims = data.shape
     affine = data.affine
 
     if func == 'mean':
-        data_m = data.get_data().mean(axis=-1)
+        data_m = bn.nanmean(data.get_data(), axis=-1)
     elif func == 'median':
-        data_m = np.median(data.get_data(), axis=-1)
+        data_m = np.nanmedian(data.get_data(), axis=-1)
 
     data_psc = (100.0 * (data.get_data().transpose((3,0,1,2)) - data_m) / data_m).transpose((1,2,3,0))
     img = nib.Nifti1Image(data_psc, affine)

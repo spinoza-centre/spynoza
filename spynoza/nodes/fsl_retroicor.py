@@ -45,8 +45,6 @@ class PNMtoEVsInput(FSLCommandInputSpec):
 
     functional_epi = File(position=2, argstr="-i %s", exists=True, mandatory=True,
                 desc="input image filename (of 4D functional/EPI data)")
-    prefix = traits.String('pnm_regressors_', argstr="-o %s", exists=True, mandatory=True,
-                 desc="output filename (for confound/EV matrix)", usedefault=True)
     tr = traits.Float(argstr="--tr=%s", exists=True, mandatory=True,
                 desc="TR value in seconds") 
     cardiac = File(argstr='-c %s', exists=True, 
@@ -93,9 +91,8 @@ class PNMtoEVs(FSLCommand):
         n_evs = (self.inputs.order_cardiac + self.inputs.order_resp) * 2 + \
                 (self.inputs.order_cardiac_interact * self.inputs.order_resp_interact) * 4
         
-        
         outputs['evs'] = []
         for i in np.arange(1, n_evs+1):
-            outputs['evs'].append(os.path.abspath(self.inputs.prefix + 'ev%03d.nii.gz' % i))
+            outputs['evs'].append(os.path.abspath(self.inputs.functional_epi.split('.nii.gz')[0] + 'ev%03d.nii.gz' % i))
          
         return outputs
