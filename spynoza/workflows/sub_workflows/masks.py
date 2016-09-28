@@ -287,7 +287,7 @@ def create_fast2mask_workflow(name = 'fast2mask'):
 
     fast_output_merge_node = pe.Node(Merge(2), infields = ['bin', 'prob'])
 
-    apply_xfm_node = pe.MapNode(fsl.ApplyXfm(), iterfield = ['in_file'])
+    apply_xfm_node = pe.MapNode(fsl.ApplyXfm(apply_xfm = True), iterfield = ['in_file'])
 
     ########################################################################################
     # actual workflow
@@ -300,21 +300,23 @@ def create_fast2mask_workflow(name = 'fast2mask'):
     fast2mask_workflow.connect(fast_node, 'probability_maps', fast_output_merge_node, 'prob')
     fast2mask_workflow.connect(fast_node, 'tissue_class_files', fast_output_merge_node, 'bin')
 
+    fast2mask_workflow.connect(fast_output_merge_node, 'out_files', apply_xfm_node, 'in_file')
+    fast2mask_workflow.connect(input_node, 'registration_matrix_file', apply_xfm_node, 'in_matrix_file')
+    fast2mask_workflow.connect(input_node, 'EPI_space_file', apply_xfm_node, 'reference')
 
- 
-    # and the iter field filled in from the label collection node
-    masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_2_vol_node, 'label_file')
 
-    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', output_node, 'output_masks')
+    fast2mask_workflow.connect(apply_xfm_node, 'out_file', output_node, 'out_files')
 
     ########################################################################################
     # outputs via datasink
     ########################################################################################
     datasink = pe.Node(nio.DataSink(), name='sinker')
+    datasink.inputs.parameterization = False
 
     # first link the workflow's output_directory into the datasink.
     masks_from_surface_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
+    masks_from_surface_workflow.connect(input_node, 'sub_id', datasink, 'container')
     # and the rest
-    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', datasink, 'masks')
+    masks_from_surface_workflow.connect(apply_xfm_node, 'out_file', datasink, 'masks')
 
     return masks_from_surface_workflow

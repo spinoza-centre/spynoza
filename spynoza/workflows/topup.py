@@ -16,7 +16,7 @@ def create_topup_workflow(session_info, name='topup'):
         fields=['in_files', 'alt_files', 'conf_file', 'output_directory',
                 'pe_direction', 'te', 'epi_factor']), name='inputspec')
 
-    output_node = pe.Node(IdentityInterface(fields=['out_files']), name='outputspec')
+    output_node = pe.Node(IdentityInterface(fields=['out_files', 'field_coefs']), name='outputspec')
 
     get_info = pe.MapNode(Function(input_names='in_file', output_names=['TR', 'shape', 'dyns', 'voxsize', 'affine'],
                                 function=get_scaninfo), name='get_scaninfo',
@@ -94,6 +94,9 @@ def create_topup_workflow(session_info, name='topup'):
     topup_workflow.connect(topup_node, 'out_movpar', unwarp, 'in_topup_movpar')
 
     topup_workflow.connect(unwarp, 'out_corrected', output_node, 'out_files')
+    topup_workflow.connect(topup_node, 'out_fieldcoef', output_node, 'field_coefs')
+
+
 
     ########################################################################################
     # outputs via datasink

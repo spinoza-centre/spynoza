@@ -21,9 +21,18 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     ########################################################################################
 
     input_node = pe.Node(IdentityInterface(
-        fields=['raw_directory', 'output_directory', 'FS_ID', 'FS_subject_dir',
-                'sub_id', 'topup_conf_file', 'which_file_is_EPI_space',
-                'standard_file', 'psc_func', 'av_func', 'MB_factor', 'nr_dummies']), name='inputspec')
+                fields=['raw_directory', 
+                    'output_directory', 
+                    'FS_ID', 
+                    'FS_subject_dir',
+                    'sub_id', 
+                    'topup_conf_file', 
+                    'which_file_is_EPI_space',
+                    'standard_file', 
+                    'psc_func', 
+                    'av_func', 
+                    'MB_factor', 
+                    'nr_dummies']), name='inputspec')
 
     # i/o node
     datasource_templates = dict(func='{sub_id}/func/*_bold.nii.gz',
@@ -40,8 +49,12 @@ def create_all_7T_workflow(session_info, name='all_7T'):
             'percent_signal_change_files'])), name='outputspec')
 
     # reorient nodes
-    # reorient_epi = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_epi', iterfield='in_file')
-    # reorient_topup = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_topup', iterfield='in_file')
+    reorient_epi = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_epi', iterfield=['in_file'])
+    reorient_topup = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_topup', iterfield=['in_file'])
+
+    bet_epi = pe.MapNode(interface=fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], functional=True, mask = True), name='bet_epi', iterfield=['in_file'])
+    bet_topup = pe.MapNode(interface=fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], functional=True, mask = True), name='bet_topup', iterfield=['in_file'])
+
 
     # node for temporal filtering
     sgfilter = pe.MapNode(Function(input_names=['in_file'],
@@ -76,15 +89,19 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(input_node, 'sub_id', datasource, 'sub_id')
 
     # reorientation to standard orientation
-    # all_7T_workflow.connect(datasource, 'func', reorient_epi, 'in_file')
-    # all_7T_workflow.connect(datasource, 'topup', reorient_topup, 'in_file')
+    all_7T_workflow.connect(datasource, 'func', reorient_epi, 'in_file')
+    all_7T_workflow.connect(datasource, 'topup', reorient_topup, 'in_file')
+
+    # BET
+    all_7T_workflow.connect(reorient_epi, 'out_file', bet_epi, 'in_file')
+    all_7T_workflow.connect(reorient_topup, 'out_file', bet_topup, 'in_file')
 
     # topup
     tua_wf = create_topup_workflow(session_info, name = 'topup')
     all_7T_workflow.connect(input_node, 'output_directory', tua_wf, 'inputspec.output_directory')
     all_7T_workflow.connect(input_node, 'topup_conf_file', tua_wf, 'inputspec.conf_file')
-    all_7T_workflow.connect(datasource, 'func', tua_wf, 'inputspec.in_files')
-    all_7T_workflow.connect(datasource, 'topup', tua_wf, 'inputspec.alt_files')
+    all_7T_workflow.connect(bet_epi, 'out_file', tua_wf, 'inputspec.in_files')
+    all_7T_workflow.connect(bet_topup, 'out_file', tua_wf, 'inputspec.alt_files')
     
     # motion correction
     motion_proc = create_motion_correction_workflow('moco')
@@ -131,11 +148,20 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     ########################################################################################
 
     all_7T_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
-    all_7T_workflow.connect(input_node, 'sub_id', datasink, 'container')
+
+    all_7T_workflow.connect(bet_epi, 'out_file', datasink, 'bet.epi')
+    all_7T_workflow.connect(bet_epi, 'mask_file', datasink, 'bet.epimask')
+    all_7T_workflow.connect(bet_topup, 'out_file', datasink, 'bet.topup')
+    all_7T_workflow.connect(bet_topup, 'mask_file', datasink, 'bet.topupmask')
+
+    all_7T_workflow.connect(tua_wf, 'outputspec.field_coefs', datasink, 'topup.fieldcoef')
+    all_7T_workflow.connect(tua_wf, 'outputspec.out_files', datasink, 'topup.unwarped')
+
     all_7T_workflow.connect(sgfilter, 'out_file', datasink, 'tf')
     all_7T_workflow.connect(psc, 'out_file', datasink, 'psc')
     all_7T_workflow.connect(av, 'out_file', datasink, 'av')
     all_7T_workflow.connect(retr, 'outputspec.new_phys', datasink, 'phys')
     all_7T_workflow.connect(retr, 'outputspec.fig_file', datasink, 'phys.figs')
+    all_7T_workflow.connect(retr, 'outputspec.evs', datasink, 'phys.evs')
 
     return all_7T_workflow
