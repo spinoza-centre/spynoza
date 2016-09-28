@@ -37,25 +37,25 @@ opd = op.join(preprocessed_data_dir, sub_id)
 
 # load the sequence parameters from json file
 with open(os.path.join(raw_data_dir, 'multiband_prf_7T_acq.json')) as f:
-	json_s = f.read()
-	sequence_parameters = json.loads(json_s)
+    json_s = f.read()
+    sequence_parameters = json.loads(json_s)
 
 # some settings, such as scan parameters, and analysis prescription, mostly taken from json in raw file folder
 session_info = {'te': sequence_parameters['EchoTime'], 
-				'pe_direction': sequence_parameters['PhaseEncodingDirection'],
-				'slice_direction': sequence_parameters['SliceDirection'],
-				'epi_factor': sequence_parameters['EpiFactor'], 
-				'slice_timing': sequence_parameters['SliceTiming'], 
-				'slice_order': sequence_parameters['SliceOrder'], 
-				'tr': sequence_parameters['RepetitionTime'], 
-				'MB_factor': sequence_parameters['MultiBandFactor'], 
-				'nr_dummies': sequence_parameters['NumberDummyScans'], 
-				'phys_sample_rate': sequence_parameters['PhysiologySampleRate'], 
-				'retroicor_order_or_timing': 'timing',	# can also be 'order' for non-MB sequences
-				'use_FS': True, 
-				'do_fnirt': False, 
-				'bet_frac': 0.3, 
-				'bet_vert_grad': 0.0}
+                'pe_direction': sequence_parameters['PhaseEncodingDirection'],
+                'slice_direction': sequence_parameters['SliceDirection'],
+                'epi_factor': sequence_parameters['EpiFactor'], 
+                'slice_timing': sequence_parameters['SliceTiming'], 
+                'slice_order': sequence_parameters['SliceOrder'], 
+                'tr': sequence_parameters['RepetitionTime'], 
+                'MB_factor': sequence_parameters['MultiBandFactor'], 
+                'nr_dummies': sequence_parameters['NumberDummyScans'], 
+                'phys_sample_rate': sequence_parameters['PhysiologySampleRate'], 
+                'retroicor_order_or_timing': 'timing',    # can also be 'order' for non-MB sequences
+                'use_FS': True, 
+                'do_fnirt': False, 
+                'bet_frac': 0.3, 
+                'bet_vert_grad': 0.0}
 
 if not op.isdir(preprocessed_data_dir):
     os.makedirs(preprocessed_data_dir)

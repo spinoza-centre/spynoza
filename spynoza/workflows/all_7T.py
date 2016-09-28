@@ -15,6 +15,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     from spynoza.workflows.motion_correction import create_motion_correction_workflow
     from spynoza.workflows.registration import create_registration_workflow
     from spynoza.workflows.retroicor import create_retroicor_workflow
+    from spynoza.nodes.fit_nuisances import fit_nuisances
 
     ########################################################################################
     # nodes
@@ -73,7 +74,13 @@ def create_all_7T_workflow(session_info, name='all_7T'):
                                     function=percent_signal_change),
                       name='percent_signal_change', iterfield=['in_file'])
 
-     # node for averaging across runs
+    # node for percent signal change
+    fit_nuis = pe.MapNode(Function(input_names=['in_file', 'regressor_list'],
+                                    output_names=['res_file', 'rsq_file', 'beta_file'],
+                                    function=fit_nuisances),
+                      name='fit_nuisances', iterfield=['in_file', 'regressor_list'])
+
+    # node for averaging across runs
     av = pe.Node(Function(input_names=['in_files'],
                                     output_names=['out_file'],
                                     function=average_over_runs),
@@ -123,7 +130,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(input_node, 'standard_file', reg, 'inputspec.standard_file')
     # the T1_file entry could be empty sometimes, depending on the output of the
     # datasource. Check this.
-    # all_7T_workflow.connect(reg, 'outputspec.T1_file', reg, 'inputspec.T1_file')	
+    # all_7T_workflow.connect(reg, 'outputspec.T1_file', reg, 'inputspec.T1_file')    
 
     # temporal filtering
     all_7T_workflow.connect(motion_proc, 'outputspec.motion_corrected_files', sgfilter, 'in_file')
@@ -143,8 +150,8 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     # retroicor functionality
     retr = create_retroicor_workflow(name = 'retroicor', order_or_timing = session_info['retroicor_order_or_timing'])
 
-    all_7T_workflow.connect(sgfilter, 'out_file', retr, 'inputspec.in_files')
-    
+    all_7T_workflow.connect(reorient_epi, 'out_file', retr, 'inputspec.in_files')
+
     all_7T_workflow.connect(datasource, 'physio', retr, 'inputspec.phys_files')
     all_7T_workflow.connect(input_node, 'nr_dummies', retr, 'inputspec.nr_dummies')
     all_7T_workflow.connect(input_node, 'MB_factor', retr, 'inputspec.MB_factor')
@@ -153,6 +160,11 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(input_node, 'slice_timing', retr, 'inputspec.slice_timing')
     all_7T_workflow.connect(input_node, 'slice_order', retr, 'inputspec.slice_order')
     all_7T_workflow.connect(input_node, 'phys_sample_rate', retr, 'inputspec.phys_sample_rate')
+
+    # fit nuisances from retroicor
+    all_7T_workflow.connect(retr, 'outputspec.evs', fit_nuis, 'regressor_list')
+    all_7T_workflow.connect(psc, 'out_file', fit_nuis, 'in_file')
+
 
     ########################################################################################
     # outputs via datasink
@@ -171,8 +183,14 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(sgfilter, 'out_file', datasink, 'tf')
     all_7T_workflow.connect(psc, 'out_file', datasink, 'psc')
     all_7T_workflow.connect(av, 'out_file', datasink, 'av')
-    all_7T_workflow.connect(retr, 'outputspec.new_phys', datasink, 'phys')
+    
+    all_7T_workflow.connect(retr, 'outputspec.new_phys', datasink, 'phys.log')
     all_7T_workflow.connect(retr, 'outputspec.fig_file', datasink, 'phys.figs')
     all_7T_workflow.connect(retr, 'outputspec.evs', datasink, 'phys.evs')
+
+    all_7T_workflow.connect(fit_nuis, 'res_file', datasink, 'phys.betas')
+    all_7T_workflow.connect(fit_nuis, 'rsq_file', datasink, 'phys.rsq')
+    all_7T_workflow.connect(fit_nuis, 'beta_file', datasink, 'phys.res')
+
 
     return all_7T_workflow
