@@ -96,4 +96,4 @@ all_7T_workflow.inputs.inputspec.slice_order = session_info['slice_order']
 
 # write out the graph and run
 all_7T_workflow.write_graph(os.path.join(preprocessed_data_dir,'7T'))
-all_7T_workflow.run('MultiProc', plugin_args={'n_procs': 8})
+all_7T_workflow.run('MultiProc', plugin_args={'n_procs': 32})

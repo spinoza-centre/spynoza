@@ -168,12 +168,11 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(input_node, 'phys_sample_rate', retr, 'inputspec.phys_sample_rate')
 
     # fit nuisances from retroicor
-    all_7T_workflow.connect(retr, 'outputspec.evs', fit_nuis, 'regressor_list')
+    all_7T_workflow.connect(retr, 'outputspec.evs', fit_nuis, 'slice_regressor_list')
+    all_7T_workflow.connect(motion_proc, 'outputspec.motion_correction_parameters', fit_nuis, 'vol_regressors')
     all_7T_workflow.connect(psc, 'out_file', fit_nuis, 'in_file')
 
     all_7T_workflow.connect(fit_nuis, 'res_file', av_r, 'in_files')
-
-
 
     ########################################################################################
     # outputs via datasink

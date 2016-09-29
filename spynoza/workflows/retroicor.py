@@ -25,6 +25,13 @@ def _slice_times_to_txt_file(slice_times):
 
     return out_file
 
+def _preprocess_nii_files_to_pnm_evs_prefix(filename):
+    import os
+
+    # take file name and cut off the .nii.gz part, add identifier
+    out_string = filename[:-7] + '_pnm_regressors_'
+
+    return out_string
 
 def _distill_slice_times_from_gradients(in_file, phys_file, nr_dummies, MB_factor = 1):
     import os
@@ -151,9 +158,13 @@ def create_retroicor_workflow(name = 'retroicor', order_or_timing = 'order'):
                         output_names=['out_file'], 
                         function=_slice_times_to_txt_file), name='slice_times_to_txt_file')
 
+    pnm_prefixer = pe.MapNode(niu.Function(input_names=['filename'], 
+                        output_names=['out_string'], 
+                        function=_preprocess_nii_files_to_pnm_evs_prefix), name='pnm_prefixer', iterfield = ['filename'])
+
     prepare_pnm = pe.MapNode(PreparePNM(), name='prepare_pnm', iterfield = ['in_file'])
 
-    pnm_evs = pe.MapNode(PNMtoEVs(), name='pnm_evs', iterfield = ['functional_epi','cardiac','resp'])
+    pnm_evs = pe.MapNode(PNMtoEVs(), name='pnm_evs', iterfield = ['functional_epi','cardiac','resp', 'prefix'])
 
     # Define output node
     output_node = pe.Node(niu.IdentityInterface(fields=['new_phys', 'fig_file', 'evs']), name='outputspec')
@@ -179,6 +190,8 @@ def create_retroicor_workflow(name = 'retroicor', order_or_timing = 'order'):
 
     retroicor_workflow.connect(slice_times_from_gradients, 'out_file', prepare_pnm, 'in_file')
 
+    retroicor_workflow.connect(input_node, 'in_files', pnm_prefixer, 'filename')
+    retroicor_workflow.connect(pnm_prefixer, 'out_string', pnm_evs, 'prefix')
     retroicor_workflow.connect(input_node, 'in_files', pnm_evs, 'functional_epi')
     retroicor_workflow.connect(input_node, 'slice_direction', pnm_evs, 'slice_dir')
     retroicor_workflow.connect(input_node, 'tr', pnm_evs, 'tr')
