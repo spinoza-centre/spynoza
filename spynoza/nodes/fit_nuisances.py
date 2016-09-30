@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 
-def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = ''):
+def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = '', num_components = 20, method = 'ICA'):
     """Performs a per-slice GLM on nifti-file in_file, 
     with per-slice regressors from slice_regressor_list of nifti files,
     and per-TR regressors from vol_regressors text file.
@@ -31,6 +31,8 @@ def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = ''):
     import numpy as np
     import numpy.linalg as LA
     import os
+    from sklearn import decomposition
+    from scipy.signal import savgol_filter
 
     func_nii = nib.load(in_file)
     dims = func_nii.shape
@@ -54,10 +56,13 @@ def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = ''):
     # data containers
     residual_data = np.zeros_like(func_data)
     rsq_data = np.zeros(list(dims[:-1]))
-    if vol_regressors != '':
-        beta_data = np.zeros(list(dims[:-1]) + [1 + len(slice_regressor_list) + all_TR_reg.shape[0]])
+    if num_components == 0:
+        if vol_regressors != '':
+            beta_data = np.zeros(list(dims[:-1]) + [1 + len(slice_regressor_list) + all_TR_reg.shape[0]])
+        else:
+            beta_data = np.zeros(list(dims[:-1]) + [1 + len(slice_regressor_list)])
     else:
-        beta_data = np.zeros(list(dims[:-1]) + [1 + len(slice_regressor_list)])
+        beta_data = np.zeros(list(dims[:-1]) + [num_components])
 
     # loop over slices
     for x in range(dims[-2]):
@@ -66,6 +71,14 @@ def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = ''):
         if vol_regressors != '':
             all_regressors = np.vstack((all_regressors, all_TR_reg))
         all_regressors = np.nan_to_num(all_regressors)
+
+        if num_components != 0:
+            if method == 'PCA':
+                pca = decomposition.PCA(n_components = num_components, whiten = True)
+                all_regressors = pca.fit_transform(all_regressors.T).T
+            elif method == 'ICA':
+                ica = decomposition.FastICA(n_components = num_components, whiten = True)
+                all_regressors = ica.fit_transform(all_regressors.T).T
 
         # fit
         betas, residuals_sum, rank, sse = LA.lstsq(all_regressors.T, slice_data.T)

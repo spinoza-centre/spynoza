@@ -179,12 +179,12 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(input_node, 'phys_sample_rate', retr, 'inputspec.phys_sample_rate')
 
     # fit nuisances from retroicor
-    all_7T_workflow.connect(retr, 'outputspec.evs', fit_nuis, 'slice_regressor_list')
-    all_7T_workflow.connect(motion_proc, 'outputspec.new_motion_correction_parameters', fit_nuis, 'vol_regressors')
-    all_7T_workflow.connect(psc, 'out_file', fit_nuis, 'in_file')
-    # all_7T_workflow.connect(bet_epi, 'out_file', fit_nuis, 'in_file')
+    # for now, I won't actually fit the retroicor stuff
+    # all_7T_workflow.connect(retr, 'outputspec.evs', fit_nuis, 'slice_regressor_list')
+    # all_7T_workflow.connect(motion_proc, 'outputspec.extended_motion_correction_parameters', fit_nuis, 'vol_regressors')
+    # all_7T_workflow.connect(psc, 'out_file', fit_nuis, 'in_file')
 
-    all_7T_workflow.connect(fit_nuis, 'res_file', av_r, 'in_files')
+    # all_7T_workflow.connect(fit_nuis, 'res_file', av_r, 'in_files')
 
     ########################################################################################
     # outputs via datasink
@@ -209,11 +209,11 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(retr, 'outputspec.fig_file', datasink, 'phys.figs')
     all_7T_workflow.connect(retr, 'outputspec.evs', datasink, 'phys.evs')
 
-    all_7T_workflow.connect(fit_nuis, 'res_file', datasink, 'phys.res')
-    all_7T_workflow.connect(fit_nuis, 'rsq_file', datasink, 'phys.rsq')
-    all_7T_workflow.connect(fit_nuis, 'beta_file', datasink, 'phys.betas')
+    # all_7T_workflow.connect(fit_nuis, 'res_file', datasink, 'phys.res')
+    # all_7T_workflow.connect(fit_nuis, 'rsq_file', datasink, 'phys.rsq')
+    # all_7T_workflow.connect(fit_nuis, 'beta_file', datasink, 'phys.betas')
 
-    all_7T_workflow.connect(av_r, 'out_file', datasink, 'av_r')
+    # all_7T_workflow.connect(av_r, 'out_file', datasink, 'av_r')
 
 
     return all_7T_workflow
