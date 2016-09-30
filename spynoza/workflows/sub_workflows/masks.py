@@ -69,7 +69,7 @@ def create_transform_aseg_to_EPI_workflow(name = 'transform_aseg_to_EPI'):
     transform_aseg_to_EPI_workflow.connect(input_node, 'freesurfer_subject_dir', FS_aseg_file_node, 'freesurfer_subject_dir')
     transform_aseg_to_EPI_workflow.connect(input_node, 'aseg', FS_aseg_file_node, 'aseg')
 
-    transform_aseg_to_EPI_workflow.connect(FS_T1_file_node, 'aseg_mgz_path', vol_trans_node, 'source_file')
+    transform_aseg_to_EPI_workflow.connect(FS_aseg_file_node, 'aseg_mgz_path', vol_trans_node, 'source_file')
     transform_aseg_to_EPI_workflow.connect(input_node, 'reg_file', vol_trans_node, 'reg_file')    
 
     transform_aseg_to_EPI_workflow.connect(vol_trans_node, 'transformed_file', mriConvert_N, 'in_file')
@@ -149,7 +149,7 @@ def create_transform_atlas_to_EPI_workflow(name = 'transform_atlas_to_EPI'):
     # first link the workflow's output_directory into the datasink.
     transform_aseg_to_EPI_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
     # and the rest
-    transform_aseg_to_EPI_workflow.connect(vol_trans_node, 'out_file', datasink, 'masks')
+    transform_aseg_to_EPI_workflow.connect(vol_trans_node, 'out_file', datasink, 'masks.atlas')
 
     return transform_aseg_to_EPI_workflow
 
@@ -242,7 +242,7 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     # first link the workflow's output_directory into the datasink.
     masks_from_surface_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
     # and the rest
-    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', datasink, 'masks')
+    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', datasink, 'masks.labels')
 
     return masks_from_surface_workflow
 
@@ -281,7 +281,7 @@ def create_fast2mask_workflow(name = 'fast2mask'):
         'anatomical_file',
         'output_directory', 
         'registration_matrix_file']), name='inputspec')
-    output_node = pe.Node(IdentityInterface(fields=('bin_masks', 'prob_masks')), name='outputspec')
+    output_node = pe.Node(IdentityInterface(fields=('out_files')), name='outputspec')
 
     fast_node = pe.Node(interface=fsl.FAST(img_type = 1, probability_maps = True), name='fast')
 
@@ -304,10 +304,9 @@ def create_fast2mask_workflow(name = 'fast2mask'):
     fast2mask_workflow.connect(input_node, 'registration_matrix_file', apply_xfm_node, 'in_matrix_file')
     fast2mask_workflow.connect(input_node, 'EPI_space_file', apply_xfm_node, 'reference')
 
-
     fast2mask_workflow.connect(apply_xfm_node, 'out_file', output_node, 'out_files')
 
-    ########################################################################################
+   ########################################################################################
     # outputs via datasink
     ########################################################################################
     datasink = pe.Node(nio.DataSink(), name='sinker')
@@ -317,6 +316,6 @@ def create_fast2mask_workflow(name = 'fast2mask'):
     masks_from_surface_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
     masks_from_surface_workflow.connect(input_node, 'sub_id', datasink, 'container')
     # and the rest
-    masks_from_surface_workflow.connect(apply_xfm_node, 'out_file', datasink, 'masks')
+    masks_from_surface_workflow.connect(apply_xfm_node, 'out_file', datasink, 'masks.fast')
 
     return masks_from_surface_workflow
