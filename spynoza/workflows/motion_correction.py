@@ -1,5 +1,38 @@
 from ..nodes import EPI_file_selector
 
+def _extend_motion_parameters(moco_par_file, tr, sg_args = {'window_length': 120, 'deriv':0, 'polyorder':3, 'mode':'nearest'}):
+    import os.path as op
+    import numpy as np
+    from sklearn import decomposition
+    from scipy.signal import savgol_filter
+
+    ext_out_file = moco_par_file[:-7] + 'ext_moco_pars.par'
+    new_out_file = moco_par_file[:-7] + 'new_moco_pars.par'
+
+    sg_args['window_length'] = int(sg_args['window_length'] / tr)
+    # Window must be odd-shaped
+    if sg_args['window_length'] % 2 == 0:
+        sg_args['window_length'] += 1
+
+    moco_pars = np.loadtxt(moco_par_file)
+    moco_pars = moco_pars - savgol_filter(moco_pars, axis = 0, **sg_args)    
+
+    dt_moco_pars = np.diff(np.vstack((np.ones((1,6)), moco_pars)), axis = 0)
+    ddt_moco_pars = np.diff(np.vstack((np.ones((1,6)), dt_moco_pars)), axis = 0)
+
+    ext_moco_pars = np.hstack((moco_pars, dt_moco_pars, ddt_moco_pars))
+
+    # blow up using abs(), perform pca and take original number of 18 components
+    amp = np.hstack((moco_pars, dt_moco_pars, ddt_moco_pars, dt_moco_pars**2, ddt_moco_pars**2))
+    pca = decomposition.PCA(n_components = 18)
+    pca.fit(amp)
+    new_moco_pars = pca.transform(amp)
+
+    np.savetxt(new_out_file, new_moco_pars, fmt='%f', delimiter='\t')
+    np.savetxt(ext_out_file, ext_moco_pars, fmt='%f', delimiter='\t')
+
+    return new_out_file, ext_out_file
+
 
 def create_motion_correction_workflow(name = 'moco'):
     """uses sub-workflows to perform different registration steps.
@@ -35,12 +68,14 @@ def create_motion_correction_workflow(name = 'moco'):
     import nipype.interfaces.utility as niu
     ### NODES
     input_node = pe.Node(IdentityInterface(fields=['in_files', 'output_directory', 'which_file_is_EPI_space',
-                                                   'sub_id']), name='inputspec')
+                                                   'sub_id', 'tr']), name='inputspec')
     output_node = pe.Node(IdentityInterface(fields=([
                 'motion_corrected_files', 
                 'EPI_space_file', 
                 'motion_correction_plots', 
-                'motion_correction_parameters'])), name='outputspec')
+                'motion_correction_parameters', 
+                'extended_motion_correction_parameters', 
+                'new_motion_correction_parameters'])), name='outputspec')
 
     EPI_file_selector_node = pe.Node(Function(input_names=['which_file', 'in_files'], output_names='raw_EPI_space_file',
                                        function=EPI_file_selector), name='EPI_file_selector_node')
@@ -55,7 +90,7 @@ def create_motion_correction_workflow(name = 'moco'):
     mean_bold = pe.Node(interface=fsl.maths.MeanImage(dimension='T'), name='mean_space')
 
     motion_correct_all = pe.MapNode(interface=fsl.MCFLIRT(
-                       save_mats = True, 
+                    save_mats = True, 
                     save_plots = True, 
                     cost = 'normmi', 
                     interpolation = 'sinc',
@@ -66,6 +101,9 @@ def create_motion_correction_workflow(name = 'moco'):
     plot_motion = pe.MapNode(interface=fsl.PlotMotionParams(in_source='fsl'),
                             name='plot_motion',
                             iterfield=['in_file'])
+
+    extend_motion_pars = pe.MapNode(Function(input_names=['moco_par_file', 'tr'], output_names=['new_out_file', 'ext_out_file'],
+                                       function=_extend_motion_parameters), name='extend_motion_pars', iterfield = ['moco_par_file'])
 
     rename = pe.Node(niu.Rename(format_string='session_EPI_space',
                             keep_ext=True),
@@ -84,7 +122,13 @@ def create_motion_correction_workflow(name = 'moco'):
 
     motion_correction_workflow.connect(mean_bold, 'out_file', output_node, 'EPI_space_file')
     motion_correction_workflow.connect(motion_correct_all, 'par_file', output_node, 'motion_correction_parameters')
+
     motion_correction_workflow.connect(motion_correct_all, 'out_file', output_node, 'motion_corrected_files')
+    motion_correction_workflow.connect(motion_correct_all, 'par_file', extend_motion_pars, 'moco_par_file')
+    motion_correction_workflow.connect(input_node, 'tr', extend_motion_pars, 'tr')
+    motion_correction_workflow.connect(extend_motion_pars, 'ext_out_file', output_node, 'extended_motion_correction_parameters')
+    motion_correction_workflow.connect(extend_motion_pars, 'new_out_file', output_node, 'new_motion_correction_parameters')
+
 
     ########################################################################################
     # Plot the estimated motion parameters
@@ -112,6 +156,8 @@ def create_motion_correction_workflow(name = 'moco'):
     motion_correction_workflow.connect(motion_correct_all, 'out_file', datasink, 'mcf')
     motion_correction_workflow.connect(motion_correct_all, 'par_file', datasink, 'mcf.motion_pars')
     motion_correction_workflow.connect(plot_motion, 'out_file', datasink, 'mcf.motion_plots')
+    motion_correction_workflow.connect(extend_motion_pars, 'ext_out_file', datasink, 'mcf.ext_motion_pars')
+    motion_correction_workflow.connect(extend_motion_pars, 'new_out_file', datasink, 'mcf.new_motion_pars')
 
     return motion_correction_workflow
 

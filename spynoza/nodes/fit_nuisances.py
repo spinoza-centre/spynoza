@@ -54,7 +54,10 @@ def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = ''):
     # data containers
     residual_data = np.zeros_like(func_data)
     rsq_data = np.zeros(list(dims[:-1]))
-    beta_data = np.zeros(list(dims[:-1]) + [1 + len(slice_regressor_list) + all_TR_reg.shape[0]])
+    if vol_regressors != '':
+        beta_data = np.zeros(list(dims[:-1]) + [1 + len(slice_regressor_list) + all_TR_reg.shape[0]])
+    else:
+        beta_data = np.zeros(list(dims[:-1]) + [1 + len(slice_regressor_list)])
 
     # loop over slices
     for x in range(dims[-2]):

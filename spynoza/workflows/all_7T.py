@@ -58,8 +58,12 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     reorient_epi = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_epi', iterfield=['in_file'])
     reorient_topup = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_topup', iterfield=['in_file'])
 
-    bet_epi = pe.MapNode(interface=fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], functional=True, mask = True), name='bet_epi', iterfield=['in_file'])
-    bet_topup = pe.MapNode(interface=fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], functional=True, mask = True), name='bet_topup', iterfield=['in_file'])
+    bet_epi = pe.MapNode(interface=
+        fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], 
+                functional=True, mask = True), name='bet_epi', iterfield=['in_file'])
+    bet_topup = pe.MapNode(interface=
+        fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], 
+                functional=True, mask = True), name='bet_topup', iterfield=['in_file'])
 
 
     # node for temporal filtering
@@ -75,10 +79,10 @@ def create_all_7T_workflow(session_info, name='all_7T'):
                       name='percent_signal_change', iterfield=['in_file'])
 
     # node for nuisance regression
-    fit_nuis = pe.MapNode(Function(input_names=['in_file', 'regressor_list'],
+    fit_nuis = pe.MapNode(Function(input_names=['in_file', 'slice_regressor_list', 'vol_regressors'],
                                     output_names=['res_file', 'rsq_file', 'beta_file'],
                                     function=fit_nuisances),
-                      name='fit_nuisances', iterfield=['in_file', 'regressor_list'])
+                      name='fit_nuisances', iterfield=['in_file', 'slice_regressor_list', 'vol_regressors']) 
 
     # node for averaging across runs for un-retroicor'ed runs
     av = pe.Node(Function(input_names=['in_files'],
@@ -122,6 +126,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     
     # motion correction
     motion_proc = create_motion_correction_workflow('moco')
+    all_7T_workflow.connect(input_node, 'tr', motion_proc, 'inputspec.tr')
     all_7T_workflow.connect(input_node, 'output_directory', motion_proc, 'inputspec.output_directory')
     all_7T_workflow.connect(input_node, 'which_file_is_EPI_space', motion_proc, 'inputspec.which_file_is_EPI_space')
     all_7T_workflow.connect(tua_wf, 'outputspec.out_files', motion_proc, 'inputspec.in_files')
@@ -169,8 +174,9 @@ def create_all_7T_workflow(session_info, name='all_7T'):
 
     # fit nuisances from retroicor
     all_7T_workflow.connect(retr, 'outputspec.evs', fit_nuis, 'slice_regressor_list')
-    all_7T_workflow.connect(motion_proc, 'outputspec.motion_correction_parameters', fit_nuis, 'vol_regressors')
+    all_7T_workflow.connect(motion_proc, 'outputspec.new_motion_correction_parameters', fit_nuis, 'vol_regressors')
     all_7T_workflow.connect(psc, 'out_file', fit_nuis, 'in_file')
+    # all_7T_workflow.connect(bet_epi, 'out_file', fit_nuis, 'in_file')
 
     all_7T_workflow.connect(fit_nuis, 'res_file', av_r, 'in_files')
 
