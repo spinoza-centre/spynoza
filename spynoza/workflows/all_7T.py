@@ -64,6 +64,9 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     bet_topup = pe.MapNode(interface=
         fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], 
                 functional=True, mask = True), name='bet_topup', iterfield=['in_file'])
+    bet_moco = pe.Node(interface=
+        fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], 
+                functional=True, mask = True), name='bet_moco')
 
 
     # node for temporal filtering
@@ -142,6 +145,9 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     # datasource. Check this.
     # all_7T_workflow.connect(reg, 'outputspec.T1_file', reg, 'inputspec.T1_file')    
 
+    # BET the motion corrected EPI_space_file for global mask.
+    all_7T_workflow.connect(motion_proc, 'outputspec.EPI_space_file', bet_moco, 'in_file')
+
     # temporal filtering
     all_7T_workflow.connect(motion_proc, 'outputspec.motion_corrected_files', sgfilter, 'in_file')
 
@@ -190,6 +196,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(bet_epi, 'mask_file', datasink, 'bet.epimask')
     all_7T_workflow.connect(bet_topup, 'out_file', datasink, 'bet.topup')
     all_7T_workflow.connect(bet_topup, 'mask_file', datasink, 'bet.topupmask')
+    all_7T_workflow.connect(bet_moco, 'mask_file', datasink, 'bet')
 
     all_7T_workflow.connect(tua_wf, 'outputspec.field_coefs', datasink, 'topup.fieldcoef')
     all_7T_workflow.connect(tua_wf, 'outputspec.out_files', datasink, 'topup.unwarped')
