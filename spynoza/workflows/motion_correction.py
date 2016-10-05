@@ -34,6 +34,14 @@ def _extend_motion_parameters(moco_par_file, tr, sg_args = {'window_length': 120
     return new_out_file, ext_out_file
 
 
+def _check_if_iterable(to_iter, arg):
+
+    if not isinstance(arg, list):
+        arg = [arg] * len(to_iter)
+
+    return arg
+
+
 def create_motion_correction_workflow(name = 'moco'):
     """uses sub-workflows to perform different registration steps.
     Requires fsl and freesurfer tools
@@ -80,6 +88,9 @@ def create_motion_correction_workflow(name = 'moco'):
     EPI_file_selector_node = pe.Node(Function(input_names=['which_file', 'in_files'], output_names='raw_EPI_space_file',
                                        function=EPI_file_selector), name='EPI_file_selector_node')
 
+    fix_iterable = pe.Node(Function(input_names=['to_iter', 'arg'], output_names='arg_fixed',
+                                    function=_check_if_iterable), name='fix_iterable')
+
     motion_correct_EPI_space = pe.Node(interface=fsl.MCFLIRT(
                     save_mats = True, 
                     save_plots = True, 
@@ -103,7 +114,7 @@ def create_motion_correction_workflow(name = 'moco'):
                             iterfield=['in_file'])
 
     extend_motion_pars = pe.MapNode(Function(input_names=['moco_par_file', 'tr'], output_names=['new_out_file', 'ext_out_file'],
-                                       function=_extend_motion_parameters), name='extend_motion_pars', iterfield = ['moco_par_file'])
+                                       function=_extend_motion_parameters), name='extend_motion_pars', iterfield = ['moco_par_file', 'tr'])
 
     rename = pe.Node(niu.Rename(format_string='session_EPI_space',
                             keep_ext=True),
@@ -125,10 +136,11 @@ def create_motion_correction_workflow(name = 'moco'):
 
     motion_correction_workflow.connect(motion_correct_all, 'out_file', output_node, 'motion_corrected_files')
     motion_correction_workflow.connect(motion_correct_all, 'par_file', extend_motion_pars, 'moco_par_file')
-    motion_correction_workflow.connect(input_node, 'tr', extend_motion_pars, 'tr')
+    motion_correction_workflow.connect(input_node, 'tr', fix_iterable, 'arg')
+    motion_correction_workflow.connect(input_node, 'in_files', fix_iterable, 'to_iter')
+    motion_correction_workflow.connect(fix_iterable, 'arg_fixed', extend_motion_pars, 'tr')
     motion_correction_workflow.connect(extend_motion_pars, 'ext_out_file', output_node, 'extended_motion_correction_parameters')
     motion_correction_workflow.connect(extend_motion_pars, 'new_out_file', output_node, 'new_motion_correction_parameters')
-
 
     ########################################################################################
     # Plot the estimated motion parameters

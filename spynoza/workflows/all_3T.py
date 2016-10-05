@@ -15,6 +15,13 @@ def _check_params(session_info):
     return session_info
 
 
+def _rename_outdir(in_file):
+    import os.path as op
+
+    task_name = in_file.split('task-')[-1].split('_')[0]
+    return op.join(op.dirname(in_file), task_name)
+
+
 def _configure_iterables(session_info, wf):
     """ Configures info/datasource based on subject/session iterables. """
 
@@ -49,9 +56,11 @@ def create_all_3T_workflow(session_info, name='all_3T'):
     from nipype.interfaces import fsl
     from nipype.interfaces.utility import Function, IdentityInterface
     from nipype.interfaces.io import DataSink
+    from nipype.interfaces.fsl.model import MELODIC
     from spynoza.nodes.utils import pickfirst, get_scaninfo, concat_iterables
-    from spynoza.workflows.motion_correction import create_motion_correction_workflow
-    from spynoza.workflows.registration import create_registration_workflow
+    from spynoza.workflows import create_motion_correction_workflow
+    from spynoza.workflows import create_registration_workflow
+    from spynoza.workflows import create_ica_workflow
     from spynoza.nodes import savgol_filter
 
     # the actual top-level workflow
@@ -65,10 +74,16 @@ def create_all_3T_workflow(session_info, name='all_3T'):
     session_info = _check_params(session_info)
     all_3T_workflow, datasource, infosource = _configure_iterables(session_info, all_3T_workflow)
 
+    extract_scaninfo = pe.MapNode(Function(input_names=['in_file'],
+                                           output_names=['TR', 'shape', 'dyns',
+                                                         'voxsize', 'affine'],
+                                           function=get_scaninfo),
+                                  name='extract_scaninfo', iterfield='in_file')
+
     input_node = pe.Node(IdentityInterface(
         fields=['raw_directory', 'output_directory',
                 'which_file_is_EPI_space', 'standard_file',
-                'smoothing']), name='inputspec')
+                'smoothing', 'tr']), name='inputspec')
 
     all_3T_workflow.connect(input_node, 'raw_directory', datasource, 'base_directory')
     all_3T_workflow.connect(infosource, 'sub_id', rename_container, 'sub')
@@ -97,6 +112,7 @@ def create_all_3T_workflow(session_info, name='all_3T'):
     motion_proc = create_motion_correction_workflow('moco')
     all_3T_workflow.connect(input_node, 'output_directory', motion_proc, 'inputspec.output_directory')
     all_3T_workflow.connect(input_node, 'which_file_is_EPI_space', motion_proc, 'inputspec.which_file_is_EPI_space')
+    all_3T_workflow.connect(extract_scaninfo, 'TR', motion_proc, 'inputspec.tr')
     all_3T_workflow.connect(bet_epi, 'out_file', motion_proc, 'inputspec.in_files')
     all_3T_workflow.connect(rename_container, 'out_file', motion_proc, 'inputspec.sub_id')
 
@@ -110,12 +126,6 @@ def create_all_3T_workflow(session_info, name='all_3T'):
     # the T1_file entry could be empty sometimes, depending on the output of the
     # datasource. Check this.
     all_3T_workflow.connect(datasource, ('anat', pickfirst), reg, 'inputspec.T1_file')
-
-    extract_scaninfo = pe.MapNode(Function(input_names=['in_file'],
-                                             output_names=['TR', 'shape', 'dyns', 'voxsize', 'affine'],
-                                             function=get_scaninfo),
-                               name='extract_scaninfo', iterfield='in_file')
-
     all_3T_workflow.connect(datasource, 'func', extract_scaninfo, 'in_file')
 
     slicetimer = pe.MapNode(interface=fsl.SliceTimer(interleaved=False),
@@ -139,28 +149,12 @@ def create_all_3T_workflow(session_info, name='all_3T'):
     all_3T_workflow.connect(smooth, 'out_file', sgfilter, 'in_file')
     all_3T_workflow.connect(sgfilter, 'out_file', datasink, 'clean_func')
 
+    if 'do_ica' not in session_info.keys():
+        session_info['do_ica'] = False
+
+    if session_info['do_ica']:
+        ica = create_ica_workflow()
+        all_3T_workflow.connect(sgfilter, 'out_file', ica, 'inputspec.in_file')
+        all_3T_workflow.connect(ica, 'outputspec.out_dir', datasink, 'ica')
+
     return all_3T_workflow
-
-if __name__ == '__main__':
-    from nipype.interfaces.fsl import Info
-
-    session_info = {'use_FS': False,
-                    'do_fnirt': False,
-                    'subjects': ['sub-0028', 'sub-0029']}
-
-    all_3T = create_all_3T_workflow(session_info)
-    all_3T.base_dir = '/media/lukas/data/Spynoza_data/data_piop'
-
-    template = Info.standard_image('MNI152_T1_2mm_brain.nii.gz')
-
-    all_3T.inputs.inputspec.output_directory = '/media/lukas/data/Spynoza_data/data_piop/preproc'
-    all_3T.inputs.inputspec.raw_directory = '/media/lukas/data/Spynoza_data/data_piop'
-    all_3T.inputs.inputspec.standard_file = template
-    all_3T.inputs.inputspec.which_file_is_EPI_space = 'middle'
-    all_3T.inputs.inputspec.smoothing = 3
-
-    all_3T.config = {'execution': {'stop_on_first_crash': True,
-                     'keep_inputs': True,
-                     'remove_unnecessary_outputs': True}}
-
-    graph = all_3T.run('MultiProc', plugin_args={'n_procs': 1})
