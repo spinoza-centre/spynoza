@@ -159,20 +159,68 @@ def percent_signal_change(in_file, func = 'mean'):
     import nibabel as nib
     import numpy as np
     import os
+    import bottleneck as bn
 
     data = nib.load(in_file)
     dims = data.shape
     affine = data.affine
 
     if func == 'mean':
-        data_m = data.get_data().mean(axis=-1)
+        data_m = bn.nanmean(data.get_data(), axis=-1)
     elif func == 'median':
-        data_m = np.median(data.get_data(), axis=-1)
+        data_m = np.nanmedian(data.get_data(), axis=-1)
 
-    data_psc = 100.0 * (data.get_data() - data_m) / data_m
+    data_psc = (100.0 * (data.get_data().transpose((3,0,1,2)) - data_m) / data_m).transpose((1,2,3,0))
     img = nib.Nifti1Image(data_psc, affine)
 
     new_name = os.path.basename(in_file).split('.')[:-2][0] + '_psc.nii.gz'
+    out_file = os.path.abspath(new_name)
+    nib.save(img, out_file)
+
+    return out_file
+
+def average_over_runs(in_files, func = 'mean'):
+    """Converts data in a nifti-file to percent signal change.
+
+    Takes a list of 4D fMRI nifti-files and averages them. 
+    That is, the resulting file has the same dimensions as each
+    of the input files. average_over_runs assumes that all nifti
+    files to be averaged have identical dimensions.
+
+    Parameters
+    ----------
+    in_files : list
+        Absolute paths to nifti-files.
+    func : string ['mean', 'median'] (default: 'mean')
+        the function used to calculate the 'average'
+
+    Returns
+    -------
+    out_file : str
+        Absolute path to average nifti-file.
+    """
+
+    import nibabel as nib
+    import numpy as np
+    import os
+
+    template_data = nib.load(in_files[0])
+    dims = template_data.shape
+    affine = template_data.affine
+    all_data = np.zeros([len(in_files)]+list(dims))
+    
+    for i in range(len(in_files)):
+        d = nib.load(in_files[i])
+        all_data[i] = d.get_data()
+
+    if func == 'mean':
+        av_data = all_data.mean(axis = 0)
+    elif func == 'median':
+        av_data = np.median(all_data, axis = 0)
+
+    img = nib.Nifti1Image(av_data, affine)
+
+    new_name = os.path.basename(in_files[0]).split('.')[:-2][0] + '_av.nii.gz'
     out_file = os.path.abspath(new_name)
     nib.save(img, out_file)
 

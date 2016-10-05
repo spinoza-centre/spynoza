@@ -1,41 +1,7 @@
-from ..nodes import EPI_file_selector
+from .sub_workflows import *
 
-def _extend_motion_parameters(moco_par_file, tr, sg_args = {'window_length': 120, 'deriv':0, 'polyorder':3, 'mode':'nearest'}):
-    import os.path as op
-    import numpy as np
-    from sklearn import decomposition
-    from scipy.signal import savgol_filter
-
-    ext_out_file = moco_par_file[:-7] + 'ext_moco_pars.par'
-    new_out_file = moco_par_file[:-7] + 'new_moco_pars.par'
-
-    sg_args['window_length'] = int(sg_args['window_length'] / tr)
-    # Window must be odd-shaped
-    if sg_args['window_length'] % 2 == 0:
-        sg_args['window_length'] += 1
-
-    moco_pars = np.loadtxt(moco_par_file)
-    moco_pars = moco_pars - savgol_filter(moco_pars, axis = 0, **sg_args)    
-
-    dt_moco_pars = np.diff(np.vstack((np.ones((1,6)), moco_pars)), axis = 0)
-    ddt_moco_pars = np.diff(np.vstack((np.ones((1,6)), dt_moco_pars)), axis = 0)
-
-    ext_moco_pars = np.hstack((moco_pars, dt_moco_pars, ddt_moco_pars))
-
-    # blow up using abs(), perform pca and take original number of 18 components
-    amp = np.hstack((moco_pars, dt_moco_pars, ddt_moco_pars, dt_moco_pars**2, ddt_moco_pars**2))
-    pca = decomposition.PCA(n_components = 18)
-    pca.fit(amp)
-    new_moco_pars = pca.transform(amp)
-
-    np.savetxt(new_out_file, new_moco_pars, fmt='%f', delimiter='\t')
-    np.savetxt(ext_out_file, ext_moco_pars, fmt='%f', delimiter='\t')
-
-    return new_out_file, ext_out_file
-
-
-def create_motion_correction_workflow(name = 'moco'):
-    """uses sub-workflows to perform different registration steps.
+def create_masking_workflow(session_info, name = 'masking'):
+    """uses sub-workflows to create different masks in EPI_space_file space.
     Requires fsl and freesurfer tools
     Parameters
     ----------
@@ -44,10 +10,10 @@ def create_motion_correction_workflow(name = 'moco'):
     
     Example
     -------
-    >>> motion_correction_workflow = create_motion_correction_workflow('motion_correction_workflow')
-    >>> motion_correction_workflow.inputs.inputspec.output_directory = '/data/project/raw/BIDS/sj_1/'
-    >>> motion_correction_workflow.inputs.inputspec.in_files = ['sub-001.nii.gz','sub-002.nii.gz']
-    >>> motion_correction_workflow.inputs.inputspec.which_file_is_EPI_space = 'middle'
+    >>> masking_workflow = create_masking_workflow('motion_correction_workflow')
+    >>> masking_workflow.inputs.inputspec.output_directory = '/data/project/raw/BIDS/sj_1/'
+    >>> masking_workflow.inputs.inputspec.in_files = ['sub-001.nii.gz','sub-002.nii.gz']
+    >>> masking_workflow.inputs.inputspec.which_file_is_EPI_space = 'middle'
  
     Inputs::
           inputspec.output_directory : directory in which to sink the result files
@@ -66,9 +32,10 @@ def create_motion_correction_workflow(name = 'moco'):
     import nipype.interfaces.io as nio
     from nipype.interfaces.utility import Function, IdentityInterface
     import nipype.interfaces.utility as niu
+     
     ### NODES
-    input_node = pe.Node(IdentityInterface(fields=['in_files', 'output_directory', 'which_file_is_EPI_space',
-                                                   'sub_id', 'tr']), name='inputspec')
+    input_node = pe.Node(IdentityInterface(fields=['EPI_space_file', 'output_directory', 'EPI_T1_matrix_file',
+                                                   'sub_id', 'EPI_T1_register_file', 'T1_file', 'label_folder']), name='inputspec')
     output_node = pe.Node(IdentityInterface(fields=([
                 'motion_corrected_files', 
                 'EPI_space_file', 

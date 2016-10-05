@@ -11,17 +11,15 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length = 120):
     fitted data from the original data to effectively remove low-frequency
     signals.
 
-    Modified from H.S. Scholte's OP2_filtering().
-
     Parameters
     ----------
     in_file : str
         Absolute path to nifti-file.
-    polyorder : int (default: 5)
+    polyorder : int (default: 3)
         Order of polynomials to use in filter.
     deriv : int (default: 0)
         Number of derivatives to use in filter.
-    window_length : int (default: 200)
+    window_length : int (default: 120)
         Window length in seconds.
 
     Returns
@@ -40,8 +38,11 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length = 120):
     affine = data.affine
     tr = data.header['pixdim'][4]
 
+    # TR must be in seconds
     if tr < 0.01:
         tr = np.round(tr * 1000, decimals=3)
+    if tr > 20:
+        tr = tr / 1000.0
 
     window = np.int(window_length / tr)
 
