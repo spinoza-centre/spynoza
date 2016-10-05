@@ -225,3 +225,23 @@ def average_over_runs(in_files, func = 'mean'):
     nib.save(img, out_file)
 
     return out_file
+
+def pickle_to_json(in_file):
+    import json
+    import jsonpickle
+    import pickle
+    import os.path as op
+
+    with open(in_file) as f:
+        jsp = jsonpickle.encode(pickle.load(f))
+
+    out_file = op.abspath(op.splitext(in_file)[0] + '.json')
+    json.dump(jsp, out_file)
+
+    return out_file
+
+
+
+
+
+

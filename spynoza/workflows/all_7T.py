@@ -10,12 +10,13 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     # Importing of custom nodes from spynoza packages; assumes that spynoza is installed:
     # pip install git+https://github.com/spinoza-centre/spynoza.git@master
     from spynoza.nodes.filtering import savgol_filter
-    from spynoza.nodes.utils import get_scaninfo, pickfirst, percent_signal_change, average_over_runs
+    from spynoza.nodes.utils import get_scaninfo, pickfirst, percent_signal_change, average_over_runs, pickle_to_json
     from spynoza.workflows.topup import create_topup_workflow
     from spynoza.workflows.motion_correction import create_motion_correction_workflow
     from spynoza.workflows.registration import create_registration_workflow
     from spynoza.workflows.retroicor import create_retroicor_workflow
     from spynoza.nodes.fit_nuisances import fit_nuisances
+
 
     ########################################################################################
     # nodes
@@ -47,7 +48,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
                                 events='{sub_id}/func/*_events.pickle',
                                 eye='{sub_id}/func/*_eyedata.edf') # ,
                                 # anat='{sub_id}/anat/*_T1w.nii.gz'
-    datasource = pe.Node(SelectFiles(datasource_templates, sort_filelist = True), 
+    datasource = pe.Node(SelectFiles(datasource_templates, sort_filelist = True, raise_on_empty = False), 
         name = 'datasource')
 
     output_node = pe.Node(IdentityInterface(fields=([
@@ -68,12 +69,17 @@ def create_all_7T_workflow(session_info, name='all_7T'):
         fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], 
                 functional=True, mask = True), name='bet_moco')
 
-
-    # node for temporal filtering
+    # node for converting pickle files to json
     sgfilter = pe.MapNode(Function(input_names=['in_file'],
                                     output_names=['out_file'],
                                     function=savgol_filter),
                       name='sgfilter', iterfield=['in_file'])
+
+    # node for temporal filtering
+    pj = pe.MapNode(Function(input_names=['in_file'],
+                                    output_names=['out_file'],
+                                    function=pickle_to_json),
+                      name='pj', iterfield=['in_file'])
 
     # node for percent signal change
     psc = pe.MapNode(Function(input_names=['in_file', 'func'],
@@ -111,6 +117,9 @@ def create_all_7T_workflow(session_info, name='all_7T'):
 
     all_7T_workflow.connect(input_node, 'raw_directory', datasource, 'base_directory')
     all_7T_workflow.connect(input_node, 'sub_id', datasource, 'sub_id')
+
+    # behavioral pickle to json
+    all_7T_workflow.connect(datasource, 'events', pj, 'in_file')
 
     # reorientation to standard orientation
     all_7T_workflow.connect(datasource, 'func', reorient_epi, 'in_file')
@@ -191,6 +200,10 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     ########################################################################################
 
     all_7T_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
+
+    # sink out events and eyelink files
+    all_7T_workflow.connect(pj, 'out_file', datasink, 'events')
+    all_7T_workflow.connect(datasource, 'eye', datasink, 'eye')
 
     all_7T_workflow.connect(bet_epi, 'out_file', datasink, 'bet.epi')
     all_7T_workflow.connect(bet_epi, 'mask_file', datasink, 'bet.epimask')

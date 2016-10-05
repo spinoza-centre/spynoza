@@ -6,6 +6,7 @@ import os.path as op
 import glob
 import json
 import nipype
+from nipype import config, logging
 import matplotlib.pyplot as plt
 import nipype.interfaces.fsl as fsl
 import nipype.pipeline.engine as pe
@@ -33,7 +34,13 @@ preprocessed_data_dir = '/home/shared/2016/visual/PRF_7T/test/'
 
 # for now, testing on a single subject, with appropriate FS ID, this will have to be masked.
 sub_id, FS_ID = 'sub-NA', 'NA_220813_12'
+
+# now we set up the folders and logging there.
 opd = op.join(preprocessed_data_dir, sub_id)
+os.makedirs(op.join(opd, 'log'))
+config.update_config({'logging': {'log_directory': op.join(opd, 'log'),
+                                  'log_to_file': True}})
+logging.update_logging(config)
 
 # load the sequence parameters from json file
 with open(os.path.join(raw_data_dir, 'multiband_prf_7T_acq.json')) as f:
