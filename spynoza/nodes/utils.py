@@ -232,11 +232,12 @@ def pickle_to_json(in_file):
     import pickle
     import os.path as op
 
-    with open(in_file) as f:
+    with open(in_file, 'rU') as f:
         jsp = jsonpickle.encode(pickle.load(f))
 
     out_file = op.abspath(op.splitext(in_file)[0] + '.json')
-    json.dump(jsp, out_file)
+    with open(out_file, 'w') as f:
+        json.dump(jsp, f, indent = 2)
 
     return out_file
 
