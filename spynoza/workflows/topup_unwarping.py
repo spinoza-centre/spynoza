@@ -5,7 +5,7 @@ import nipype.interfaces.io as nio
 from nipype.interfaces.utility import Function, Merge, IdentityInterface
 from spynoza.nodes.utils import get_scaninfo
 
-def create_topup_workflow(session_info, name='topup'):
+def create_topup_workflow(analysis_info, name='topup'):
     import os.path as op
     import nipype.pipeline as pe
     from nipype.interfaces import fsl
@@ -14,7 +14,7 @@ def create_topup_workflow(session_info, name='topup'):
 
     input_node = pe.Node(IdentityInterface(
         fields=['in_files', 'alt_files', 'conf_file', 'output_directory',
-                'pe_direction', 'te', 'epi_factor']), name='inputspec')
+                'echo_time', 'phase_encoding_direction', 'epi_factor']), name='inputspec')
 
     output_node = pe.Node(IdentityInterface(fields=['out_files', 'field_coefs']), name='outputspec')
 
@@ -55,24 +55,19 @@ def create_topup_workflow(session_info, name='topup'):
     ########################################################################################
     topup_workflow = pe.Workflow(name=name)
 
-    # add session info variables to input node
-    input_node.inputs.te = session_info['te']
-    input_node.inputs.pe_direction = session_info['pe_direction']
-    input_node.inputs.epi_factor = session_info['epi_factor']
-
     # these are now mapnodes because they split up over files
     topup_workflow.connect(input_node, 'in_files', get_info, 'in_file')
     topup_workflow.connect(input_node, 'in_files', PE_ref, 'in_file')
     topup_workflow.connect(input_node, 'alt_files', PE_alt, 'in_file')
 
     # this is a simple node, connecting to the input node
-    topup_workflow.connect(input_node, 'pe_direction', topup_scan_params_node, 'pe_direction')
-    topup_workflow.connect(input_node, 'te', topup_scan_params_node, 'te')
+    topup_workflow.connect(input_node, 'phase_encoding_direction', topup_scan_params_node, 'pe_direction')
+    topup_workflow.connect(input_node, 'echo_time', topup_scan_params_node, 'te')
     topup_workflow.connect(input_node, 'epi_factor', topup_scan_params_node, 'epi_factor')
 
     # preparing a node here, which automatically iterates over dyns output of the get_info mapnode
-    topup_workflow.connect(input_node, 'te', apply_scan_params_node, 'te')
-    topup_workflow.connect(input_node, 'pe_direction', apply_scan_params_node, 'pe_direction')
+    topup_workflow.connect(input_node, 'echo_time', apply_scan_params_node, 'te')
+    topup_workflow.connect(input_node, 'phase_encoding_direction', apply_scan_params_node, 'pe_direction')
     topup_workflow.connect(input_node, 'epi_factor', apply_scan_params_node, 'epi_factor')
     topup_workflow.connect(get_info, 'dyns', apply_scan_params_node, 'nr_trs')
 
