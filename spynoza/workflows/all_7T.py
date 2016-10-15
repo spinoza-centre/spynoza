@@ -64,6 +64,16 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
             'temporal_filtered_files', 
             'percent_signal_change_files'])), name='outputspec')
 
+    # nodes for setting the slope/intercept of incoming niftis to (1, 0)
+    int_slope_epi = pe.MapNode(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
+                      name='int_slope_epi', iterfield=['in_file'])
+    int_slope_topup = pe.MapNode(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
+                      name='int_slope_topup', iterfield=['in_file'])
+    int_slope_B0_magnitude = pe.Node(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
+                      name='int_slope_B0_magnitude')
+    int_slope_B0_phasediff = pe.Node(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
+                      name='int_slope_B0_phasediff')
+
     # reorient nodes
     reorient_epi = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_epi', iterfield=['in_file'])
     reorient_topup = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_topup', iterfield=['in_file'])
@@ -132,11 +142,17 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
     # behavioral pickle to json
     all_7T_workflow.connect(datasource, 'events', pj, 'in_file')
 
+    # slope/intercept to unity
+    all_7T_workflow.connect(datasource, 'func', int_slope_epi, 'in_file')
+    all_7T_workflow.connect(datasource, 'topup', int_slope_topup, 'in_file')
+    all_7T_workflow.connect(datasource, 'magnitude', int_slope_B0_magnitude, 'in_file')
+    all_7T_workflow.connect(datasource, 'phasediff', int_slope_B0_phasediff, 'in_file')
+
     # reorientation to standard orientation
-    all_7T_workflow.connect(datasource, 'func', reorient_epi, 'in_file')
-    all_7T_workflow.connect(datasource, 'topup', reorient_topup, 'in_file')
-    all_7T_workflow.connect(datasource, 'magnitude', reorient_B0_magnitude, 'in_file')
-    all_7T_workflow.connect(datasource, 'phasediff', reorient_B0_phasediff, 'in_file')
+    all_7T_workflow.connect(int_slope_epi, 'out_file', reorient_epi, 'in_file')
+    all_7T_workflow.connect(int_slope_topup, 'out_file', reorient_topup, 'in_file')
+    all_7T_workflow.connect(int_slope_B0_magnitude, 'out_file', reorient_B0_magnitude, 'in_file')
+    all_7T_workflow.connect(int_slope_B0_phasediff, 'out_file', reorient_B0_phasediff, 'in_file')
 
     # BET
     all_7T_workflow.connect(reorient_epi, 'out_file', bet_epi, 'in_file')

@@ -242,7 +242,36 @@ def pickle_to_json(in_file):
     return out_file
 
 
+def set_nifti_intercept_slope(in_file, intercept = 0, slope = 1, in_is_out = True):
+    """Sets the value-scaling intercept and slope in the nifti header.
+    
+    Parameters
+    ----------
+    in_file : string
+        Absolute path to nifti-file.
+    intercept : float (default: 0), can be None for nan value
+        the intercept of the value scaling function
+    slope : float (default: 1), can be None for nan value
+        the slope of the value scaling function
 
+    Returns
+    -------
+    out_file : str
+        Absolute path to nifti-file.
+    """
 
+    import nibabel as nib
+    import os
+
+    if in_is_out:
+        out_file = in_file
+    else:
+        out_file = os.path.basename(in_file).split('.')[:-2][0] + '_si.nii.gz'
+
+    d = nib.load(in_file)
+    d.header.set_slope_inter(slope = slope, inter = intercept)
+    d.to_filename(os.path.abspath(out_file))
+
+    return out_file
 
 
