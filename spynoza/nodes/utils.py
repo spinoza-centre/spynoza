@@ -6,15 +6,20 @@ def EPI_file_selector(which_file, in_files):
     Choices are: 'middle', 'last', 'first', or any integer in the list
     """
     import math
+    import os
 
-    if which_file == 'middle':
+    if which_file == 'middle':          # middle from the list
         return in_files[int(math.floor(len(in_files)/2))]
-    elif which_file == 'first':
+    elif which_file == 'first':         # first from the list
         return in_files[0]
-    elif which_file == 'last':
+    elif which_file == 'last':          # last from the list
         return in_files[-1]
-    elif type(which_file) == int:
+    elif type(which_file) == int:       # the xth from the list
         return in_files[which_file]
+    elif os.path.isfile(which_file):    # take another file, not from the list
+        return which_file
+    else:
+        raise Exception('value of which_file, %s, doesn\'t allow choosing an actual file.'%which_file)
 
 
 def get_scaninfo(in_file):
@@ -168,10 +173,10 @@ def percent_signal_change(in_file, func = 'mean'):
     if func == 'mean':
         data_m = bn.nanmean(data.get_data(), axis=-1)
     elif func == 'median':
-        data_m = np.nanmedian(data.get_data(), axis=-1)
+        data_m = bn.nanmedian(data.get_data(), axis=-1)
 
-    data_psc = (100.0 * (data.get_data().transpose((3,0,1,2)) - data_m) / data_m).transpose((1,2,3,0))
-    img = nib.Nifti1Image(data_psc, affine)
+    data_psc = (100.0 * (np.nan_to_num(data.get_data()).transpose((3,0,1,2)) - data_m) / data_m).transpose((1,2,3,0))
+    img = nib.Nifti1Image(np.nan_to_num(data_psc), affine)
 
     new_name = os.path.basename(in_file).split('.')[:-2][0] + '_psc.nii.gz'
     out_file = os.path.abspath(new_name)

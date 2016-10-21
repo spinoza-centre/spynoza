@@ -89,6 +89,18 @@ def create_motion_correction_workflow(name = 'moco'):
 
     mean_bold = pe.Node(interface=fsl.maths.MeanImage(dimension='T'), name='mean_space')
 
+    # new approach, which should aid in the joint motion correction of 
+    # multiple sessions together, by pre-registering each run.
+    # the strategy would be to, for each run, take the first TR
+    # and FLIRT-align (6dof) it to the EPI_space file. 
+    # then we can use this as an --infile argument to mcflirt.
+
+    take_first_TR = pe.MapNode(fsl.ExtractROI(t_min=0, t_size=1), name='take_first_TR', iterfield = ['in_file'])
+
+    # preregistration node is set up for rigid-body within-modality reg
+    prereg_flirt_N = pe.MapNode(fsl.FLIRT(cost_func='normcorr', output_type = 'NIFTI_GZ', dof = 7, interp = 'sinc'), 
+                        name = 'prereg_flirt_N', iterfield = ['in_file'])
+
     motion_correct_all = pe.MapNode(interface=fsl.MCFLIRT(
                     save_mats = True, 
                     save_plots = True, 
@@ -96,7 +108,7 @@ def create_motion_correction_workflow(name = 'moco'):
                     interpolation = 'sinc',
                     stats_imgs = True
                     ), name='realign_all',
-                                iterfield = 'in_file')
+                                iterfield = ['in_file', 'init'])
 
     plot_motion = pe.MapNode(interface=fsl.PlotMotionParams(in_source='fsl'),
                             name='plot_motion',
@@ -118,8 +130,17 @@ def create_motion_correction_workflow(name = 'moco'):
     motion_correction_workflow.connect(EPI_file_selector_node, 'raw_EPI_space_file', motion_correct_EPI_space, 'in_file')
     motion_correction_workflow.connect(motion_correct_EPI_space, 'out_file', mean_bold, 'in_file')
     motion_correction_workflow.connect(mean_bold, 'out_file', motion_correct_all, 'ref_file')
-    motion_correction_workflow.connect(input_node, 'in_files', motion_correct_all, 'in_file')
 
+    # the pre-registration
+    motion_correction_workflow.connect(input_node, 'in_files', take_first_TR, 'in_file')
+    motion_correction_workflow.connect(take_first_TR, 'roi_file', prereg_flirt_N, 'in_file')
+    motion_correction_workflow.connect(mean_bold, 'out_file', prereg_flirt_N, 'reference')
+
+    # motion correction across runs
+    motion_correction_workflow.connect(prereg_flirt_N, 'out_matrix_file', motion_correct_all, 'init')
+    motion_correction_workflow.connect(input_node, 'in_files', motion_correct_all, 'in_file')
+        
+    # output node, for later saving
     motion_correction_workflow.connect(mean_bold, 'out_file', output_node, 'EPI_space_file')
     motion_correction_workflow.connect(motion_correct_all, 'par_file', output_node, 'motion_correction_parameters')
 

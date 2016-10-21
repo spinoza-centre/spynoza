@@ -33,7 +33,7 @@ raw_data_dir = '/home/raw_data/2016/visual/whole_brain_MB_pRF/'
 preprocessed_data_dir = '/home/shared/2016/visual/PRF_7T/test/'
 
 # for now, testing on a single subject, with appropriate FS ID, this will have to be masked.
-sub_id, FS_ID = 'sub-001', 'AU_120314'
+sub_id, FS_ID = 'sub-002', 'AV_3005116'
 
 # now we set up the folders and logging there.
 opd = op.join(preprocessed_data_dir, sub_id)

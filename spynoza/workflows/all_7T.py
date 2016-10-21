@@ -10,7 +10,7 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
     # Importing of custom nodes from spynoza packages; assumes that spynoza is installed:
     # pip install git+https://github.com/spinoza-centre/spynoza.git@master
     from spynoza.nodes.filtering import savgol_filter
-    from spynoza.nodes.utils import get_scaninfo, pickfirst, percent_signal_change, average_over_runs, pickle_to_json
+    from spynoza.nodes.utils import get_scaninfo, pickfirst, percent_signal_change, average_over_runs, pickle_to_json, set_nifti_intercept_slope
     from spynoza.workflows.topup_unwarping import create_topup_workflow
     from spynoza.workflows.B0_unwarping import create_B0_workflow
     from spynoza.workflows.motion_correction import create_motion_correction_workflow
