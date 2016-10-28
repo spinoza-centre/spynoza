@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 
+
 def mask_nii_2_hdf5(in_files, mask_files, hdf5_file, folder_alias):
     """masks data in in_files with masks in mask_files,
     to be stored in an hdf5 file

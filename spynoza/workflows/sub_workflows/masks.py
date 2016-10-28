@@ -214,7 +214,7 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
         'reg_file', 
         'fill_thresh',
         're']), name='inputspec')
-    output_node = pe.Node(IdentityInterface(fields=('output_masks')), name='outputspec')
+    output_node = pe.Node(IdentityInterface(fields=(['output_masks'])), name='outputspec')
 
     # housekeeping function for finding label files in FS directory
     def FS_label_list(freesurfer_subject_ID, freesurfer_subject_dir, label_directory, re = '*.label'):
@@ -263,10 +263,10 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     # and the iter field filled in from the label collection node
     masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_2_vol_node, 'label_file')
 
-    masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_name_node, 'label_file')
+    # masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_name_node, 'label_file')
 
-    masks_from_surface_workflow.connect(label_name_node, 'region', rename_labels, 'region')
-    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', rename_labels, 'in_file')
+    # masks_from_surface_workflow.connect(label_name_node, 'region', rename_labels, 'region')
+    # masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', rename_labels, 'in_file')
 
     # masks_from_surface_workflow.connect(rename_labels, 'out_file', output_node, 'output_masks')
     masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', output_node, 'output_masks')
@@ -279,7 +279,7 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     # first link the workflow's output_directory into the datasink.
     masks_from_surface_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
     # and the rest
-    masks_from_surface_workflow.connect(rename_labels, 'out_file', datasink, 'labels')
+    # masks_from_surface_workflow.connect(rename_labels, 'out_file', datasink, 'labels')
     masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', datasink, 'labels.@lbl')
 
     return masks_from_surface_workflow
