@@ -182,7 +182,7 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     mfs.inputs.inputspec.reg_file = '/home/shared/-2014/reward/new/sub-002/reg/register.dat'
     mfs.inputs.inputspec.fill_thresh = 0.01
     mfs.inputs.inputspec.re = '*.label'
-    mfs.run()
+    mfs.run('MultiProc', plugin_args={'n_procs': 32})
 
 
     Inputs::
@@ -200,10 +200,10 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     """
     ### NODES
     import nipype.pipeline as pe
-    from nipype.interfaces.utility import Function, IdentityInterface
+    from nipype.interfaces.utility import Function, IdentityInterface, Merge
     import nipype.interfaces.io as nio
     import nipype.interfaces.utility as niu
- 
+    import os.path as op
 
     input_node = pe.Node(IdentityInterface(
         fields=['EPI_space_file', 
@@ -228,19 +228,8 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     FS_label_list_node = pe.Node(Function(input_names=('freesurfer_subject_ID', 'freesurfer_subject_dir', 'label_directory', 're'), output_names='label_list',
                                      function=FS_label_list), name='FS_label_list_node')
 
-    label_2_vol_node = pe.MapNode(interface=freesurfer.Label2Vol(), name='all_labels',
+    label_2_vol_node = pe.MapNode(interface=freesurfer.Label2Vol(), name='l2v',
                                 iterfield = 'label_file')
-
-    # def label_name_from_label_file(label_file, label_extension = '.label'):
-    #     import os.path as op
-    #     region = op.split(label_file)[-1].split(label_extension)[0]
-    #     return region
-
-    # label_name_node = pe.MapNode(Function(input_names=('label_file'), output_names='region',
-    #                                  function=label_name_from_label_file), name='label_name_node', iterfield = ['label_file'])
-
-    # rename_labels = pe.MapNode(niu.Rename(format_string="%(region)"), 
-    #                     name = 'rename_labels', iterfield = ['in_file', 'region'])
 
     ########################################################################################
     # actual workflow
@@ -263,24 +252,18 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     # and the iter field filled in from the label collection node
     masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_2_vol_node, 'label_file')
 
-    # masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_name_node, 'label_file')
-
-    # masks_from_surface_workflow.connect(label_name_node, 'region', rename_labels, 'region')
-    # masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', rename_labels, 'in_file')
-
-    # masks_from_surface_workflow.connect(rename_labels, 'out_file', output_node, 'output_masks')
-    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', output_node, 'output_masks')
+    masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_name_node, 'label_file')
 
     ########################################################################################
     # outputs via datasink
     ########################################################################################
     datasink = pe.Node(nio.DataSink(), name='sinker')
+    datasink.inputs.parameterization = False
 
     # first link the workflow's output_directory into the datasink.
     masks_from_surface_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
     # and the rest
-    # masks_from_surface_workflow.connect(rename_labels, 'out_file', datasink, 'labels')
-    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', datasink, 'labels.@lbl')
+    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', datasink, 'roi')
 
     return masks_from_surface_workflow
 
