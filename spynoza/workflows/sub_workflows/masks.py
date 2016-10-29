@@ -252,8 +252,6 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     # and the iter field filled in from the label collection node
     masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_2_vol_node, 'label_file')
 
-    masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_name_node, 'label_file')
-
     ########################################################################################
     # outputs via datasink
     ########################################################################################
