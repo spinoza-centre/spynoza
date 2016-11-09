@@ -17,21 +17,22 @@ def create_ica_workflow(name='ica_fix'):
         fields=['in_file', 'fix_classifier']), name='inputspec')
 
     output_node = pe.Node(IdentityInterface(
-        fields=['out_dir']), name='outputspec')
+        fields=['out_dir', 'report_dir']), name='outputspec')
 
     rename_ica = pe.MapNode(Function(input_names=['in_file'],
                                      output_names=['out_file'],
                                      function=_rename_outdir),
                             name='rename_ica', iterfield=['in_file'])
 
-    melodic = pe.MapNode(interface=MELODIC(report=False, out_all=True,
+    melodic = pe.MapNode(interface=MELODIC(out_all=True, report=True,
                                            approach='symm'),
-                         name='melodic', iterfield=['in_files', 'out_dir'])
+                         name='melodic', iterfield=['in_files'])#, 'out_dir'])
 
     ica_workflow = pe.Workflow(name=name)
     ica_workflow.connect(input_node, 'in_file', melodic, 'in_files')
-    ica_workflow.connect(input_node, 'in_file', rename_ica, 'in_file')
-    ica_workflow.connect(rename_ica, 'out_file', melodic, 'out_dir')
+    #ica_workflow.connect(input_node, 'in_file', rename_ica, 'in_file')
+    #ica_workflow.connect(rename_ica, 'out_file', melodic, 'out_dir')
     ica_workflow.connect(melodic, 'out_dir', output_node, 'out_dir')
+    ica_workflow.connect(melodic, 'report_dir', output_node, 'report_dir')
 
     return ica_workflow
