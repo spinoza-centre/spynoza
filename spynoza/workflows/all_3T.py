@@ -3,32 +3,24 @@ from nipype.interfaces.io import SelectFiles
 from nipype.interfaces.utility import IdentityInterface
 
 
-def _check_params(session_info):
-    """ Checks session_info parameters for 3T workflow. """
-    if 'subjects' not in session_info.keys():
-        raise ValueError("Parameter 'subjects' must be included in session_info.")
+def _check_params(analysis_info):
+    """ Checks analysis_info parameters for 3T workflow. """
+    if 'subjects' not in analysis_info.keys():
+        raise ValueError("Parameter 'subjects' must be included in analysis_info.")
 
-    if 'sessions' not in session_info.keys():
+    if 'sessions' not in analysis_info.keys():
         # Sets 'sessions' to None if necessary.
-        session_info['sessions'] = None
+        analysis_info['sessions'] = None
 
-    return session_info
+    return analysis_info
 
-
-def _rename_outdir(in_file):
-    import os.path as op
-
-    task_name = in_file.split('task-')[-1].split('_')[0]
-    return op.join(op.dirname(in_file), task_name)
-
-
-def _configure_iterables(session_info, wf):
+def _configure_iterables(analysis_info, wf):
     """ Configures info/datasource based on subject/session iterables. """
 
-    if session_info['sessions'] is None:
+    if analysis_info['sessions'] is None:
         # No session iterable
         infosource = pe.Node(IdentityInterface(fields=['sub_id']), name="infosource")
-        infosource.iterables = ('sub_id', session_info['subjects'])
+        infosource.iterables = ('sub_id', analysis_info['subjects'])
         datasource_templates = dict(func='{sub_id}/func/*_bold.nii.gz',
                                     anat='{sub_id}/anat/*_T1w.nii.gz')
         datasource = pe.Node(SelectFiles(datasource_templates, sort_filelist=True),
@@ -38,8 +30,8 @@ def _configure_iterables(session_info, wf):
     else:
         # Both subject and session iterable
         infosource = pe.Node(IdentityInterface(fields=['sub_id']), name="infosource")
-        infosource.iterables = [('sub_id', session_info['subjects']),
-                                ('sess_id', session_info['sessions'])]
+        infosource.iterables = [('sub_id', analysis_info['subjects']),
+                                ('sess_id', analysis_info['sessions'])]
         datasource_templates = dict(func='{sub_id}/{sess_id}/func/*_bold.nii.gz',
                                     anat='{sub_id}/{sess_id}/anat/*_T1w.nii.gz')
         datasource = pe.Node(SelectFiles(datasource_templates, sort_filelist=True),
@@ -50,7 +42,7 @@ def _configure_iterables(session_info, wf):
     return wf, datasource, infosource
 
 
-def create_all_3T_workflow(session_info, name='all_3T'):
+def create_all_3T_workflow(analysis_info, name='all_3T'):
 
     import nipype.pipeline as pe
     from nipype.interfaces import fsl
@@ -71,8 +63,8 @@ def create_all_3T_workflow(session_info, name='all_3T'):
                                         function=concat_iterables),
                                name='concat_it')
 
-    session_info = _check_params(session_info)
-    all_3T_workflow, datasource, infosource = _configure_iterables(session_info, all_3T_workflow)
+    analysis_info = _check_params(analysis_info)
+    all_3T_workflow, datasource, infosource = _configure_iterables(analysis_info, all_3T_workflow)
 
     extract_scaninfo = pe.MapNode(Function(input_names=['in_file'],
                                            output_names=['TR', 'shape', 'dyns',
@@ -88,7 +80,7 @@ def create_all_3T_workflow(session_info, name='all_3T'):
     all_3T_workflow.connect(input_node, 'raw_directory', datasource, 'base_directory')
     all_3T_workflow.connect(infosource, 'sub_id', rename_container, 'sub')
 
-    if session_info['sessions'] is not None:
+    if analysis_info['sessions'] is not None:
         all_3T_workflow.connect(infosource, 'sess_id', rename_container, 'sess')
 
     datasink = pe.Node(DataSink(), name='sinker')
@@ -117,7 +109,7 @@ def create_all_3T_workflow(session_info, name='all_3T'):
     all_3T_workflow.connect(rename_container, 'out_file', motion_proc, 'inputspec.sub_id')
 
     # registration
-    reg = create_registration_workflow(session_info, name='reg')
+    reg = create_registration_workflow(analysis_info, name='reg')
     all_3T_workflow.connect(rename_container, 'out_file', reg, 'inputspec.sub_id')
     all_3T_workflow.connect(motion_proc, 'outputspec.EPI_space_file', reg, 'inputspec.EPI_space_file')
     all_3T_workflow.connect(input_node, 'output_directory', reg, 'inputspec.output_directory')
@@ -149,8 +141,30 @@ def create_all_3T_workflow(session_info, name='all_3T'):
     all_3T_workflow.connect(smooth, 'out_file', sgfilter, 'in_file')
     all_3T_workflow.connect(sgfilter, 'out_file', datasink, 'clean_func')
 
+<<<<<<< HEAD
     if 'do_ica' not in session_info.keys():
         session_info['do_ica'] = False
+=======
+    return all_3T_workflow
+
+if __name__ == '__main__':
+    from nipype.interfaces.fsl import Info
+
+    analysis_info = {'use_FS': False,
+                    'do_fnirt': False,
+                    'subjects': ['sub-0028', 'sub-0029']}
+
+    all_3T = create_all_3T_workflow(analysis_info)
+    all_3T.base_dir = '/media/lukas/data/Spynoza_data/data_piop'
+
+    template = Info.standard_image('MNI152_T1_2mm_brain.nii.gz')
+
+    all_3T.inputs.inputspec.output_directory = '/media/lukas/data/Spynoza_data/data_piop/preproc'
+    all_3T.inputs.inputspec.raw_directory = '/media/lukas/data/Spynoza_data/data_piop'
+    all_3T.inputs.inputspec.standard_file = template
+    all_3T.inputs.inputspec.which_file_is_EPI_space = 'middle'
+    all_3T.inputs.inputspec.smoothing = 3
+>>>>>>> develop
 
     if session_info['do_ica']:
         ica = create_ica_workflow()

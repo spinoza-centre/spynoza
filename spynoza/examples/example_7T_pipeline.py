@@ -6,6 +6,7 @@ import os.path as op
 import glob
 import json
 import nipype
+from nipype import config, logging
 import matplotlib.pyplot as plt
 import nipype.interfaces.fsl as fsl
 import nipype.pipeline.engine as pe
@@ -28,40 +29,43 @@ from spynoza.workflows.all_7T import create_all_7T_workflow
 FS_subject_dir = os.environ['SUBJECTS_DIR'] 
 
 # a project directory that we assume has already been created. 
-raw_data_dir = '/home/raw_data/PRF_7T/data/BIDSdata/'
+raw_data_dir = '/home/raw_data/2016/visual/whole_brain_MB_pRF/'
 preprocessed_data_dir = '/home/shared/2016/visual/PRF_7T/test/'
 
 # for now, testing on a single subject, with appropriate FS ID, this will have to be masked.
-sub_id, FS_ID = 'sub-NA', 'NA_220813_12'
+sub_id, FS_ID = 'sub-002', 'AV_3005116'
+
+# now we set up the folders and logging there.
 opd = op.join(preprocessed_data_dir, sub_id)
+try:
+    os.makedirs(op.join(opd, 'log'))
+except OSError:
+    pass
+config.update_config({'logging': {'log_directory': op.join(opd, 'log'),
+                                  'log_to_file': True}})
+logging.update_logging(config)
 
 # load the sequence parameters from json file
 with open(os.path.join(raw_data_dir, 'multiband_prf_7T_acq.json')) as f:
     json_s = f.read()
-    sequence_parameters = json.loads(json_s)
+    acquisition_parameters = json.loads(json_s)
 
 # some settings, such as scan parameters, and analysis prescription, mostly taken from json in raw file folder
-session_info = {'te': sequence_parameters['EchoTime'], 
-                'pe_direction': sequence_parameters['PhaseEncodingDirection'],
-                'slice_direction': sequence_parameters['SliceDirection'],
-                'epi_factor': sequence_parameters['EpiFactor'], 
-                'slice_timing': sequence_parameters['SliceTiming'], 
-                'slice_order': sequence_parameters['SliceOrder'], 
-                'tr': sequence_parameters['RepetitionTime'], 
-                'MB_factor': sequence_parameters['MultiBandFactor'], 
-                'nr_dummies': sequence_parameters['NumberDummyScans'], 
-                'phys_sample_rate': sequence_parameters['PhysiologySampleRate'], 
-                'retroicor_order_or_timing': 'timing',    # can also be 'order' for non-MB sequences
+analysis_info = {'retroicor_order_or_timing': 'timing',    # can also be 'order' for non-MB sequences
                 'use_FS': True, 
+                'B0_or_topup': 'B0',  # will run both anyway, but this determines the input to MCF
                 'do_fnirt': False, 
                 'bet_frac': 0.3, 
                 'bet_vert_grad': 0.0}
 
 if not op.isdir(preprocessed_data_dir):
-    os.makedirs(preprocessed_data_dir)
+    try:
+        os.makedirs(preprocessed_data_dir)
+    except OSError:
+        pass
 
 # the actual workflow
-all_7T_workflow = create_all_7T_workflow(session_info, name = 'all_7T')
+all_7T_workflow = create_all_7T_workflow(analysis_info, name = 'all_7T')
 
 # standard output variables
 all_7T_workflow.inputs.inputspec.raw_directory = raw_data_dir
@@ -86,14 +90,18 @@ all_7T_workflow.inputs.inputspec.av_func = 'median'
 # all the input variables for retroicor functionality
 # the key 'retroicor_order_or_timing' determines whether slice timing
 # or order is used for regressor creation
-all_7T_workflow.inputs.inputspec.MB_factor = session_info['MB_factor']
-all_7T_workflow.inputs.inputspec.nr_dummies = session_info['nr_dummies']
-all_7T_workflow.inputs.inputspec.tr = session_info['tr']
-all_7T_workflow.inputs.inputspec.slice_direction = session_info['slice_direction']
-all_7T_workflow.inputs.inputspec.phys_sample_rate = session_info['phys_sample_rate']
-all_7T_workflow.inputs.inputspec.slice_timing = session_info['slice_timing']
-all_7T_workflow.inputs.inputspec.slice_order = session_info['slice_order']
+all_7T_workflow.inputs.inputspec.MB_factor = acquisition_parameters['MultiBandFactor']
+all_7T_workflow.inputs.inputspec.nr_dummies = acquisition_parameters['NumberDummyScans']
+all_7T_workflow.inputs.inputspec.tr = acquisition_parameters['RepetitionTime']
+all_7T_workflow.inputs.inputspec.slice_direction = acquisition_parameters['SliceDirection']
+all_7T_workflow.inputs.inputspec.phys_sample_rate = acquisition_parameters['PhysiologySampleRate']
+all_7T_workflow.inputs.inputspec.slice_timing = acquisition_parameters['SliceTiming']
+all_7T_workflow.inputs.inputspec.slice_order = acquisition_parameters['SliceOrder']
+all_7T_workflow.inputs.inputspec.acceleration = acquisition_parameters['SenseFactor']
+all_7T_workflow.inputs.inputspec.epi_factor = acquisition_parameters['EpiFactor']
+all_7T_workflow.inputs.inputspec.wfs = acquisition_parameters['WaterFatShift']
+all_7T_workflow.inputs.inputspec.te_diff = acquisition_parameters['EchoTimeDifference']
 
 # write out the graph and run
-all_7T_workflow.write_graph(os.path.join(preprocessed_data_dir,'7T'))
+all_7T_workflow.write_graph(opd + '.png')
 all_7T_workflow.run('MultiProc', plugin_args={'n_procs': 32})

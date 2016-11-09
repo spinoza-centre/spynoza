@@ -1,4 +1,4 @@
-def create_all_7T_workflow(session_info, name='all_7T'):
+def create_all_7T_workflow(analysis_info, name='all_7T'):
     import os.path as op
     import nipype.pipeline as pe
     from nipype.interfaces import fsl
@@ -10,12 +10,14 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     # Importing of custom nodes from spynoza packages; assumes that spynoza is installed:
     # pip install git+https://github.com/spinoza-centre/spynoza.git@master
     from spynoza.nodes.filtering import savgol_filter
-    from spynoza.nodes.utils import get_scaninfo, pickfirst, percent_signal_change, average_over_runs
-    from spynoza.workflows.topup import create_topup_workflow
+    from spynoza.nodes.utils import get_scaninfo, pickfirst, percent_signal_change, average_over_runs, pickle_to_json, set_nifti_intercept_slope
+    from spynoza.workflows.topup_unwarping import create_topup_workflow
+    from spynoza.workflows.B0_unwarping import create_B0_workflow
     from spynoza.workflows.motion_correction import create_motion_correction_workflow
     from spynoza.workflows.registration import create_registration_workflow
     from spynoza.workflows.retroicor import create_retroicor_workflow
     from spynoza.nodes.fit_nuisances import fit_nuisances
+
 
     ########################################################################################
     # nodes
@@ -38,42 +40,67 @@ def create_all_7T_workflow(session_info, name='all_7T'):
                     'phys_sample_rate',
                     'slice_timing',
                     'slice_order',
-                    'nr_dummies']), name='inputspec')
+                    'nr_dummies',
+                    'wfs',
+                    'epi_factor',
+                    'acceleration',
+                    'te_diff',
+                    'echo_time',
+                    'phase_encoding_direction']), name='inputspec')
 
     # i/o node
-    datasource_templates = dict(func='{sub_id}/func/*_bold.nii.gz',
-                                topup='{sub_id}/fmap/*_topup.nii.gz',
-                                physio='{sub_id}/func/*_physio.log',
-                                events='{sub_id}/func/*_events.pickle',
-                                eye='{sub_id}/func/*_eyedata.edf') # ,
+    datasource_templates = dict(func='{sub_id}/*func*.nii.gz',
+                                magnitude='{sub_id}/*magnitude*.nii.gz',
+                                phasediff='{sub_id}/*phasediff*.nii.gz',
+                                topup='{sub_id}/*topup*.nii.gz',
+                                physio='{sub_id}/*.log',
+                                events='{sub_id}/*.pickle',
+                                eye='{sub_id}/*.edf') # ,
                                 # anat='{sub_id}/anat/*_T1w.nii.gz'
-    datasource = pe.Node(SelectFiles(datasource_templates, sort_filelist = True), 
+    datasource = pe.Node(SelectFiles(datasource_templates, sort_filelist = True, raise_on_empty = False), 
         name = 'datasource')
 
     output_node = pe.Node(IdentityInterface(fields=([
             'temporal_filtered_files', 
             'percent_signal_change_files'])), name='outputspec')
 
+    # nodes for setting the slope/intercept of incoming niftis to (1, 0)
+    int_slope_epi = pe.MapNode(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
+                      name='int_slope_epi', iterfield=['in_file'])
+    int_slope_topup = pe.MapNode(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
+                      name='int_slope_topup', iterfield=['in_file'])
+    int_slope_B0_magnitude = pe.Node(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
+                      name='int_slope_B0_magnitude')
+    int_slope_B0_phasediff = pe.Node(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
+                      name='int_slope_B0_phasediff')
+
     # reorient nodes
     reorient_epi = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_epi', iterfield=['in_file'])
     reorient_topup = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_topup', iterfield=['in_file'])
+    reorient_B0_magnitude = pe.Node(interface=fsl.Reorient2Std(), name='reorient_B0_magnitude')
+    reorient_B0_phasediff = pe.Node(interface=fsl.Reorient2Std(), name='reorient_B0_phasediff')
 
     bet_epi = pe.MapNode(interface=
-        fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], 
+        fsl.BET(frac=analysis_info['bet_frac'], vertical_gradient = analysis_info['bet_vert_grad'], 
                 functional=True, mask = True), name='bet_epi', iterfield=['in_file'])
     bet_topup = pe.MapNode(interface=
-        fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], 
+        fsl.BET(frac=analysis_info['bet_frac'], vertical_gradient = analysis_info['bet_vert_grad'], 
                 functional=True, mask = True), name='bet_topup', iterfield=['in_file'])
     bet_moco = pe.Node(interface=
-        fsl.BET(frac=session_info['bet_frac'], vertical_gradient = session_info['bet_vert_grad'], 
+        fsl.BET(frac=analysis_info['bet_frac'], vertical_gradient = analysis_info['bet_vert_grad'], 
                 functional=True, mask = True), name='bet_moco')
 
-
-    # node for temporal filtering
+    # node for converting pickle files to json
     sgfilter = pe.MapNode(Function(input_names=['in_file'],
                                     output_names=['out_file'],
                                     function=savgol_filter),
                       name='sgfilter', iterfield=['in_file'])
+
+    # node for temporal filtering
+    pj = pe.MapNode(Function(input_names=['in_file'],
+                                    output_names=['out_file'],
+                                    function=pickle_to_json),
+                      name='pj', iterfield=['in_file'])
 
     # node for percent signal change
     psc = pe.MapNode(Function(input_names=['in_file', 'func'],
@@ -112,30 +139,58 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(input_node, 'raw_directory', datasource, 'base_directory')
     all_7T_workflow.connect(input_node, 'sub_id', datasource, 'sub_id')
 
+    # behavioral pickle to json
+    all_7T_workflow.connect(datasource, 'events', pj, 'in_file')
+
+    # slope/intercept to unity
+    all_7T_workflow.connect(datasource, 'func', int_slope_epi, 'in_file')
+    all_7T_workflow.connect(datasource, 'topup', int_slope_topup, 'in_file')
+    all_7T_workflow.connect(datasource, 'magnitude', int_slope_B0_magnitude, 'in_file')
+    all_7T_workflow.connect(datasource, 'phasediff', int_slope_B0_phasediff, 'in_file')
+
     # reorientation to standard orientation
-    all_7T_workflow.connect(datasource, 'func', reorient_epi, 'in_file')
-    all_7T_workflow.connect(datasource, 'topup', reorient_topup, 'in_file')
+    all_7T_workflow.connect(int_slope_epi, 'out_file', reorient_epi, 'in_file')
+    all_7T_workflow.connect(int_slope_topup, 'out_file', reorient_topup, 'in_file')
+    all_7T_workflow.connect(int_slope_B0_magnitude, 'out_file', reorient_B0_magnitude, 'in_file')
+    all_7T_workflow.connect(int_slope_B0_phasediff, 'out_file', reorient_B0_phasediff, 'in_file')
 
     # BET
     all_7T_workflow.connect(reorient_epi, 'out_file', bet_epi, 'in_file')
     all_7T_workflow.connect(reorient_topup, 'out_file', bet_topup, 'in_file')
 
     # topup
-    tua_wf = create_topup_workflow(session_info, name = 'topup')
+    tua_wf = create_topup_workflow(analysis_info, name = 'topup')
     all_7T_workflow.connect(input_node, 'output_directory', tua_wf, 'inputspec.output_directory')
     all_7T_workflow.connect(input_node, 'topup_conf_file', tua_wf, 'inputspec.conf_file')
     all_7T_workflow.connect(bet_epi, 'out_file', tua_wf, 'inputspec.in_files')
     all_7T_workflow.connect(bet_topup, 'out_file', tua_wf, 'inputspec.alt_files')
+    all_7T_workflow.connect(input_node, 'epi_factor', tua_wf, 'inputspec.epi_factor')
+    all_7T_workflow.connect(input_node, 'echo_time', tua_wf, 'inputspec.echo_time')
+    all_7T_workflow.connect(input_node, 'phase_encoding_direction', tua_wf, 'inputspec.phase_encoding_direction')
+
+    #B0
+    B0_wf = create_B0_workflow(name = 'B0')
+    all_7T_workflow.connect(bet_epi, 'out_file', B0_wf, 'inputspec.in_files')
+    all_7T_workflow.connect(reorient_B0_magnitude, 'out_file', B0_wf, 'inputspec.fieldmap_mag')
+    all_7T_workflow.connect(reorient_B0_phasediff, 'out_file', B0_wf, 'inputspec.fieldmap_pha')
+    all_7T_workflow.connect(input_node, 'wfs', B0_wf, 'inputspec.wfs')
+    all_7T_workflow.connect(input_node, 'epi_factor', B0_wf, 'inputspec.epi_factor')
+    all_7T_workflow.connect(input_node, 'acceleration', B0_wf, 'inputspec.acceleration')
+    all_7T_workflow.connect(input_node, 'te_diff', B0_wf, 'inputspec.te_diff')
+    all_7T_workflow.connect(input_node, 'phase_encoding_direction', B0_wf, 'inputspec.phase_encoding_direction')
     
     # motion correction
     motion_proc = create_motion_correction_workflow('moco')
     all_7T_workflow.connect(input_node, 'tr', motion_proc, 'inputspec.tr')
     all_7T_workflow.connect(input_node, 'output_directory', motion_proc, 'inputspec.output_directory')
     all_7T_workflow.connect(input_node, 'which_file_is_EPI_space', motion_proc, 'inputspec.which_file_is_EPI_space')
-    all_7T_workflow.connect(tua_wf, 'outputspec.out_files', motion_proc, 'inputspec.in_files')
+    if analysis_info['B0_or_topup'] == 'topup':
+        all_7T_workflow.connect(tua_wf, 'outputspec.out_files', motion_proc, 'inputspec.in_files')
+    elif analysis_info['B0_or_topup'] == 'B0':
+        all_7T_workflow.connect(B0_wf, 'outputspec.out_files', motion_proc, 'inputspec.in_files')
 
     # registration
-    reg = create_registration_workflow(session_info, name = 'reg')
+    reg = create_registration_workflow(analysis_info, name = 'reg')
     all_7T_workflow.connect(input_node, 'output_directory', reg, 'inputspec.output_directory')
     all_7T_workflow.connect(motion_proc, 'outputspec.EPI_space_file', reg, 'inputspec.EPI_space_file')
     all_7T_workflow.connect(input_node, 'FS_ID', reg, 'inputspec.freesurfer_subject_ID')
@@ -164,7 +219,7 @@ def create_all_7T_workflow(session_info, name='all_7T'):
     all_7T_workflow.connect(psc, 'out_file', av, 'in_files')
 
     # retroicor functionality
-    retr = create_retroicor_workflow(name = 'retroicor', order_or_timing = session_info['retroicor_order_or_timing'])
+    retr = create_retroicor_workflow(name = 'retroicor', order_or_timing = analysis_info['retroicor_order_or_timing'])
 
     # retroicor can take the crudest form of epi file, so that it proceeds quickly
     all_7T_workflow.connect(reorient_epi, 'out_file', retr, 'inputspec.in_files')
@@ -192,6 +247,10 @@ def create_all_7T_workflow(session_info, name='all_7T'):
 
     all_7T_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
 
+    # sink out events and eyelink files
+    all_7T_workflow.connect(pj, 'out_file', datasink, 'events')
+    all_7T_workflow.connect(datasource, 'eye', datasink, 'eye')
+
     all_7T_workflow.connect(bet_epi, 'out_file', datasink, 'bet.epi')
     all_7T_workflow.connect(bet_epi, 'mask_file', datasink, 'bet.epimask')
     all_7T_workflow.connect(bet_topup, 'out_file', datasink, 'bet.topup')
@@ -200,6 +259,9 @@ def create_all_7T_workflow(session_info, name='all_7T'):
 
     all_7T_workflow.connect(tua_wf, 'outputspec.field_coefs', datasink, 'topup.fieldcoef')
     all_7T_workflow.connect(tua_wf, 'outputspec.out_files', datasink, 'topup.unwarped')
+
+    all_7T_workflow.connect(B0_wf, 'outputspec.field_coefs', datasink, 'B0.fieldcoef')
+    all_7T_workflow.connect(B0_wf, 'outputspec.out_files', datasink, 'B0.unwarped')
 
     all_7T_workflow.connect(sgfilter, 'out_file', datasink, 'tf')
     all_7T_workflow.connect(psc, 'out_file', datasink, 'psc')

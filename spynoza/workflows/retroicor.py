@@ -53,7 +53,8 @@ def _distill_slice_times_from_gradients(in_file, phys_file, nr_dummies, MB_facto
     nifti = nib.load(in_file)
     nr_slices = nifti.header.get_data_shape()[2] / MB_factor
     nr_volumes = nifti.header.get_data_shape()[3]
-
+    tr = float(nifti.header['pixdim'][4])
+    
     # load physio data:
     phys = np.loadtxt(phys_file, skiprows=5)
     
@@ -63,11 +64,13 @@ def _distill_slice_times_from_gradients(in_file, phys_file, nr_dummies, MB_facto
     gradient_signal = (gradient_signal-gradient_signal.mean()) / gradient_signal.std()
     
     # threshold:
+    time_window_start = int(gradient_signal.shape[0]/2.0)
+    time_window_end = int(time_window_start + (10 * tr * sample_rate))
     threshold = 5
     loop = True
     while loop:
         threshold -= 0.1
-        if (gradient_signal>threshold).sum() > (nr_volumes * nr_slices * 1.1):
+        if (gradient_signal[time_window_start:time_window_end]>threshold).sum() > (10 * nr_slices * 1.25):
             loop = False
     
     # slice time indexes:

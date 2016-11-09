@@ -1,6 +1,6 @@
 from .sub_workflows import *
 
-def create_masking_workflow(session_info, name = 'masking'):
+def create_masking_workflow(analysis_info, name = 'masking'):
     """uses sub-workflows to create different masks in EPI_space_file space.
     Requires fsl and freesurfer tools
     Parameters

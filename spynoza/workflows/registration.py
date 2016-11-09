@@ -1,19 +1,19 @@
 from .sub_workflows import *
 
 
-def create_registration_workflow(session_info, name = 'reg'):
+def create_registration_workflow(analysis_info, name = 'reg'):
     """uses sub-workflows to perform different registration steps.
     Requires fsl and freesurfer tools
     Parameters
     ----------
     name : string
         name of workflow
-    session_info : dict 
+    analysis_info : dict 
         contains session information needed for workflow, such as
         whether to use FreeSurfer or FLIRT etc.
     Example
     -------
-    >>> registration_workflow = create_registration_workflow(name = 'registration_workflow', session_info = {'use_FS':True})
+    >>> registration_workflow = create_registration_workflow(name = 'registration_workflow', analysis_info = {'use_FS':True})
     >>> registration_workflow.inputs.inputspec.output_directory = '/data/project/raw/BIDS/sj_1/'
     >>> registration_workflow.inputs.inputspec.EPI_space_file = 'example_func.nii.gz'
     >>> registration_workflow.inputs.inputspec.T1_file = 'T1.nii.gz' # if using freesurfer, this file will be created instead of used.
@@ -50,8 +50,8 @@ def create_registration_workflow(session_info, name = 'reg'):
     registration_workflow = pe.Workflow(name=name)
 
     ### sub-workflows
-    epi_2_T1 = create_epi_to_T1_workflow( name = 'epi', use_FS = session_info['use_FS'] )
-    T1_to_standard = create_T1_to_standard_workflow( name = 'T1_to_standard', use_FS = session_info['use_FS'], do_fnirt = session_info['do_fnirt'])
+    epi_2_T1 = create_epi_to_T1_workflow( name = 'epi', use_FS = analysis_info['use_FS'] )
+    T1_to_standard = create_T1_to_standard_workflow( name = 'T1_to_standard', use_FS = analysis_info['use_FS'], do_fnirt = analysis_info['do_fnirt'])
     concat_2_feat = create_concat_2_feat_workflow( name = 'concat_2_feat' )
 
     output_node = pe.Node(IdentityInterface(fields=('EPI_T1_matrix_file',  
@@ -106,7 +106,7 @@ def create_registration_workflow(session_info, name = 'reg'):
     # Rename nodes, for the datasink
     ########################################################################################
 
-    if session_info['use_FS']:
+    if analysis_info['use_FS']:
         rename_register = pe.Node(niu.Rename(format_string='register.dat', keep_ext=False), name='rename_register')
         registration_workflow.connect(epi_2_T1, 'outputspec.EPI_T1_register_file', rename_register, 'in_file')
 
@@ -144,7 +144,7 @@ def create_registration_workflow(session_info, name = 'reg'):
     registration_workflow.connect(input_node, 'sub_id', datasink, 'container')
 
     # NEW SETUP WITH RENAME (WITHOUT MERGER)
-    if session_info['use_FS']:
+    if analysis_info['use_FS']:
         registration_workflow.connect(rename_register, 'out_file', datasink, 'reg.@dat')
 
     registration_workflow.connect(rename_example_func, 'out_file', datasink, 'reg.@example_func')

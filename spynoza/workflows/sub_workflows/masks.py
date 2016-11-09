@@ -4,6 +4,9 @@ import nipype.pipeline as pe
 from nipype.interfaces import fsl
 from nipype.interfaces import freesurfer
 from nipype.interfaces.utility import Function, IdentityInterface, Merge
+import nipype.interfaces.io as nio
+
+
 
 def create_transform_aseg_to_EPI_workflow(name = 'transform_aseg_to_EPI'):
     """Transforms freesurfer volume-aseg to EPI space and dumps it in the masks folder
@@ -163,12 +166,25 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
         name of workflow
     Example
     -------
-    >>> masks_from_surface = create_masks_from_surface_workflow('masks_from_surface', use_FS = True)
+    >>> masks_from_surface = create_masks_from_surface_workflow('masks_from_surface')
     >>> masks_from_surface.inputs.inputspec.EPI_space_file = 'example_func.nii.gz'
     >>> masks_from_surface.inputs.inputspec.label_directory = 'retmap'
     >>> masks_from_surface.inputs.inputspec.freesurfer_subject_ID = 'sub_01'
     >>> masks_from_surface.inputs.inputspec.freesurfer_subject_dir = '$SUBJECTS_DIR'
- 
+    
+    from spynoza.workflows.sub_workflows.masks import create_masks_from_surface_workflow
+    mfs = create_masks_from_surface_workflow(name = 'mfs')
+    mfs.inputs.inputspec.freesurfer_subject_dir = '/home/raw_data/-2014/reward/human_reward/data/FS_SJID'
+    mfs.inputs.inputspec.label_directory = 'retmap'
+    mfs.inputs.inputspec.EPI_space_file = '/home/shared/-2014/reward/new/sub-002/reg/example_func.nii.gz'
+    mfs.inputs.inputspec.output_directory = '/home/shared/-2014/reward/new/sub-002/masks/'
+    mfs.inputs.inputspec.freesurfer_subject_ID = 'sub-002'
+    mfs.inputs.inputspec.reg_file = '/home/shared/-2014/reward/new/sub-002/reg/register.dat'
+    mfs.inputs.inputspec.fill_thresh = 0.01
+    mfs.inputs.inputspec.re = '*.label'
+    mfs.run('MultiProc', plugin_args={'n_procs': 32})
+
+
     Inputs::
           inputspec.EPI_space_file : EPI session file
           inputspec.reg_file : EPI session registration file
@@ -181,10 +197,14 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
                                         with the name of label_directory is placed.
     Outputs::
            outputspec.output_masks : the output masks that are created.
-           outputspec.EPI_T1_matrix_file : FLIRT registration file that maps EPI space to T1
-           outputspec.T1_EPI_matrix_file : FLIRT registration file that maps T1 space to EPI
     """
     ### NODES
+    import nipype.pipeline as pe
+    from nipype.interfaces.utility import Function, IdentityInterface, Merge
+    import nipype.interfaces.io as nio
+    import nipype.interfaces.utility as niu
+    import os.path as op
+
     input_node = pe.Node(IdentityInterface(
         fields=['EPI_space_file', 
         'output_directory', 
@@ -194,10 +214,10 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
         'reg_file', 
         'fill_thresh',
         're']), name='inputspec')
-    output_node = pe.Node(IdentityInterface(fields=('output_masks')), name='outputspec')
+    output_node = pe.Node(IdentityInterface(fields=(['output_masks'])), name='outputspec')
 
     # housekeeping function for finding label files in FS directory
-    def FS_label_list(freesurfer_subject_ID, freesurfer_subject_dir, label_directory, re):
+    def FS_label_list(freesurfer_subject_ID, freesurfer_subject_dir, label_directory, re = '*.label'):
         import glob
         import os.path as op
 
@@ -208,7 +228,7 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     FS_label_list_node = pe.Node(Function(input_names=('freesurfer_subject_ID', 'freesurfer_subject_dir', 'label_directory', 're'), output_names='label_list',
                                      function=FS_label_list), name='FS_label_list_node')
 
-    label_2_vol_node = pe.MapNode(interface=freesurfer.Label2Vol(), name='all_labels',
+    label_2_vol_node = pe.MapNode(interface=freesurfer.Label2Vol(), name='l2v',
                                 iterfield = 'label_file')
 
     ########################################################################################
@@ -223,7 +243,7 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     masks_from_surface_workflow.connect(input_node, 're', FS_label_list_node, 're')
 
     masks_from_surface_workflow.connect(input_node, 'reg_file', label_2_vol_node, 'reg_file')
-    masks_from_surface_workflow.connect(input_node, 'EPI_space_file', label_2_vol_node, 'template')
+    masks_from_surface_workflow.connect(input_node, 'EPI_space_file', label_2_vol_node, 'template_file')
     masks_from_surface_workflow.connect(input_node, 'fill_thresh', label_2_vol_node, 'fill_thresh')
 
     masks_from_surface_workflow.connect(input_node, 'freesurfer_subject_dir', label_2_vol_node, 'subjects_dir')
@@ -232,17 +252,16 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     # and the iter field filled in from the label collection node
     masks_from_surface_workflow.connect(FS_label_list_node, 'label_list', label_2_vol_node, 'label_file')
 
-    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', output_node, 'output_masks')
-
     ########################################################################################
     # outputs via datasink
     ########################################################################################
     datasink = pe.Node(nio.DataSink(), name='sinker')
+    datasink.inputs.parameterization = False
 
     # first link the workflow's output_directory into the datasink.
     masks_from_surface_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
     # and the rest
-    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', datasink, 'masks.labels')
+    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', datasink, 'roi')
 
     return masks_from_surface_workflow
 
