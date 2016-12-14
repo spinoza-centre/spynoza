@@ -29,11 +29,12 @@ from spynoza.workflows.all_7T import create_all_7T_workflow
 FS_subject_dir = os.environ['SUBJECTS_DIR'] 
 
 # a project directory that we assume has already been created. 
-raw_data_dir = '/home/raw_data/2016/visual/whole_brain_MB_pRF/'
-preprocessed_data_dir = '/home/shared/2016/visual/PRF_7T/test/'
+raw_data_dir = '/home/raw_data/2016/visual/whole_brain_MB_pRF/data/'
+preprocessed_data_dir = '/home/shared/2016/visual/PRF_7T/'
 
 # for now, testing on a single subject, with appropriate FS ID, this will have to be masked.
-sub_id, FS_ID = 'sub-002', 'AV_3005116'
+# sub_id, FS_ID = 'sub-004', 'DE_110412'
+sub_id, FS_ID = 'sub-007', 'JL_23112014'
 
 # now we set up the folders and logging there.
 opd = op.join(preprocessed_data_dir, sub_id)
@@ -56,7 +57,8 @@ analysis_info = {'retroicor_order_or_timing': 'timing',    # can also be 'order'
                 'B0_or_topup': 'B0',  # will run both anyway, but this determines the input to MCF
                 'do_fnirt': False, 
                 'bet_frac': 0.3, 
-                'bet_vert_grad': 0.0}
+                'bet_vert_grad': 0.0,
+                'dilate_kernel_size': 5.0}
 
 if not op.isdir(preprocessed_data_dir):
     try:
@@ -104,4 +106,4 @@ all_7T_workflow.inputs.inputspec.te_diff = acquisition_parameters['EchoTimeDiffe
 
 # write out the graph and run
 all_7T_workflow.write_graph(opd + '.png')
-all_7T_workflow.run('MultiProc', plugin_args={'n_procs': 32})
+all_7T_workflow.run('MultiProc', plugin_args={'n_procs': 12})

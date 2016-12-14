@@ -103,12 +103,12 @@ def create_transform_atlas_to_EPI_workflow(name = 'transform_atlas_to_EPI'):
         name of workflow
     Example
     -------
-    >>> masks_from_surface = create_transform_aseg_to_EPI_workflow('transform_aseg_to_EPI')
-    >>> masks_from_surface.inputs.inputspec.EPI_space_file = 'example_func.nii.gz'
-    >>> masks_from_surface.inputs.inputspec.output_directory = full path to opd
-    >>> masks_from_surface.inputs.inputspec.output_filename = 'mni_harvard_oxford'
-    >>> masks_from_surface.inputs.inputspec.atlas =  '/usr/local/fsl/data/atlases/HarvardOxford/HarvardOxford-sub-maxprob-thr50-2mm.nii.gz'
-    >>> masks_from_surface.inputs.inputspec.reg_file =  full path to opd /reg/feat/standard2example_func.mat
+    >>> transform_atlas_to_EPI = create_transform_aseg_to_EPI_workflow('transform_aseg_to_EPI')
+    >>> transform_atlas_to_EPI.inputs.inputspec.EPI_space_file = 'example_func.nii.gz'
+    >>> transform_atlas_to_EPI.inputs.inputspec.output_directory = full path to opd
+    >>> transform_atlas_to_EPI.inputs.inputspec.output_filename = 'mni_harvard_oxford'
+    >>> transform_atlas_to_EPI.inputs.inputspec.atlas =  '/usr/local/fsl/data/atlases/HarvardOxford/HarvardOxford-sub-maxprob-thr50-2mm.nii.gz'
+    >>> transform_atlas_to_EPI.inputs.inputspec.reg_file =  full path to opd /reg/feat/standard2example_func.mat
 
  
     Inputs::
@@ -121,6 +121,14 @@ def create_transform_atlas_to_EPI_workflow(name = 'transform_atlas_to_EPI'):
     Outputs::
            outputspec.output_mask : the output masks that are created.
     """
+    import os.path as op
+    import glob
+    import nipype.pipeline as pe
+    from nipype.interfaces import fsl
+    from nipype.interfaces import freesurfer
+    from nipype.interfaces.utility import Function, IdentityInterface, Merge
+    import nipype.interfaces.io as nio
+
     ### NODES
     input_node = pe.Node(IdentityInterface(
         fields=['EPI_space_file', 
@@ -150,11 +158,11 @@ def create_transform_atlas_to_EPI_workflow(name = 'transform_atlas_to_EPI'):
     datasink = pe.Node(nio.DataSink(), name='sinker')
 
     # first link the workflow's output_directory into the datasink.
-    transform_aseg_to_EPI_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
+    transform_atlas_to_EPI_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
     # and the rest
-    transform_aseg_to_EPI_workflow.connect(vol_trans_node, 'out_file', datasink, 'masks.atlas')
+    transform_atlas_to_EPI_workflow.connect(vol_trans_node, 'out_file', datasink, 'roi.atlas')
 
-    return transform_aseg_to_EPI_workflow
+    return transform_atlas_to_EPI_workflow
 
 
 def create_masks_from_surface_workflow(name = 'masks_from_surface'):
@@ -214,7 +222,8 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
         'reg_file', 
         'fill_thresh',
         're']), name='inputspec')
-    output_node = pe.Node(IdentityInterface(fields=(['output_masks'])), name='outputspec')
+    output_node = pe.Node(IdentityInterface(fields=([
+        'masks'])), name='outputspec')
 
     # housekeeping function for finding label files in FS directory
     def FS_label_list(freesurfer_subject_ID, freesurfer_subject_dir, label_directory, re = '*.label'):
@@ -260,8 +269,9 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
 
     # first link the workflow's output_directory into the datasink.
     masks_from_surface_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
-    # and the rest
+
     masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', datasink, 'roi')
+    masks_from_surface_workflow.connect(label_2_vol_node, 'vol_label_file', output_node, 'masks')
 
     return masks_from_surface_workflow
 

@@ -36,6 +36,7 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length = 120):
     data = nib.load(in_file)
     dims = data.shape
     affine = data.affine
+    header = data.header
     tr = data.header['pixdim'][4]
 
     # TR must be in seconds
@@ -56,7 +57,7 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length = 120):
 
     data_filt = data - data_filt + data_filt.mean(axis=-1)[:, np.newaxis]
     data_filt = data_filt.reshape(dims)
-    img = nib.Nifti1Image(data_filt, affine)
+    img = nib.Nifti1Image(data_filt, affine=affine, header=header)
     new_name = os.path.basename(in_file).split('.')[:-2][0] + '_sg.nii.gz'
     out_file = os.path.abspath(new_name)
     nib.save(img, out_file)

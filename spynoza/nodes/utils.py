@@ -169,6 +169,7 @@ def percent_signal_change(in_file, func = 'mean'):
     data = nib.load(in_file)
     dims = data.shape
     affine = data.affine
+    header = data.header
 
     if func == 'mean':
         data_m = bn.nanmean(data.get_data(), axis=-1)
@@ -176,7 +177,7 @@ def percent_signal_change(in_file, func = 'mean'):
         data_m = bn.nanmedian(data.get_data(), axis=-1)
 
     data_psc = (100.0 * (np.nan_to_num(data.get_data()).transpose((3,0,1,2)) - data_m) / data_m).transpose((1,2,3,0))
-    img = nib.Nifti1Image(np.nan_to_num(data_psc), affine)
+    img = nib.Nifti1Image(np.nan_to_num(data_psc), affine=affine, header=header)
 
     new_name = os.path.basename(in_file).split('.')[:-2][0] + '_psc.nii.gz'
     out_file = os.path.abspath(new_name)
@@ -212,6 +213,7 @@ def average_over_runs(in_files, func = 'mean'):
     template_data = nib.load(in_files[0])
     dims = template_data.shape
     affine = template_data.affine
+    header = template_data.header
     all_data = np.zeros([len(in_files)]+list(dims))
     
     for i in range(len(in_files)):
@@ -223,7 +225,7 @@ def average_over_runs(in_files, func = 'mean'):
     elif func == 'median':
         av_data = np.median(all_data, axis = 0)
 
-    img = nib.Nifti1Image(av_data, affine)
+    img = nib.Nifti1Image(av_data, affine=affine, header=header)
 
     new_name = os.path.basename(in_files[0]).split('.')[:-2][0] + '_av.nii.gz'
     out_file = os.path.abspath(new_name)
