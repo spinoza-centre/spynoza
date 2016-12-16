@@ -349,9 +349,9 @@ def non_uniformity_correct_4D_file(in_file, auto_clip = False, clip_low = 7, cli
     import nipype.pipeline as pe
     import nipype.interfaces.io as nio
     from nipype.interfaces.utility import Function, IdentityInterface
-    from nipype.interfaces.afni.preprocess import AFNItoNIFTI
+    import nipype.interfaces.fsl as fsl
     from spynoza.nodes.afni import Uniformize
-    from spynoza.nodes.utils import split_4D_2_3D, join_3D_2_4D
+    from spynoza.nodes.utils import split_4D_2_3D
 
     fn_base = os.path.split(in_file)[-1][:-7]
     td = tempfile.gettempdir()
@@ -388,5 +388,7 @@ def non_uniformity_correct_4D_file(in_file, auto_clip = False, clip_low = 7, cli
 
     nuc_wf.run('MultiProc', plugin_args={'n_procs': n_procs})
 
-    return glob.glob(os.path.join(td, 'uni', fn_base + '_0000*.nii.gz'))[0]
+    out_file = glob.glob(os.path.join(td, 'uni', fn_base + '_0000*.nii.gz'))[0]
+
+    return out_file
 

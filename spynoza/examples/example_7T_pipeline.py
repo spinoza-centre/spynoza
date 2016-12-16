@@ -30,11 +30,12 @@ FS_subject_dir = os.environ['SUBJECTS_DIR']
 
 # a project directory that we assume has already been created. 
 raw_data_dir = '/home/raw_data/2016/visual/whole_brain_MB_pRF/data/'
-preprocessed_data_dir = '/home/shared/2016/visual/PRF_7T/'
+preprocessed_data_dir = '/home/shared/2016/visual/PRF_7T/nuc/'
 
 # for now, testing on a single subject, with appropriate FS ID, this will have to be masked.
+sub_id, FS_ID = 'sub-012', 'TK_290615'
 # sub_id, FS_ID = 'sub-004', 'DE_110412'
-sub_id, FS_ID = 'sub-007', 'JL_23112014'
+# sub_id, FS_ID = 'sub-007', 'JL_23112014'
 
 # now we set up the folders and logging there.
 opd = op.join(preprocessed_data_dir, sub_id)
