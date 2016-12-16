@@ -115,7 +115,7 @@ def create_motion_correction_workflow(name = 'moco'):
     motion_correct_all = pe.MapNode(interface=fsl.MCFLIRT(
                     save_mats = True, 
                     save_plots = True, 
-                    cost = 'normmi', 
+                    cost = 'normcorr', 
                     interpolation = 'sinc',
                     stats_imgs = True
                     ), name='realign_all',

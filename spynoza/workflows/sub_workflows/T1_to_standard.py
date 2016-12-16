@@ -72,6 +72,8 @@ def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True, do_fn
     ########################################################################################
     # create FLIRT/FNIRT nodes
     ########################################################################################
+    bet_N = pe.Node(interface=fsl.BET(vertical_gradient = -0.1, functional=False, mask=True), name='bet_N') 
+
     flirt_N = pe.Node(fsl.FLIRT(cost_func='normmi', output_type = 'NIFTI_GZ', dof = 12, interp = 'sinc'), 
                         name = 'flirt_N')
     if do_fnirt: 
@@ -95,16 +97,18 @@ def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True, do_fn
         T1_to_standard_workflow.connect(FS_T1_file_node, 'T1_mgz_path', mriConvert_N, 'in_file')
 
         # and these are input into the flirt and fnirt operators, as below.
-        T1_to_standard_workflow.connect(mriConvert_N, 'out_file', flirt_N, 'in_file')
+        T1_to_standard_workflow.connect(mriConvert_N, 'out_file', bet_N, 'in_file')
+        T1_to_standard_workflow.connect(bet_N, 'out_file', flirt_N, 'in_file')
         T1_to_standard_workflow.connect(mriConvert_N, 'out_file', output_node, 'T1_file')
         if do_fnirt:
-            T1_to_standard_workflow.connect(mriConvert_N, 'out_file', fnirt_N, 'in_file')
+            T1_to_standard_workflow.connect(bet_N, 'out_file', fnirt_N, 'in_file')
 
     else:
-        T1_to_standard_workflow.connect(input_node, 'T1_file', flirt_N, 'in_file')
+        T1_to_standard_workflow.connect(input_node, 'T1_file', bet_N, 'in_file')
+        T1_to_standard_workflow.connect(bet_N, 'out_file', flirt_N, 'in_file')
         T1_to_standard_workflow.connect(input_node, 'T1_file', output_node, 'T1_file')
         if do_fnirt:
-            T1_to_standard_workflow.connect(input_node, 'T1_file', fnirt_N, 'in_file')
+            T1_to_standard_workflow.connect(bet_N, 'out_file', fnirt_N, 'in_file')
 
 
     ########################################################################################
