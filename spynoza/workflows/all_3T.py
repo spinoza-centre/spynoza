@@ -141,34 +141,7 @@ def create_all_3T_workflow(analysis_info, name='all_3T'):
     all_3T_workflow.connect(smooth, 'out_file', sgfilter, 'in_file')
     all_3T_workflow.connect(sgfilter, 'out_file', datasink, 'clean_func')
 
-<<<<<<< HEAD
-    if 'do_ica' not in session_info.keys():
-        session_info['do_ica'] = False
-=======
-    return all_3T_workflow
-
-if __name__ == '__main__':
-    from nipype.interfaces.fsl import Info
-
-    analysis_info = {'use_FS': False,
-                    'do_fnirt': False,
-                    'subjects': ['sub-0028', 'sub-0029']}
-
-    all_3T = create_all_3T_workflow(analysis_info)
-    all_3T.base_dir = '/media/lukas/data/Spynoza_data/data_piop'
-
-    template = Info.standard_image('MNI152_T1_2mm_brain.nii.gz')
-
-    all_3T.inputs.inputspec.output_directory = '/media/lukas/data/Spynoza_data/data_piop/preproc'
-    all_3T.inputs.inputspec.raw_directory = '/media/lukas/data/Spynoza_data/data_piop'
-    all_3T.inputs.inputspec.standard_file = template
-    all_3T.inputs.inputspec.which_file_is_EPI_space = 'middle'
-    all_3T.inputs.inputspec.smoothing = 3
->>>>>>> develop
-
-    if session_info['do_ica']:
-        ica = create_ica_workflow()
-        all_3T_workflow.connect(sgfilter, 'out_file', ica, 'inputspec.in_file')
-        all_3T_workflow.connect(ica, 'outputspec.out_dir', datasink, 'ica')
+    if 'do_ica' not in analysis_info.keys():
+        analysis_info['do_ica'] = False
 
     return all_3T_workflow
