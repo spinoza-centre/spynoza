@@ -54,7 +54,7 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
                                 magnitude='{sub_id}/fmap/*magnitude.nii.gz',
                                 phasediff='{sub_id}/fmap/*phasediff.nii.gz',
                                 topup='{sub_id}/fmap/*_topup.nii.gz',
-                                # physio='{sub_id}/func/*.log',
+                                physio='{sub_id}/func/*.log',
                                 events='{sub_id}/func/*_events.pickle',
                                 eye='{sub_id}/func/*_eyedata.edf') # ,
                                 # anat='{sub_id}/anat/*_T1w.nii.gz'
@@ -66,14 +66,11 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
             'percent_signal_change_files'])), name='outputspec')
 
     # nodes for setting the slope/intercept of incoming niftis to (1, 0)
-    # int_slope_epi = pe.MapNode(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
-    #                   name='int_slope_epi', iterfield=['in_file'])
-    # int_slope_topup = pe.MapNode(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
-    #                   name='int_slope_topup', iterfield=['in_file'])
-    # int_slope_B0_magnitude = pe.Node(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
-    #                   name='int_slope_B0_magnitude')
-    # int_slope_B0_phasediff = pe.Node(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
-    #                   name='int_slope_B0_phasediff')
+    # this is apparently necessary for the B0 map files
+    int_slope_B0_magnitude = pe.Node(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
+                      name='int_slope_B0_magnitude')
+    int_slope_B0_phasediff = pe.Node(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
+                      name='int_slope_B0_phasediff')
 
     # reorient nodes
     # reorient_epi = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_epi', iterfield=['in_file'])
@@ -87,9 +84,6 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
     # bet_topup = pe.MapNode(interface=
     #     fsl.BET(frac=analysis_info['bet_frac'], vertical_gradient = analysis_info['bet_vert_grad'], 
     #             functional=True, mask = True), name='bet_topup', iterfield=['in_file'])
-    # bet_moco = pe.Node(interface=
-    #     fsl.BET(frac=analysis_info['bet_frac'], vertical_gradient = analysis_info['bet_vert_grad'], 
-    #             functional=True, mask = True), name='bet_moco')
 
     dilate_cortex = pe.MapNode(interface=
         fsl.maths.DilateImage(operation = 'mean', kernel_shape = 'sphere', kernel_size = analysis_info['dilate_kernel_size']), 
@@ -101,11 +95,17 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
                                     function=savgol_filter),
                       name='sgfilter', iterfield=['in_file'])
 
-    # node for converting pickle files to json
+    # node for non-uniformity correction
     nuc = pe.MapNode(Function(input_names=['in_file'],
                                     output_names=['out_file'],
                                     function=non_uniformity_correct_4D_file),
                       name='nuc', iterfield=['in_file'])
+    # and the same for topup
+    nuc_t = pe.MapNode(Function(input_names=['in_file'],
+                                    output_names=['out_file'],
+                                    function=non_uniformity_correct_4D_file),
+                      name='nuc_t', iterfield=['in_file'])
+
 
     # node for temporal filtering
     pj = pe.MapNode(Function(input_names=['in_file'],
@@ -119,11 +119,11 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
                                     function=percent_signal_change),
                       name='percent_signal_change', iterfield=['in_file'])
 
-    # # node for nuisance regression
-    # fit_nuis = pe.MapNode(Function(input_names=['in_file', 'slice_regressor_list', 'vol_regressors'],
-    #                                 output_names=['res_file', 'rsq_file', 'beta_file'],
-    #                                 function=fit_nuisances),
-    #                   name='fit_nuisances', iterfield=['in_file', 'slice_regressor_list', 'vol_regressors']) 
+    # node for nuisance regression
+    fit_nuis = pe.MapNode(Function(input_names=['in_file', 'slice_regressor_list', 'vol_regressors'],
+                                    output_names=['res_file', 'rsq_file', 'beta_file'],
+                                    function=fit_nuisances),
+                      name='fit_nuisances', iterfield=['in_file', 'slice_regressor_list', 'vol_regressors']) 
 
     # node for averaging across runs for un-retroicor'ed runs
     av = pe.Node(Function(input_names=['in_files'],
@@ -131,10 +131,10 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
                                     function=average_over_runs),
                       name='average_over_runs')
     # # node for averaging across runs for un-retroicor'ed runs
-    # av_r = pe.Node(Function(input_names=['in_files'],
-    #                                 output_names=['out_file'],
-    #                                 function=average_over_runs),
-    #                   name='average_over_runs_retroicor')
+    av_r = pe.Node(Function(input_names=['in_files'],
+                                    output_names=['out_file'],
+                                    function=average_over_runs),
+                      name='average_over_runs_retroicor')
    
 
     datasink = pe.Node(DataSink(), name='sinker')
@@ -153,53 +153,51 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
     # behavioral pickle to json
     all_7T_workflow.connect(datasource, 'events', pj, 'in_file')
 
-    # slope/intercept to unity
-    # all_7T_workflow.connect(datasource, 'func', int_slope_epi, 'in_file')
-    # all_7T_workflow.connect(datasource, 'topup', int_slope_topup, 'in_file')
-    # all_7T_workflow.connect(datasource, 'magnitude', int_slope_B0_magnitude, 'in_file')
-    # all_7T_workflow.connect(datasource, 'phasediff', int_slope_B0_phasediff, 'in_file')
+    # slope/intercept to unity for B0 map
+    all_7T_workflow.connect(datasource, 'magnitude', int_slope_B0_magnitude, 'in_file')
+    all_7T_workflow.connect(datasource, 'phasediff', int_slope_B0_phasediff, 'in_file')
 
-    # reorientation to standard orientation
-    # all_7T_workflow.connect(datasource, 'func', reorient_epi, 'in_file')
-    # all_7T_workflow.connect(datasource, 'topup', reorient_topup, 'in_file')
-    # all_7T_workflow.connect(int_slope_B0_magnitude, 'out_file', reorient_B0_magnitude, 'in_file')
-    # all_7T_workflow.connect(int_slope_B0_phasediff, 'out_file', reorient_B0_phasediff, 'in_file')
+    # non-uniformity correction
+    all_7T_workflow.connect(datasource, 'func', nuc, 'in_file')
+    all_7T_workflow.connect(datasource, 'topup', nuc_t, 'in_file')
 
+    # still have to decide on BET for correction. 
+    # point for intern, to decide on topup and B0 correction
     # BET
     # all_7T_workflow.connect(reorient_epi, 'out_file', bet_epi, 'in_file')
     # all_7T_workflow.connect(reorient_topup, 'out_file', bet_topup, 'in_file')
 
     # topup
-    # tua_wf = create_topup_workflow(analysis_info, name = 'topup')
-    # all_7T_workflow.connect(input_node, 'output_directory', tua_wf, 'inputspec.output_directory')
-    # all_7T_workflow.connect(input_node, 'topup_conf_file', tua_wf, 'inputspec.conf_file')
-    # all_7T_workflow.connect(bet_epi, 'out_file', tua_wf, 'inputspec.in_files')
-    # all_7T_workflow.connect(bet_topup, 'out_file', tua_wf, 'inputspec.alt_files')
-    # all_7T_workflow.connect(input_node, 'epi_factor', tua_wf, 'inputspec.epi_factor')
-    # all_7T_workflow.connect(input_node, 'echo_time', tua_wf, 'inputspec.echo_time')
-    # all_7T_workflow.connect(input_node, 'phase_encoding_direction', tua_wf, 'inputspec.phase_encoding_direction')
+    tua_wf = create_topup_workflow(analysis_info, name = 'topup')
+    all_7T_workflow.connect(input_node, 'output_directory', tua_wf, 'inputspec.output_directory')
+    all_7T_workflow.connect(input_node, 'topup_conf_file', tua_wf, 'inputspec.conf_file')
+    all_7T_workflow.connect(nuc, 'out_file', tua_wf, 'inputspec.in_files')
+    all_7T_workflow.connect(nuc_t, 'out_file', tua_wf, 'inputspec.alt_files')
+    all_7T_workflow.connect(input_node, 'epi_factor', tua_wf, 'inputspec.epi_factor')
+    all_7T_workflow.connect(input_node, 'echo_time', tua_wf, 'inputspec.echo_time')
+    all_7T_workflow.connect(input_node, 'phase_encoding_direction', tua_wf, 'inputspec.phase_encoding_direction')
 
     #B0
-    # B0_wf = create_B0_workflow(name = 'B0')
-    # all_7T_workflow.connect(bet_epi, 'out_file', B0_wf, 'inputspec.in_files')
-    # all_7T_workflow.connect(reorient_B0_magnitude, 'out_file', B0_wf, 'inputspec.fieldmap_mag')
-    # all_7T_workflow.connect(reorient_B0_phasediff, 'out_file', B0_wf, 'inputspec.fieldmap_pha')
-    # all_7T_workflow.connect(input_node, 'wfs', B0_wf, 'inputspec.wfs')
-    # all_7T_workflow.connect(input_node, 'epi_factor', B0_wf, 'inputspec.epi_factor')
-    # all_7T_workflow.connect(input_node, 'acceleration', B0_wf, 'inputspec.acceleration')
-    # all_7T_workflow.connect(input_node, 'te_diff', B0_wf, 'inputspec.te_diff')
-    # all_7T_workflow.connect(input_node, 'phase_encoding_direction', B0_wf, 'inputspec.phase_encoding_direction')
-    
-    # non-uniformity correction
-
-    all_7T_workflow.connect(datasource, 'func', nuc, 'in_file')
-
+    B0_wf = create_B0_workflow(name = 'B0')
+    all_7T_workflow.connect(nuc, 'out_file', B0_wf, 'inputspec.in_files')
+    all_7T_workflow.connect(int_slope_B0_magnitude, 'out_file', B0_wf, 'inputspec.fieldmap_mag')
+    all_7T_workflow.connect(int_slope_B0_phasediff, 'out_file', B0_wf, 'inputspec.fieldmap_pha')
+    all_7T_workflow.connect(input_node, 'wfs', B0_wf, 'inputspec.wfs')
+    all_7T_workflow.connect(input_node, 'epi_factor', B0_wf, 'inputspec.epi_factor')
+    all_7T_workflow.connect(input_node, 'acceleration', B0_wf, 'inputspec.acceleration')
+    all_7T_workflow.connect(input_node, 'te_diff', B0_wf, 'inputspec.te_diff')
+    all_7T_workflow.connect(input_node, 'phase_encoding_direction', B0_wf, 'inputspec.phase_encoding_direction')
 
     # motion correction
     motion_proc = create_motion_correction_workflow('moco')
     all_7T_workflow.connect(input_node, 'tr', motion_proc, 'inputspec.tr')
     all_7T_workflow.connect(input_node, 'output_directory', motion_proc, 'inputspec.output_directory')
     all_7T_workflow.connect(input_node, 'which_file_is_EPI_space', motion_proc, 'inputspec.which_file_is_EPI_space')
+
+    # spatial correction is now only performed to estimate the warp fields
+    # with both methods; we aren't using them for the functional data. We might 
+    # use them for unwarping the PRF results later.
+
     # if analysis_info['B0_or_topup'] == 'topup':
     #     all_7T_workflow.connect(tua_wf, 'outputspec.out_files', motion_proc, 'inputspec.in_files')
     # elif analysis_info['B0_or_topup'] == 'B0':
@@ -217,9 +215,6 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
     # datasource. Check this.
     # all_7T_workflow.connect(reg, 'outputspec.T1_file', reg, 'inputspec.T1_file')    
 
-    # BET the motion corrected EPI_space_file for global mask.
-    # all_7T_workflow.connect(motion_proc, 'outputspec.EPI_space_file', bet_moco, 'in_file')
-
     # temporal filtering
     all_7T_workflow.connect(motion_proc, 'outputspec.motion_corrected_files', sgfilter, 'in_file')
 
@@ -236,27 +231,27 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
     all_7T_workflow.connect(psc, 'out_file', av, 'in_files')
 
     # retroicor functionality
-    # retr = create_retroicor_workflow(name = 'retroicor', order_or_timing = analysis_info['retroicor_order_or_timing'])
+    retr = create_retroicor_workflow(name = 'retroicor', order_or_timing = analysis_info['retroicor_order_or_timing'])
 
     # # # retroicor can take the crudest form of epi file, so that it proceeds quickly
-    # all_7T_workflow.connect(reorient_epi, 'out_file', retr, 'inputspec.in_files')
+    all_7T_workflow.connect(sgfilter, 'out_file', retr, 'inputspec.in_files')
 
-    # all_7T_workflow.connect(datasource, 'physio', retr, 'inputspec.phys_files')
-    # all_7T_workflow.connect(input_node, 'nr_dummies', retr, 'inputspec.nr_dummies')
-    # all_7T_workflow.connect(input_node, 'MB_factor', retr, 'inputspec.MB_factor')
-    # all_7T_workflow.connect(input_node, 'tr', retr, 'inputspec.tr')
-    # all_7T_workflow.connect(input_node, 'slice_direction', retr, 'inputspec.slice_direction')
-    # all_7T_workflow.connect(input_node, 'slice_timing', retr, 'inputspec.slice_timing')
-    # all_7T_workflow.connect(input_node, 'slice_order', retr, 'inputspec.slice_order')
-    # all_7T_workflow.connect(input_node, 'phys_sample_rate', retr, 'inputspec.phys_sample_rate')
+    all_7T_workflow.connect(datasource, 'physio', retr, 'inputspec.phys_files')
+    all_7T_workflow.connect(input_node, 'nr_dummies', retr, 'inputspec.nr_dummies')
+    all_7T_workflow.connect(input_node, 'MB_factor', retr, 'inputspec.MB_factor')
+    all_7T_workflow.connect(input_node, 'tr', retr, 'inputspec.tr')
+    all_7T_workflow.connect(input_node, 'slice_direction', retr, 'inputspec.slice_direction')
+    all_7T_workflow.connect(input_node, 'slice_timing', retr, 'inputspec.slice_timing')
+    all_7T_workflow.connect(input_node, 'slice_order', retr, 'inputspec.slice_order')
+    all_7T_workflow.connect(input_node, 'phys_sample_rate', retr, 'inputspec.phys_sample_rate')
 
     # fit nuisances from retroicor
     # for now, I won't actually fit the retroicor stuff
-    # all_7T_workflow.connect(retr, 'outputspec.evs', fit_nuis, 'slice_regressor_list')
-    # all_7T_workflow.connect(motion_proc, 'outputspec.extended_motion_correction_parameters', fit_nuis, 'vol_regressors')
-    # all_7T_workflow.connect(psc, 'out_file', fit_nuis, 'in_file')
+    all_7T_workflow.connect(retr, 'outputspec.evs', fit_nuis, 'slice_regressor_list')
+    all_7T_workflow.connect(motion_proc, 'outputspec.extended_motion_correction_parameters', fit_nuis, 'vol_regressors')
+    all_7T_workflow.connect(psc, 'out_file', fit_nuis, 'in_file')
 
-    # all_7T_workflow.connect(fit_nuis, 'res_file', av_r, 'in_files')
+    all_7T_workflow.connect(fit_nuis, 'res_file', av_r, 'in_files')
 
     # surface-based label import in to EPI space
     masks_from_surface = create_masks_from_surface_workflow(name = 'masks_from_surface')
@@ -286,13 +281,12 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
     # all_7T_workflow.connect(bet_epi, 'mask_file', datasink, 'bet.epimask')
     # all_7T_workflow.connect(bet_topup, 'out_file', datasink, 'bet.topup')
     # all_7T_workflow.connect(bet_topup, 'mask_file', datasink, 'bet.topupmask')
-    # all_7T_workflow.connect(bet_moco, 'mask_file', datasink, 'bet')
 
-    # all_7T_workflow.connect(tua_wf, 'outputspec.field_coefs', datasink, 'topup.fieldcoef')
-    # all_7T_workflow.connect(tua_wf, 'outputspec.out_files', datasink, 'topup.unwarped')
+    all_7T_workflow.connect(tua_wf, 'outputspec.field_coefs', datasink, 'topup.fieldcoef')
+    all_7T_workflow.connect(tua_wf, 'outputspec.out_files', datasink, 'topup.unwarped')
 
-    # all_7T_workflow.connect(B0_wf, 'outputspec.field_coefs', datasink, 'B0.fieldcoef')
-    # all_7T_workflow.connect(B0_wf, 'outputspec.out_files', datasink, 'B0.unwarped')
+    all_7T_workflow.connect(B0_wf, 'outputspec.field_coefs', datasink, 'B0.fieldcoef')
+    all_7T_workflow.connect(B0_wf, 'outputspec.out_files', datasink, 'B0.unwarped')
     all_7T_workflow.connect(nuc, 'out_file', datasink, 'nuc')
 
 
@@ -302,15 +296,15 @@ def create_all_7T_workflow(analysis_info, name='all_7T'):
 
     all_7T_workflow.connect(dilate_cortex, 'out_file', datasink, 'masks.dc')
 
-    # all_7T_workflow.connect(retr, 'outputspec.new_phys', datasink, 'phys.log')
-    # all_7T_workflow.connect(retr, 'outputspec.fig_file', datasink, 'phys.figs')
-    # all_7T_workflow.connect(retr, 'outputspec.evs', datasink, 'phys.evs')
+    all_7T_workflow.connect(retr, 'outputspec.new_phys', datasink, 'phys.log')
+    all_7T_workflow.connect(retr, 'outputspec.fig_file', datasink, 'phys.figs')
+    all_7T_workflow.connect(retr, 'outputspec.evs', datasink, 'phys.evs')
 
-    # all_7T_workflow.connect(fit_nuis, 'res_file', datasink, 'phys.res')
-    # all_7T_workflow.connect(fit_nuis, 'rsq_file', datasink, 'phys.rsq')
-    # all_7T_workflow.connect(fit_nuis, 'beta_file', datasink, 'phys.betas')
+    all_7T_workflow.connect(fit_nuis, 'res_file', datasink, 'phys.res')
+    all_7T_workflow.connect(fit_nuis, 'rsq_file', datasink, 'phys.rsq')
+    all_7T_workflow.connect(fit_nuis, 'beta_file', datasink, 'phys.betas')
 
-    # all_7T_workflow.connect(av_r, 'out_file', datasink, 'av_r')
+    all_7T_workflow.connect(av_r, 'out_file', datasink, 'av_r')
 
 
     return all_7T_workflow

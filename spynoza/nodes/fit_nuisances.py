@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 
-def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = '', num_components = 20, method = 'ICA'):
+def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = '', num_components = 8, method = 'PCA'):
     """Performs a per-slice GLM on nifti-file in_file, 
     with per-slice regressors from slice_regressor_list of nifti files,
     and per-TR regressors from vol_regressors text file.
