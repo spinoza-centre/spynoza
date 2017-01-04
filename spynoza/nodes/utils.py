@@ -211,6 +211,7 @@ def average_over_runs(in_files, func = 'mean', output_filename = None):
     import nibabel as nib
     import numpy as np
     import os
+    import bottleneck as bn
 
     template_data = nib.load(in_files[0])
     dims = template_data.shape
@@ -228,7 +229,7 @@ def average_over_runs(in_files, func = 'mean', output_filename = None):
         # weird reshape operation which hopeully fixes an issue in which
         # np.median hogs memory and lasts amazingly long
         all_data = all_data.reshape((len(in_files),-1))
-        av_data = np.median(all_data, axis = 0)
+        av_data = bn.nanmedian(all_data, axis = 0)
         av_data = av_data.reshape(dims)
 
     img = nib.Nifti1Image(av_data, affine=affine, header=header)
