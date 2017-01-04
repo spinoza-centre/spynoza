@@ -83,7 +83,7 @@ def create_motion_correction_workflow(name = 'moco'):
     motion_correct_EPI_space = pe.Node(interface=fsl.MCFLIRT(
                     save_mats = True, 
                     save_plots = True, 
-                    cost = 'normmi', 
+                    cost = 'normcorr', 
                     interpolation = 'sinc'
                     ), name='realign_space')
 

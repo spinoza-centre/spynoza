@@ -89,7 +89,7 @@ def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = '', num_c
         residuals = slice_data - prediction
 
         # reshape and save
-        residual_data[:,:,x,:] = residuals.T.reshape((dims[0], dims[1], dims[-1]))
+        residual_data[:,:,x,:] = residuals.reshape((dims[0], dims[1], dims[-1]))
         rsq_data[:,:,x] = rsq.reshape((dims[0], dims[1]))
         beta_data[:,:,x,:] = betas.T.reshape((dims[0], dims[1],all_regressors.shape[0]))
 
