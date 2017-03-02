@@ -9,6 +9,7 @@ def _extend_motion_parameters(moco_par_file, tr, sg_args = {'window_length': 120
     ext_out_file = moco_par_file[:-7] + 'ext_moco_pars.par'
     new_out_file = moco_par_file[:-7] + 'new_moco_pars.par'
 
+    print(tr)
     sg_args['window_length'] = int(sg_args['window_length'] / tr)
     # Window must be odd-shaped
     if sg_args['window_length'] % 2 == 0:
@@ -94,7 +95,7 @@ def create_motion_correction_workflow(name = 'moco'):
     motion_correct_EPI_space = pe.Node(interface=fsl.MCFLIRT(
                     save_mats = True, 
                     save_plots = True, 
-                    cost = 'normmi', 
+                    cost = 'normcorr', 
                     interpolation = 'sinc'
                     ), name='realign_space')
 

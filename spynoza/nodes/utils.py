@@ -185,7 +185,7 @@ def percent_signal_change(in_file, func = 'mean'):
 
     return out_file
 
-def average_over_runs(in_files, func = 'mean'):
+def average_over_runs(in_files, func = 'mean', output_filename = None):
     """Converts data in a nifti-file to percent signal change.
 
     Takes a list of 4D fMRI nifti-files and averages them. 
@@ -199,6 +199,8 @@ def average_over_runs(in_files, func = 'mean'):
         Absolute paths to nifti-files.
     func : string ['mean', 'median'] (default: 'mean')
         the function used to calculate the 'average'
+    output_filename : str
+        path to output filename
 
     Returns
     -------
@@ -209,6 +211,7 @@ def average_over_runs(in_files, func = 'mean'):
     import nibabel as nib
     import numpy as np
     import os
+    import bottleneck as bn
 
     template_data = nib.load(in_files[0])
     dims = template_data.shape
@@ -223,12 +226,19 @@ def average_over_runs(in_files, func = 'mean'):
     if func == 'mean':
         av_data = all_data.mean(axis = 0)
     elif func == 'median':
-        av_data = np.median(all_data, axis = 0)
+        # weird reshape operation which hopeully fixes an issue in which
+        # np.median hogs memory and lasts amazingly long
+        all_data = all_data.reshape((len(in_files),-1))
+        av_data = bn.nanmedian(all_data, axis = 0)
+        av_data = av_data.reshape(dims)
 
     img = nib.Nifti1Image(av_data, affine=affine, header=header)
 
-    new_name = os.path.basename(in_files[0]).split('.')[:-2][0] + '_av.nii.gz'
-    out_file = os.path.abspath(new_name)
+    if output_filename == None:
+        new_name = os.path.basename(in_files[0]).split('.')[:-2][0] + '_av.nii.gz'
+        out_file = os.path.abspath(new_name)
+    else:
+        out_file = os.path.abspath(output_filename)
     nib.save(img, out_file)
 
     return out_file
