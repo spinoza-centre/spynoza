@@ -51,7 +51,7 @@ Then merge your feature changes into develop::
 
     $ git merge --no-ff my_feature
 
-Now push changes to the server
+Now push changes to the server::
 
     $ git push origin develop
     $ git push origin my_feature

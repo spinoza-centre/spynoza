@@ -1,7 +1,10 @@
 from __future__ import division, print_function
+from nipype.interfaces.utility import Function
 
-def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = '', num_components = 8, method = 'PCA'):
-    """Performs a per-slice GLM on nifti-file in_file, 
+
+def fit_nuisances(in_file, slice_regressor_list=[], vol_regressors='',
+                  num_components=8, method='PCA'):
+    """Performs a per-slice GLM on nifti-file in_file,
     with per-slice regressors from slice_regressor_list of nifti files,
     and per-TR regressors from vol_regressors text file.
     Assumes slices to be the last spatial dimension of nifti files,
@@ -41,16 +44,19 @@ def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = '', num_c
     # import data and convert nans to numbers
     func_data = np.nan_to_num(func_nii.get_data())
 
-    all_slice_reg = np.zeros((len(slice_regressor_list)+1,dims[-2],dims[-1]))
+    all_slice_reg = np.zeros(
+        (len(slice_regressor_list) + 1, dims[-2], dims[-1]))
     # intercept
-    all_slice_reg[0,:,:] = 1
+    all_slice_reg[0, :, :] = 1
     # fill the regressor array from files
     for i in range(len(slice_regressor_list)):
-        all_slice_reg[i+1] = nib.load(slice_regressor_list[i]).get_data().squeeze()
+        all_slice_reg[i + 1] = nib.load(
+            slice_regressor_list[i]).get_data().squeeze()
 
     if vol_regressors != '':
         all_TR_reg = np.loadtxt(vol_regressors)
-        if all_TR_reg.shape[-1] != all_slice_reg.shape[-1]: # check for the right format
+        if all_TR_reg.shape[-1] != all_slice_reg.shape[
+            -1]:  # check for the right format
             all_TR_reg = all_TR_reg.T
 
     # data containers
@@ -58,48 +64,56 @@ def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = '', num_c
     rsq_data = np.zeros(list(dims[:-1]))
     if num_components == 0:
         if vol_regressors != '':
-            beta_data = np.zeros(list(dims[:-1]) + [1 + len(slice_regressor_list) + all_TR_reg.shape[0]])
+            beta_data = np.zeros(list(dims[:-1]) + [
+                1 + len(slice_regressor_list) + all_TR_reg.shape[0]])
         else:
-            beta_data = np.zeros(list(dims[:-1]) + [1 + len(slice_regressor_list)])
+            beta_data = np.zeros(
+                list(dims[:-1]) + [1 + len(slice_regressor_list)])
     else:
         beta_data = np.zeros(list(dims[:-1]) + [num_components])
 
     # loop over slices
     for x in range(dims[-2]):
-        slice_data = func_data[:,:,x,:].reshape((-1,dims[-1]))
-        all_regressors = all_slice_reg[:,x,:]
+        slice_data = func_data[:, :, x, :].reshape((-1, dims[-1]))
+        all_regressors = all_slice_reg[:, x, :]
         if vol_regressors != '':
             all_regressors = np.vstack((all_regressors, all_TR_reg))
         all_regressors = np.nan_to_num(all_regressors)
 
         if num_components != 0:
             if method == 'PCA':
-                pca = decomposition.PCA(n_components = num_components, whiten = True)
+                pca = decomposition.PCA(n_components=num_components,
+                                        whiten=True)
                 all_regressors = pca.fit_transform(all_regressors.T).T
             elif method == 'ICA':
-                ica = decomposition.FastICA(n_components = num_components, whiten = True)
+                ica = decomposition.FastICA(n_components=num_components,
+                                            whiten=True)
                 all_regressors = ica.fit_transform(all_regressors.T).T
 
         # fit
-        betas, residuals_sum, rank, sse = LA.lstsq(all_regressors.T, slice_data.T)
+        betas, residuals_sum, rank, sse = LA.lstsq(all_regressors.T,
+                                                   slice_data.T)
 
         # predicted data, rsq and residuals
         prediction = np.dot(betas.T, all_regressors)
-        rsq = 1.0 - np.sum((prediction - slice_data)**2, axis = -1) / np.sum(slice_data.squeeze()**2, axis = -1)
+        rsq = 1.0 - np.sum((prediction - slice_data) ** 2, axis=-1) / np.sum(
+            slice_data.squeeze() ** 2, axis=-1)
         residuals = slice_data - prediction
 
         # reshape and save
-        residual_data[:,:,x,:] = residuals.reshape((dims[0], dims[1], dims[-1]))
-        rsq_data[:,:,x] = rsq.reshape((dims[0], dims[1]))
-        beta_data[:,:,x,:] = betas.T.reshape((dims[0], dims[1],all_regressors.shape[0]))
+        residual_data[:, :, x, :] = residuals.reshape(
+            (dims[0], dims[1], dims[-1]))
+        rsq_data[:, :, x] = rsq.reshape((dims[0], dims[1]))
+        beta_data[:, :, x, :] = betas.T.reshape(
+            (dims[0], dims[1], all_regressors.shape[0]))
 
-        print("slice %d finished nuisance GLM for %s"%(x, in_file))
+        print("slice %d finished nuisance GLM for %s" % (x, in_file))
 
     # save files
     residual_img = nib.Nifti1Image(np.nan_to_num(residual_data), affine)
     res_file = os.path.abspath(in_file[:-7]) + '_res.nii.gz'
     nib.save(residual_img, res_file)
-    
+
     rsq_img = nib.Nifti1Image(np.nan_to_num(rsq_data), affine)
     rsq_file = os.path.abspath(in_file)[:-7] + '_rsq.nii.gz'
     nib.save(rsq_img, rsq_file)
@@ -110,3 +124,10 @@ def fit_nuisances(in_file, slice_regressor_list = [], vol_regressors = '', num_c
 
     # return paths
     return res_file, rsq_file, beta_file
+
+
+Fit_nuisances = Function(function=fit_nuisances,
+                         input_names=['in_file', 'slice_regressor_list',
+                                      'vol_regressors', 'num_components',
+                                      'method'],
+                         output_names=['res_file', 'rsq_file', 'beta_file'])

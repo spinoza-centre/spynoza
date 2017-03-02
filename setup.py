@@ -12,7 +12,8 @@ install_requires = [
     'nipype',
     'numpy',
     'scipy',
-    'pandas'
+    'pandas',
+    'jsonpickle'
 ]
 
 setup(

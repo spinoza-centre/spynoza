@@ -1,10 +1,11 @@
 # Implementation of savitsky-golay filter in a format compatible
 # with a Nipype node.
 
-from __future__ import division
+from __future__ import division, print_function, absolute_import
+from nipype.interfaces.utility import Function
 
 
-def savgol_filter(in_file, polyorder=3, deriv=0, window_length = 120):
+def savgol_filter(in_file, polyorder=3, deriv=0, window_length=120, TR=None):
     """ Applies a savitsky-golay filter to a nifti-file.
 
     Fits a savitsky-golay filter to a 4D fMRI nifti-file and subtracts the
@@ -37,7 +38,9 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length = 120):
     dims = data.shape
     affine = data.affine
     header = data.header
-    tr = data.header['pixdim'][4]
+
+    if TR is None:  # if TR is not set
+        tr = data.header['pixdim'][4]
 
     # TR must be in seconds
     if tr < 0.01:
@@ -63,3 +66,9 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length = 120):
     nib.save(img, out_file)
 
     return out_file
+
+
+Savgol_filter = Function(function=savgol_filter,
+                         input_names=['in_file', 'polyorder', 'deriv',
+                                      'window_length', 'TR'],
+                         output_names=['out_file'])
