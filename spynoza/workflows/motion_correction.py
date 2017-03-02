@@ -9,6 +9,7 @@ def _extend_motion_parameters(moco_par_file, tr, sg_args = {'window_length': 120
     ext_out_file = moco_par_file[:-7] + 'ext_moco_pars.par'
     new_out_file = moco_par_file[:-7] + 'new_moco_pars.par'
 
+    print(tr)
     sg_args['window_length'] = int(sg_args['window_length'] / tr)
     # Window must be odd-shaped
     if sg_args['window_length'] % 2 == 0:
@@ -115,7 +116,7 @@ def create_motion_correction_workflow(name = 'moco'):
                             iterfield=['in_file'])
 
     extend_motion_pars = pe.MapNode(Function(input_names=['moco_par_file', 'tr'], output_names=['new_out_file', 'ext_out_file'],
-                                       function=_extend_motion_parameters), name='extend_motion_pars', iterfield = ['moco_par_file'])
+                                       function=_extend_motion_parameters), name='extend_motion_pars', iterfield = ['moco_par_file', 'tr'])
 
     rename = pe.Node(niu.Rename(format_string='session_EPI_space',
                             keep_ext=True),
