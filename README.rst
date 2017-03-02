@@ -1,10 +1,13 @@
-# spynoza
+spynoza
+~~~~~~~
 python package for fMRI data processing
 
-## prerequisites
+Prerequisites
+-------------
 Spynoza uses Nipype to organize processing workflows.
 
-## Setup and git workflow
+Setup and git workflow
+----------------------
 CD to a folder where you want the spynoza git to be setup.
 To clone the repo into that dir run::
 
@@ -33,14 +36,14 @@ To switch to another branch run::
     $ git checkout branch_name
 
 When working on your feature, make sure you first switch to your feature branch.
-Then, do your work, and run:
+Then, do your work, and run::
 
     $ git commit -am "Your message"
 
 Make sure you have a seperate feature branch for every distinct feature you're implementing.
 
 When your feature is finished, and you'd like to share it with your collaborators,
-merge your changes in develop without a fast-forward. First switch to the develop branch:
+merge your changes in develop without a fast-forward. First switch to the develop branch::
 
     $ git checkout develop
 
