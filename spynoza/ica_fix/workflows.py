@@ -1,12 +1,11 @@
+import nipype.pipeline as pe
+import os.path as op
+from nipype.interfaces.utility import Function, IdentityInterface
 from .nodes import Melodic4fix
 from ..utils import extract_task
 
 
 def create_melodic_workflow(name='melodic', template=None, varnorm=True):
-
-    import nipype.pipeline as pe
-    import os.path as op
-    from nipype.interfaces.utility import Function, IdentityInterface
 
     input_node = pe.Node(IdentityInterface(
         fields=['in_file']), name='inputspec')
@@ -22,7 +21,8 @@ def create_melodic_workflow(name='melodic', template=None, varnorm=True):
                                   iterfield=['in_file', 'out_dir'],
                                   name='melodic4fix')
 
-    # Don't know if this works
+    # Don't know if this works. Could also set these defaults inside the
+    # melodic4fix node definition...
     melodic4fix_node.inputs.template = template
     melodic4fix_node.inputs.varnorm = varnorm
 
@@ -51,5 +51,11 @@ def create_melodic_workflow(name='melodic', template=None, varnorm=True):
 def create_fix_workflow(name='fsl_fix'):
     print('Not yet implemented!')
     pass
+
+
+def create_ica_fix_denoising_workflow(name='ica_fix_denoising'):
+    print("Not yet implemented")
+    pass
+
 
 

@@ -4,7 +4,7 @@ import spynoza
 VERSION = spynoza.__version__
 
 def readme():
-    with open('README.md') as f:
+    with open('README.rst') as f:
         return f.read()
 
 install_requires = [
@@ -32,6 +32,5 @@ setup(
     author='Spinoza centre',
     license='MIT',
     platforms='Linux',
-    scripts=['bin/fetch_testdata'],
     packages=find_packages(),
     zip_safe=False)

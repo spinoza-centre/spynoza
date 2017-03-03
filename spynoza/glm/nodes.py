@@ -35,7 +35,6 @@ def fit_nuisances(in_file, slice_regressor_list=[], vol_regressors='',
     import numpy.linalg as LA
     import os
     from sklearn import decomposition
-    from scipy.signal import savgol_filter
 
     func_nii = nib.load(in_file)
     dims = func_nii.shape

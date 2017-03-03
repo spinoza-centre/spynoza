@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import
 from nipype.interfaces.utility import Function
 
 
-def savgol_filter(in_file, polyorder=3, deriv=0, window_length=120, TR=None):
+def savgol_filter(in_file, polyorder=3, deriv=0, window_length=120, tr=None):
     """ Applies a savitsky-golay filter to a nifti-file.
 
     Fits a savitsky-golay filter to a 4D fMRI nifti-file and subtracts the
@@ -39,7 +39,7 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length=120, TR=None):
     affine = data.affine
     header = data.header
 
-    if TR is None:  # if TR is not set
+    if tr is None:  # if TR is not set
         tr = data.header['pixdim'][4]
 
     # TR must be in seconds
@@ -70,5 +70,5 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length=120, TR=None):
 
 Savgol_filter = Function(function=savgol_filter,
                          input_names=['in_file', 'polyorder', 'deriv',
-                                      'window_length', 'TR'],
+                                      'window_length', 'tr'],
                          output_names=['out_file'])

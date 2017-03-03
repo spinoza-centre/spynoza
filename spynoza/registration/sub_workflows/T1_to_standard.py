@@ -1,4 +1,5 @@
-def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True, do_fnirt = False):
+def create_T1_to_standard_workflow(name='T1_to_standard', use_FS = True,
+                                   do_fnirt = False, **kwargs):
     """Registers subject's T1 to standard space using FLIRT and FNIRT.
     Requires fsl tools
     Parameters
@@ -30,7 +31,7 @@ def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True, do_fn
            outputspec.out_intensitymap_file : FNIRT intensity map
 
     """
-    import os.path as op
+
     import nipype.pipeline as pe
     from nipype.interfaces import fsl
     from nipype.interfaces import freesurfer
@@ -75,13 +76,13 @@ def create_T1_to_standard_workflow(name = 'T1_to_standard', use_FS = True, do_fn
     bet_N = pe.Node(interface=fsl.BET(vertical_gradient = -0.1, functional=False, mask=True), name='bet_N') 
 
     flirt_N = pe.Node(fsl.FLIRT(cost_func='normmi', output_type = 'NIFTI_GZ', dof = 12, interp = 'sinc'), 
-                        name = 'flirt_N')
+                        name='flirt_N')
     if do_fnirt: 
-        fnirt_N = pe.Node(fsl.FNIRT(in_fwhm = [8, 4, 2, 2], 
-                              subsampling_scheme = [4, 2, 1, 1], 
-                              warp_resolution = (6, 6, 6), 
-                              output_type = 'NIFTI_GZ'), 
-                        name = 'fnirt_N')
+        fnirt_N = pe.Node(fsl.FNIRT(in_fwhm=[8, 4, 2, 2],
+                              subsampling_scheme=[4, 2, 1, 1],
+                              warp_resolution =(6, 6, 6),
+                              output_type='NIFTI_GZ'),
+                        name='fnirt_N')
 
     ########################################################################################
     # first take file from freesurfer subject directory, if necessary

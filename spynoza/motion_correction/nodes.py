@@ -1,8 +1,12 @@
-def _extend_motion_parameters(moco_par_file, tr, sg_args ={'window_length': 120,
-                                                           'deriv':0,
-                                                           'polyorder':3,
-                                                           'mode':'nearest'}):
-    import os.path as op
+import nipype.pipeline as pe
+from nipype.interfaces.utility import Function
+
+# ToDo: not use a mutable argument for sg_args
+
+def extend_motion_parameters(moco_par_file, tr, sg_args={'window_length': 120,
+                                                          'deriv': 0,
+                                                          'polyorder': 3,
+                                                          'mode': 'nearest'}):
     import numpy as np
     from sklearn import decomposition
     from scipy.signal import savgol_filter
@@ -10,8 +14,8 @@ def _extend_motion_parameters(moco_par_file, tr, sg_args ={'window_length': 120,
     ext_out_file = moco_par_file[:-7] + 'ext_moco_pars.par'
     new_out_file = moco_par_file[:-7] + 'new_moco_pars.par'
 
-    print(tr)
     sg_args['window_length'] = int(sg_args['window_length'] / tr)
+
     # Window must be odd-shaped
     if sg_args['window_length'] % 2 == 0:
         sg_args['window_length'] += 1
@@ -25,7 +29,8 @@ def _extend_motion_parameters(moco_par_file, tr, sg_args ={'window_length': 120,
     ext_moco_pars = np.hstack((moco_pars, dt_moco_pars, ddt_moco_pars))
 
     # blow up using abs(), perform pca and take original number of 18 components
-    amp = np.hstack((moco_pars, dt_moco_pars, ddt_moco_pars, dt_moco_pars**2, ddt_moco_pars**2))
+    amp = np.hstack((moco_pars, dt_moco_pars, ddt_moco_pars, dt_moco_pars**2,
+                     ddt_moco_pars**2))
     pca = decomposition.PCA(n_components = 18)
     pca.fit(amp)
     new_moco_pars = pca.transform(amp)
@@ -35,9 +40,9 @@ def _extend_motion_parameters(moco_par_file, tr, sg_args ={'window_length': 120,
 
     return new_out_file, ext_out_file
 
-extend_motion_pars = pe.MapNode(Function(input_names=['moco_par_file', 'tr'], output_names=['new_out_file', 'ext_out_file'],
-                                         function=_extend_motion_parameters), name='extend_motion_pars', iterfield = ['moco_par_file', 'tr'])
-
+Extend_motion_pars = Function(input_names=['moco_par_file', 'tr'],
+                              output_names=['new_out_file', 'ext_out_file'],
+                              function=extend_motion_parameters)
 
 def _check_if_iterable(to_iter, arg):
 

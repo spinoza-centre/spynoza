@@ -1,14 +1,15 @@
-from nipype.interfaces.afni.base import AFNICommand, AFNICommandInputSpec, AFNICommandOutputSpec
-from nipype.interfaces.base import (TraitedSpec, File, traits, InputMultiPath,
-                                    isdefined, OutputMultiPath)
+from nipype.interfaces.afni.base import (AFNICommand, AFNICommandInputSpec,
+                                         AFNICommandOutputSpec)
+from nipype.interfaces.base import (File, traits)
+
 
 class UniformizeInputSpec(AFNICommandInputSpec):
 
     in_file = File(
-    	argstr="-anat %s", 
-    	exists=True, 
-    	mandatory=True,
-        desc="file to be unifized")
+		argstr="-anat %s",
+		exists=True,
+		mandatory=True,
+		desc="file to be unifized")
     clip_low = traits.Float(
     	6, 
     	argstr='-clip_low %f', 
@@ -45,8 +46,8 @@ class UniformizeInputSpec(AFNICommandInputSpec):
         argstr='-prefix %s',
         name_source='in_file')    
 
+
 class Uniformize(AFNICommand):
     _cmd = '3dUniformize'
     input_spec = UniformizeInputSpec
     output_spec = AFNICommandOutputSpec
-

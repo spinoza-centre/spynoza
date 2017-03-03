@@ -1,9 +1,35 @@
 from nipype.interfaces.utility import Function
 
 
+def set_parameters_in_nodes(workflow, **kwargs):
+
+    for node, options in kwargs:
+
+        available_nodes = workflow.__dict__.keys()
+        if node in available_nodes:
+            node_inst = getattr(workflow, node)
+        else:
+            msg = ("You want to set parameter(s) in node '%s' in workflow '%s' "
+                   "but this node doesn't seem to exist. Known nodes: %r" %
+                   (node, "T1_to_standard", available_nodes))
+            raise ValueError(msg)
+
+        for arg, val in options.items():
+            available_args = node_inst.__dict__.keys()
+            if arg in available_args:
+                setattr(node_inst, arg, val)
+            else:
+                msg = ("You want to set the parameter '%s' in node '%s' but "
+                       "this parameter doesn't exist in this node. Known "
+                       "parameters: %r" % (arg, node, available_args))
+                raise ValueError(msg)
+
+        setattr(workflow, node, node_inst)
+    return workflow
+
+
 def extract_task(in_file):
     import os.path as op
-
     task_name = op.abspath(in_file.split('task-')[-1].split('_')[0])
     return task_name
 
@@ -13,7 +39,7 @@ Extract_task = Function(function=extract_task,
                         output_names=['task_name'])
 
 
-def EPI_file_selector(which_file, in_files):
+def epi_file_selector(which_file, in_files):
     """Selects which EPI file will be the standard EPI space.
     Choices are: 'middle', 'last', 'first', or any integer in the list
     """
@@ -31,8 +57,14 @@ def EPI_file_selector(which_file, in_files):
     elif os.path.isfile(which_file):  # take another file, not from the list
         return which_file
     else:
-        raise Exception(
-            'value of which_file, %s, doesn\'t allow choosing an actual file.' % which_file)
+        msg = ('value of which_file, %s, doesn\'t allow choosing an actual file.'
+               % which_file)
+        raise ValueError(msg)
+
+
+EPI_file_selector = Function(function=epi_file_selector,
+                             input_names=['which_file', 'in_files'],
+                             output_names=['out_file'])
 
 
 def get_scaninfo(in_file):
@@ -71,77 +103,42 @@ def get_scaninfo(in_file):
     return TR, shape, dyns, voxsize, affine
 
 
+Get_scaninfo = Function(function=get_scaninfo,
+                        input_names=['in_file'],
+                        output_names=['TR', 'shape', 'dyns', 'voxsize',
+                                      'affine'])
+
+
 def dyns_min_1(dyns):
     dyns_1 = dyns - 1
     return dyns_1
 
 
-def concat_iterables(sub, sess=None):
-    """ Concatenates subject and session iterables.
+Dyns_min_1 = Function(function=dyns_min_1, input_names=['dyns'],
+                      output_names=['dyns_1'])
 
-    Generates a subject/session output-directory for datasink.inputs.container.
+# ToDo: make concat_iterables work for arbitrary amount of iterables
+def concat_iterables(iterables):
+    """ Concatenates iterables (starting with subject).
 
     Inputs
     ------
-    sub : str
-        Subject-id (e.g. sub-001)
-    sess : str
-        Session-id (e.g. sess-001)
+    iterables : list
+        List of iterables to be concatenated into a path (e.g. after using
+        nipype Merge-node).
 
     Returns
     -------
     out_name : str
-        Concatenation of iterables (if sess is defined)
+        Concatenation of iterables
     """
-    import os
-
-    if sess is None:
-        out_name = sub
-    else:
-        out_name = os.path.join(sub, sess)
-
-    return out_name
+    import os.path as op
+    return op.join(*iterables)
 
 
-def topup_scan_params(pe_direction='y', te=0.025, epi_factor=37):
-    import numpy as np
-    import os
-    import tempfile
-
-    scan_param_array = np.zeros((2, 4))
-    scan_param_array[0, ['x', 'y', 'z'].index(pe_direction)] = 1
-    scan_param_array[1, ['x', 'y', 'z'].index(pe_direction)] = -1
-    scan_param_array[:, -1] = te * epi_factor
-
-    spa_txt = str('\n'.join(
-        ['\t'.join(['%1.3f' % s for s in sp]) for sp in scan_param_array]))
-
-    fn = os.path.join(tempfile.gettempdir(), 'scan_params.txt')
-    # with open(fn, 'wt', encoding='utf-8') as f:
-    #     f.write(spa_txt)
-
-    np.savetxt(fn, scan_param_array, fmt='%1.3f')
-    return fn
-
-
-def apply_scan_params(pe_direction='y', te=0.025, epi_factor=37, nr_trs=1):
-    import numpy as np
-    import os
-    import tempfile
-
-    scan_param_array = np.zeros((nr_trs, 4))
-    scan_param_array[:, ['x', 'y', 'z'].index(pe_direction)] = 1
-    scan_param_array[:, -1] = te * epi_factor
-
-    spa_txt = str('\n'.join(
-        ['\t'.join(['%1.3f' % s for s in sp]) for sp in scan_param_array]))
-
-    fn = os.path.join(tempfile.gettempdir(), 'scan_params_apply.txt')
-    # with open(fn, 'wt', encoding='utf-8') as f:
-    #     f.write(spa_txt)
-
-    np.savetxt(fn, scan_param_array, fmt='%1.3f')
-    return fn
+Concat_iterables = Function(function=concat_iterables,
+                            input_names=['iterables'],
+                            output_names=['concatenated_path'])
 
 
 def pickfirst(files):
@@ -198,6 +195,11 @@ def percent_signal_change(in_file, func='mean'):
     nib.save(img, out_file)
 
     return out_file
+
+
+Percent_signal_change = Function(function=percent_signal_change,
+                                 input_names=['in_file', 'func'],
+                                 output_names=['out_file'])
 
 
 def average_over_runs(in_files, func='mean', output_filename=None):
@@ -260,6 +262,12 @@ def average_over_runs(in_files, func='mean', output_filename=None):
     return out_file
 
 
+Average_over_runs = Function(function=average_over_runs,
+                             input_names=['in_files', 'func',
+                                          'output_filename'],
+                             output_names=['out_file'])
+
+
 def pickle_to_json(in_file):
     import json
     import jsonpickle
@@ -274,6 +282,11 @@ def pickle_to_json(in_file):
         json.dump(jsp, f, indent=2)
 
     return out_file
+
+
+Pickle_to_json = Function(function=pickle_to_json,
+                          input_names=['in_file'],
+                          output_names=['out_file'])
 
 
 def set_nifti_intercept_slope(in_file, intercept=0, slope=1, in_is_out=True):
@@ -309,8 +322,14 @@ def set_nifti_intercept_slope(in_file, intercept=0, slope=1, in_is_out=True):
     return out_file
 
 
-def split_4D_2_3D(in_file):
-    """split_4D_2_3D splits a single 4D file into a list of nifti files.
+Set_nifti_intercept_slope = Function(function=set_nifti_intercept_slope,
+                                     input_names=['in_file', 'intercept',
+                                                  'slope', 'in_is_out'],
+                                     output_names=['out_file'])
+
+
+def split_4D_to_3D(in_file):
+    """split_4D_to_3D splits a single 4D file into a list of nifti files.
     Because it splits the file at once, it's faster than fsl.ExtractROI
 
     Parameters
@@ -324,12 +343,10 @@ def split_4D_2_3D(in_file):
         List of absolute paths to nifti-files.    """
 
     import nibabel as nib
-    import numpy as np
     import os
     import tempfile
 
     original_file = nib.load(in_file)
-    dims = original_file.shape
     affine = original_file.affine
     header = original_file.header
     dyns = original_file.shape[-1]
@@ -346,3 +363,7 @@ def split_4D_2_3D(in_file):
         out_files.append(opfn)
 
     return out_files
+
+
+Split_4D_to_3D = Function(function=split_4D_to_3D, input_names=['in_file'],
+                          output_names=['out_files'])

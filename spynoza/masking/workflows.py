@@ -1,11 +1,9 @@
-import os.path as op
-import glob
 import nipype.pipeline as pe
+import nipype.interfaces.io as nio
 from nipype.interfaces import fsl
 from nipype.interfaces import freesurfer
-from nipype.interfaces.utility import Function, IdentityInterface, Merge
-import nipype.interfaces.io as nio
-
+from nipype.interfaces.utility import IdentityInterface, Merge
+from .nodes import FS_aseg_file, FS_label_list_glob
 
 
 def create_transform_aseg_to_EPI_workflow(name = 'transform_aseg_to_EPI'):
@@ -53,12 +51,8 @@ def create_transform_aseg_to_EPI_workflow(name = 'transform_aseg_to_EPI'):
     vol_trans_node = pe.Node(interface=freesurfer.ApplyVolTransform(), name='vol_trans')
 
     # housekeeping function for finding T1 file in FS directory
-    def FS_aseg_file(freesurfer_subject_ID, freesurfer_subject_dir, aseg):
-        return op.join(freesurfer_subject_dir, freesurfer_subject_ID, 'mri', aseg)
-
-    FS_aseg_file_node = pe.Node(Function(input_names=('freesurfer_subject_ID', 'freesurfer_subject_dir'), output_names='aseg_mgz_path',
-                                 function=FS_aseg_file), name='FS_aseg_file_node')  
-
+    FS_aseg_file_node = pe.Node(interface=FS_aseg_file,
+                                name='FS_aseg_file')
     mriConvert_N = pe.Node(freesurfer.MRIConvert(out_type = 'nii.gz'), 
                           name = 'mriConvert_N')
 
@@ -226,16 +220,8 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
         'masks'])), name='outputspec')
 
     # housekeeping function for finding label files in FS directory
-    def FS_label_list(freesurfer_subject_ID, freesurfer_subject_dir, label_directory, re = '*.label'):
-        import glob
-        import os.path as op
-
-        label_list = glob.glob(op.join(freesurfer_subject_dir, freesurfer_subject_ID, 'label', label_directory, re))
-
-        return label_list
-
-    FS_label_list_node = pe.Node(Function(input_names=('freesurfer_subject_ID', 'freesurfer_subject_dir', 'label_directory', 're'), output_names='label_list',
-                                     function=FS_label_list), name='FS_label_list_node')
+    FS_label_list_node = pe.Node(interface=FS_label_list_glob,
+                                 name='FS_label_list_node')
 
     label_2_vol_node = pe.MapNode(interface=freesurfer.Label2Vol(), name='l2v',
                                 iterfield = 'label_file')
@@ -342,9 +328,9 @@ def create_fast2mask_workflow(name = 'fast2mask'):
     datasink.inputs.parameterization = False
 
     # first link the workflow's output_directory into the datasink.
-    masks_from_surface_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
-    masks_from_surface_workflow.connect(input_node, 'sub_id', datasink, 'container')
+    fast2mask_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
+    fast2mask_workflow.connect(input_node, 'sub_id', datasink, 'container')
     # and the rest
-    masks_from_surface_workflow.connect(apply_xfm_node, 'out_file', datasink, 'masks.fast')
+    fast2mask_workflow.connect(apply_xfm_node, 'out_file', datasink, 'masks.fast')
 
-    return masks_from_surface_workflow
+    return fast2mask_workflow
