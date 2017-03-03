@@ -125,6 +125,8 @@ def create_registration_workflow(analysis_info, name='reg'):
                                       'outputspec.EPI_T1_register_file',
                                       rename_register, 'in_file')
 
+    # FAST NODE INBOUWEN VOOR FSL
+
     rename_example_func = pe.Node(
         Rename(format_string='example_func', keep_ext=True),
         name='rename_example_func')

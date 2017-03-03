@@ -64,7 +64,6 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length=120, tr=None):
     new_name = os.path.basename(in_file).split('.')[:-2][0] + '_sg.nii.gz'
     out_file = os.path.abspath(new_name)
     nib.save(img, out_file)
-
     return out_file
 
 
