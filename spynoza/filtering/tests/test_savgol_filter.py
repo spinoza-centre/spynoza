@@ -1,4 +1,4 @@
-from spynoza.filtering import Savgol_filter
+from spynoza.filtering.nodes import Savgol_filter
 import nipype.pipeline as pe
 import os.path as op
 
