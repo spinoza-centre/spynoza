@@ -14,10 +14,10 @@ def test_registration_workflow():
     wf = create_registration_workflow(analysis_info=analysis_info)
     wf.inputs.inputspec.EPI_space_file = op.join(test_dir, 'session_EPI_space.nii.gz')
     wf.inputs.inputspec.output_directory = '/tmp/spynoza'
-    wf.inputs.inputspec.T1_file = op.join(test_dir, 'struct.nii.gz')
+    wf.inputs.inputspec.T1_file = op.join(test_dir, 'highres.nii.gz')
     wf.inputs.inputspec.sub_id = 'sub-001'
     wf.inputs.inputspec.standard_file = Info.standard_image('MNI152_T1_2mm_brain.nii.gz')
-    wf.base_dir = '/home/lukas/reg'
+    wf.base_dir = '/tmp/spynoza/out'
     wf.run()
 
 if __name__ == '__main__':

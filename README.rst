@@ -1,5 +1,6 @@
-spynoza
-~~~~~~~
+Spynoza
+=======
+
 python package for fMRI data processing
 
 Prerequisites

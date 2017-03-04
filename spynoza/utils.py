@@ -67,6 +67,14 @@ EPI_file_selector = Function(function=epi_file_selector,
                              output_names=['out_file'])
 
 
+def pick_last(in_files):
+
+    if isinstance(in_files, list):
+        return in_files[-1]
+    else:
+        return in_files
+
+
 def get_scaninfo(in_file):
     """ Extracts info from nifti file.
 
@@ -75,7 +83,7 @@ def get_scaninfo(in_file):
 
     Parameters
     ----------
-    in_file : nifti-file (*.nii.gz or *.nii)
+    in_file : nifti-file (.nii.gz or .nii)
         Nifti file to extract info from.
 
     Returns
@@ -121,8 +129,8 @@ Dyns_min_1 = Function(function=dyns_min_1, input_names=['dyns'],
 def concat_iterables(iterables):
     """ Concatenates iterables (starting with subject).
 
-    Inputs
-    ------
+    Parameters
+    ----------
     iterables : list
         List of iterables to be concatenated into a path (e.g. after using
         nipype Merge-node).

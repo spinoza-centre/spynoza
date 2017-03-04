@@ -1,7 +1,15 @@
-def create_epi_to_T1_workflow(name = 'epi_to_T1', use_FS = True):
+import nipype.pipeline as pe
+from nipype.interfaces import fsl
+from nipype.interfaces import freesurfer
+from nipype.interfaces.utility import Function, IdentityInterface
+from ...utils import pick_last
+
+
+def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True):
     """Registers session's EPI space to subject's T1 space
     uses either FLIRT or, when a FS segmentation is present, BBRegister
     Requires fsl and freesurfer tools
+
     Parameters
     ----------
     name : string
@@ -26,20 +34,18 @@ def create_epi_to_T1_workflow(name = 'epi_to_T1', use_FS = True):
            outputspec.EPI_T1_matrix_file : FLIRT registration file that maps EPI space to T1
            outputspec.T1_EPI_matrix_file : FLIRT registration file that maps T1 space to EPI
     """
-    ### NODES
-    import os.path as op
-    import nipype.pipeline as pe
-    from nipype.interfaces import fsl
-    from nipype.interfaces import freesurfer
-    from nipype.interfaces.utility import Function, IdentityInterface
-    import nipype.interfaces.io as nio
 
     input_node = pe.Node(IdentityInterface(
-        fields=['EPI_space_file', 'output_directory', 'freesurfer_subject_ID', 'freesurfer_subject_dir', 'T1_file']), name='inputspec')
+        fields=['EPI_space_file', 'output_directory', 'freesurfer_subject_ID',
+                'freesurfer_subject_dir', 'T1_file']), name='inputspec')
 
-    output_node = pe.Node(IdentityInterface(fields=('EPI_T1_matrix_file', 'T1_EPI_matrix_file', 'EPI_T1_register_file')), name='outputspec')
+    # Idea: also output FAST outputs for later use?
+    output_node = pe.Node(IdentityInterface(fields=('EPI_T1_matrix_file',
+                                                    'T1_EPI_matrix_file',
+                                                    'EPI_T1_register_file')),
+                          name='outputspec')
 
-    epi_to_T1_workflow = pe.Workflow(name='epi_to_T1')
+    epi_to_T1_workflow = pe.Workflow(name=name)
 
     if use_FS: # do BBRegister
         bbregister_N = pe.Node(freesurfer.BBRegister(init = 'fsl', contrast_type = 't2', out_fsl_file = True ),
@@ -58,27 +64,24 @@ def create_epi_to_T1_workflow(name = 'epi_to_T1', use_FS = True):
         epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', output_node, 'T1_EPI_matrix_file')
 
 
-    else: # do flirt
-        flirt_N = pe.Node(fsl.FLIRT(cost_func='bbr', output_type = 'NIFTI_GZ', dof = 12, interp = 'sinc'),
-                          name = 'flirt_N')
+    else:  # do FAST + FLIRT
+
+        fast = pe.Node(fsl.FAST(no_pve=True, img_type=1, segments=True),
+                       name='fast')
+
+        flirt_N = pe.Node(fsl.FLIRT(cost_func='bbr', output_type='NIFTI_GZ',
+                                    dof = 12, interp ='sinc'),
+                          name ='flirt_N')
+
         epi_to_T1_workflow.connect(input_node, 'EPI_space_file', flirt_N, 'in_file')
+        epi_to_T1_workflow.connect(input_node, 'T1_file', fast, 'in_files')
+        epi_to_T1_workflow.connect(fast, ('tissue_class_files', pick_last), flirt_N, 'wm_seg')
         epi_to_T1_workflow.connect(input_node, 'T1_file', flirt_N, 'reference')
         epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', output_node, 'EPI_T1_matrix_file')
-
-        # we convert the flirt output matrix to register format so that we at least have a file to copy
-        # this makes the rest of the workflow work without conditionals and if-statements. 
-        #tkr_N = pe.Node(freesurfer.Tkregister2(), name = 'tkr_N')
-        #epi_to_T1_workflow.connect(input_node, 'EPI_space_file', tkr_N, 'moving_image')
-        #epi_to_T1_workflow.connect(input_node, 'freesurfer_subject_ID', tkr_N, 'subject_id')
-        #epi_to_T1_workflow.connect(input_node, 'freesurfer_subject_dir', tkr_N, 'subjects_dir')
-
-        #epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', tkr_N, 'fsl_in_matrix')
-        #epi_to_T1_workflow.connect(tkr_N, 'reg_file', output_node, 'EPI_T1_register_file')
 
         # the final invert node
         invert_EPI_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name = 'invert_EPI_N')
         epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', invert_EPI_N, 'in_file')
         epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', output_node, 'T1_EPI_matrix_file')
-
 
     return epi_to_T1_workflow

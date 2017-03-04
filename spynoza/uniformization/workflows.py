@@ -3,7 +3,7 @@ import nipype.interfaces.io as nio
 from nipype.interfaces.utility import Function, IdentityInterface
 import nipype.interfaces.fsl as fsl
 from .nodes import Uniformize
-from ..utils import split_4D_2_3D
+from ..utils import split_4D_to_3D
 
 
 def create_non_uniformity_correct_4D_file(auto_clip=False, clip_low=7,
@@ -39,7 +39,7 @@ def create_non_uniformity_correct_4D_file(auto_clip=False, clip_low=7,
                 'output_directory',
                 'sub_id']), name='inputspec')
     split = pe.Node(Function(input_names='in_file', output_names=['out_files'],
-                             function=split_4D_2_3D), name='split')
+                             function=split_4D_to_3D), name='split')
 
     uniformer = pe.MapNode(
         Uniformize(clip_high=clip_high, clip_low=clip_low, auto_clip=auto_clip,

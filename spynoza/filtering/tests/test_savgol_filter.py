@@ -3,7 +3,7 @@ import nipype.pipeline as pe
 import os.path as op
 
 func_data = op.join(op.dirname(op.dirname(op.dirname(__file__))),
-                    'data', 'test_data', 'func_brain.nii.gz')
+                    'data', 'test_data', 'func.nii.gz')
 
 def test_savgol_filter_node():
 
