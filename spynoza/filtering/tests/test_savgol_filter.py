@@ -1,10 +1,12 @@
-from spynoza.filtering.nodes import Savgol_filter
+import pytest
+from ... import test_data_path
+from ..nodes import Savgol_filter
 import nipype.pipeline as pe
 import os.path as op
 
-func_data = op.join(op.dirname(op.dirname(op.dirname(__file__))),
-                    'data', 'test_data', 'func.nii.gz')
+func_data = op.join(test_data_path, 'sub-0020_anticipation_cut.nii.gz')
 
+@pytest.mark.filtering
 def test_savgol_filter_node():
 
     sg_node = pe.Node(interface=Savgol_filter, name='savgol_filt')
