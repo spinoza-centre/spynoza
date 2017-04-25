@@ -14,7 +14,7 @@ def setup():
     print('Setup ...')
     yield None
     print('teardown ...')
-    shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'registration'))
+    shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'reg'))
     [os.remove(f) for f in glob(op.join(root_dir, 'crash*pklz'))]
 
 
@@ -22,7 +22,8 @@ def setup():
 def test_registration_workflow():
 
     analysis_info = {'do_fnirt': False,
-                     'use_FS': False}
+                     'use_FS': False,
+                     'do_FAST': False}
 
     wf = create_registration_workflow(analysis_info=analysis_info)
     wf.inputs.inputspec.EPI_space_file = op.join(test_data_path, 'sub-0020_gstroop_meanbold.nii.gz')
@@ -31,6 +32,19 @@ def test_registration_workflow():
     wf.inputs.inputspec.sub_id = 'sub-0020'
     wf.inputs.inputspec.standard_file = Info.standard_image('MNI152_T1_2mm_brain.nii.gz')
     wf.base_dir = '/tmp/spynoza/workingdir'
-    wf = set_parameters_in_nodes(wf, flirt_e2t={'interp': 'trilinear'},
+
+    # This is to speed up the analysis
+    wf = set_parameters_in_nodes(wf, flirt_e2t={'interp': 'trilinear', 'cost_func': 'corratio'},
                                  flirt_t2s={'interp': 'trilinear'})
     wf.run()
+
+    reg_files = ['example_func.nii.gz', 'example_func2highres.mat',
+                 'example_func2standard.mat', 'highres.nii.gz',
+                 'highres2example_func.mat', 'highres2standard.mat',
+                 'session_EPI_space.nii.gz', 'standard.nii.gz',
+                 'standard2example_func.mat', 'standard2highres.mat']
+
+    datasink = wf.inputs.inputspec.output_directory = '/tmp/spynoza'
+    for f in reg_files:
+        f_path = op.join(datasink, 'sub-0020', 'reg', f)
+        assert(op.isfile(f_path))

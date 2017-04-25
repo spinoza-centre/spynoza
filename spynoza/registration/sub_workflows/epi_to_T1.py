@@ -5,7 +5,8 @@ from nipype.interfaces.utility import Function, IdentityInterface
 from ...utils import pick_last
 
 
-def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True):
+def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
+                              do_FAST=True):
     """Registers session's EPI space to subject's T1 space
     uses either FLIRT or, when a FS segmentation is present, BBRegister
     Requires fsl and freesurfer tools
@@ -65,16 +66,22 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True):
 
     else:  # do FAST + FLIRT
 
-        fast = pe.Node(fsl.FAST(no_pve=True, img_type=1, segments=True),
-                       name='fast')
-
         flirt_e2t = pe.Node(fsl.FLIRT(cost_func='bbr', output_type='NIFTI_GZ',
                                     dof=12, interp='sinc'),
                           name ='flirt_e2t')
 
         epi_to_T1_workflow.connect(input_node, 'EPI_space_file', flirt_e2t, 'in_file')
-        epi_to_T1_workflow.connect(input_node, 'T1_file', fast, 'in_files')
-        epi_to_T1_workflow.connect(fast, ('tissue_class_files', pick_last), flirt_e2t, 'wm_seg')
+
+        if do_FAST:
+            fast = pe.Node(fsl.FAST(no_pve=True, img_type=1, segments=True),
+                           name='fast')
+
+            epi_to_T1_workflow.connect(input_node, 'T1_file', fast, 'in_files')
+            epi_to_T1_workflow.connect(fast, ('tissue_class_files', pick_last), flirt_e2t, 'wm_seg')
+        elif not do_FAST and flirt_e2t.inputs.cost_func == 'bbr':
+            print('You indicated not wanting to do FAST, but still wanting to do a'
+                  ' BBR epi-to-T1 registration. That is probably not going to work ...')
+
         epi_to_T1_workflow.connect(input_node, 'T1_file', flirt_e2t, 'reference')
         epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', output_node, 'EPI_T1_matrix_file')
 
