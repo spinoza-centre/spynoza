@@ -1,3 +1,10 @@
+import nipype.pipeline as pe
+from nipype.interfaces import fsl
+from nipype.interfaces import freesurfer
+from nipype.interfaces.utility import Function, IdentityInterface, Merge
+import nipype.interfaces.io as nio
+
+
 def create_T1_to_standard_workflow(name='T1_to_standard', use_FS = True,
                                    do_fnirt = False, **kwargs):
     """Registers subject's T1 to standard space using FLIRT and FNIRT.
@@ -31,12 +38,6 @@ def create_T1_to_standard_workflow(name='T1_to_standard', use_FS = True,
            outputspec.out_intensitymap_file : FNIRT intensity map
 
     """
-
-    import nipype.pipeline as pe
-    from nipype.interfaces import fsl
-    from nipype.interfaces import freesurfer
-    from nipype.interfaces.utility import Function, IdentityInterface, Merge
-    import nipype.interfaces.io as nio
 
     ### NODES
     input_node = pe.Node(IdentityInterface(
@@ -75,8 +76,8 @@ def create_T1_to_standard_workflow(name='T1_to_standard', use_FS = True,
     ########################################################################################
     bet_N = pe.Node(interface=fsl.BET(vertical_gradient = -0.1, functional=False, mask=True), name='bet_N') 
 
-    flirt_N = pe.Node(fsl.FLIRT(cost_func='normmi', output_type = 'NIFTI_GZ', dof = 12, interp = 'sinc'), 
-                        name='flirt_N')
+    flirt_t2s = pe.Node(fsl.FLIRT(cost_func='normmi', output_type = 'NIFTI_GZ', dof = 12, interp = 'sinc'),
+                        name='flirt_t2s')
     if do_fnirt: 
         fnirt_N = pe.Node(fsl.FNIRT(in_fwhm=[8, 4, 2, 2],
                               subsampling_scheme=[4, 2, 1, 1],
@@ -99,14 +100,14 @@ def create_T1_to_standard_workflow(name='T1_to_standard', use_FS = True,
 
         # and these are input into the flirt and fnirt operators, as below.
         T1_to_standard_workflow.connect(mriConvert_N, 'out_file', bet_N, 'in_file')
-        T1_to_standard_workflow.connect(bet_N, 'out_file', flirt_N, 'in_file')
+        T1_to_standard_workflow.connect(bet_N, 'out_file', flirt_t2s, 'in_file')
         T1_to_standard_workflow.connect(mriConvert_N, 'out_file', output_node, 'T1_file')
         if do_fnirt:
             T1_to_standard_workflow.connect(bet_N, 'out_file', fnirt_N, 'in_file')
 
     else:
         T1_to_standard_workflow.connect(input_node, 'T1_file', bet_N, 'in_file')
-        T1_to_standard_workflow.connect(bet_N, 'out_file', flirt_N, 'in_file')
+        T1_to_standard_workflow.connect(bet_N, 'out_file', flirt_t2s, 'in_file')
         T1_to_standard_workflow.connect(input_node, 'T1_file', output_node, 'T1_file')
         if do_fnirt:
             T1_to_standard_workflow.connect(bet_N, 'out_file', fnirt_N, 'in_file')
@@ -115,17 +116,17 @@ def create_T1_to_standard_workflow(name='T1_to_standard', use_FS = True,
     ########################################################################################
     # continue with FLIRT step
     ########################################################################################
-    T1_to_standard_workflow.connect(input_node, 'standard_file', flirt_N, 'reference')
+    T1_to_standard_workflow.connect(input_node, 'standard_file', flirt_t2s, 'reference')
 
-    T1_to_standard_workflow.connect(flirt_N, 'out_matrix_file', output_node, 'T1_standard_matrix_file')
-    T1_to_standard_workflow.connect(flirt_N, 'out_file', output_node, 'T1_standard_file')
+    T1_to_standard_workflow.connect(flirt_t2s, 'out_matrix_file', output_node, 'T1_standard_matrix_file')
+    T1_to_standard_workflow.connect(flirt_t2s, 'out_file', output_node, 'T1_standard_file')
 
 
     ########################################################################################
     # invert step
     ########################################################################################
     invert_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name = 'invert_N')
-    T1_to_standard_workflow.connect(flirt_N, 'out_matrix_file', invert_N, 'in_file')
+    T1_to_standard_workflow.connect(flirt_t2s, 'out_matrix_file', invert_N, 'in_file')
     T1_to_standard_workflow.connect(invert_N, 'out_file', output_node, 'standard_T1_matrix_file')
 
     if do_fnirt:
@@ -133,7 +134,7 @@ def create_T1_to_standard_workflow(name='T1_to_standard', use_FS = True,
         # FNIRT step
         ########################################################################################
 
-        T1_to_standard_workflow.connect(flirt_N, 'out_matrix_file', fnirt_N, 'affine_file')
+        T1_to_standard_workflow.connect(flirt_t2s, 'out_matrix_file', fnirt_N, 'affine_file')
         T1_to_standard_workflow.connect(input_node, 'standard_file', fnirt_N, 'ref_file')
 
         ########################################################################################

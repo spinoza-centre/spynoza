@@ -63,25 +63,24 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True):
         epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', invert_EPI_N, 'in_file')
         epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', output_node, 'T1_EPI_matrix_file')
 
-
     else:  # do FAST + FLIRT
 
         fast = pe.Node(fsl.FAST(no_pve=True, img_type=1, segments=True),
                        name='fast')
 
-        flirt_N = pe.Node(fsl.FLIRT(cost_func='bbr', output_type='NIFTI_GZ',
-                                    dof = 12, interp ='sinc'),
-                          name ='flirt_N')
+        flirt_e2t = pe.Node(fsl.FLIRT(cost_func='bbr', output_type='NIFTI_GZ',
+                                    dof=12, interp='sinc'),
+                          name ='flirt_e2t')
 
-        epi_to_T1_workflow.connect(input_node, 'EPI_space_file', flirt_N, 'in_file')
+        epi_to_T1_workflow.connect(input_node, 'EPI_space_file', flirt_e2t, 'in_file')
         epi_to_T1_workflow.connect(input_node, 'T1_file', fast, 'in_files')
-        epi_to_T1_workflow.connect(fast, ('tissue_class_files', pick_last), flirt_N, 'wm_seg')
-        epi_to_T1_workflow.connect(input_node, 'T1_file', flirt_N, 'reference')
-        epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', output_node, 'EPI_T1_matrix_file')
+        epi_to_T1_workflow.connect(fast, ('tissue_class_files', pick_last), flirt_e2t, 'wm_seg')
+        epi_to_T1_workflow.connect(input_node, 'T1_file', flirt_e2t, 'reference')
+        epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', output_node, 'EPI_T1_matrix_file')
 
         # the final invert node
-        invert_EPI_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name = 'invert_EPI_N')
-        epi_to_T1_workflow.connect(flirt_N, 'out_matrix_file', invert_EPI_N, 'in_file')
+        invert_EPI_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name='invert_EPI_N')
+        epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', invert_EPI_N, 'in_file')
         epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', output_node, 'T1_EPI_matrix_file')
 
     return epi_to_T1_workflow

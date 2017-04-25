@@ -6,6 +6,7 @@ from glob import glob
 from nipype.interfaces.fsl import Info
 from ..workflows import create_registration_workflow
 from ... import test_data_path, root_dir
+from ...utils import set_parameters_in_nodes
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -30,4 +31,6 @@ def test_registration_workflow():
     wf.inputs.inputspec.sub_id = 'sub-0020'
     wf.inputs.inputspec.standard_file = Info.standard_image('MNI152_T1_2mm_brain.nii.gz')
     wf.base_dir = '/tmp/spynoza/workingdir'
+    wf = set_parameters_in_nodes(wf, flirt_e2t={'interp': 'trilinear'},
+                                 flirt_t2s={'interp': 'trilinear'})
     wf.run()
