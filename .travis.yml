@@ -6,15 +6,14 @@ python:
 branches:
   only:
     #- master
-    #- develop
-    - brainhack
+    - develop
 
 before_install:
-  #- sudo apt-get update
-  #- bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
-  #- sudo apt-get -y update && sudo apt-get install -y -qq fsl-core
-  #- source /etc/fsl/fsl.sh
-  #- export FSLOUTPUTTYPE=NIFTI_GZ
+  - sudo apt-get update
+  - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
+  - sudo apt-get -y update && sudo apt-get install -y -qq fsl-core
+  - source /etc/fsl/fsl.sh
+  - export FSLOUTPUTTYPE=NIFTI_GZ
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
   - if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh; else wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh; fi
@@ -27,7 +26,7 @@ before_install:
   - conda info -a
   - conda config --add channels conda-forge
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pip scipy numpy pandas scikit-learn
-  - pip install nibabel nipype pytest pytest-cov coveralls pytest-pep8 future jsonpickle configparser
+  - pip install nibabel nipype pytest pytest-cov coveralls pytest-pep8 future configparser
 
 install:
   - python setup.py install
