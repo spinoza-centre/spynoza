@@ -1,30 +1,65 @@
 from nipype.interfaces.utility import Function
+import numpy as np
 
 
 def set_parameters_in_nodes(workflow, **kwargs):
+    """ Sets parameters in nodes of a workflow.
+    
+    This function sets parameters of nodes in a workflow. It takes a variable amount of
+    keyword-arguments, which should take the form of `'node_name'={'parameter': value_to_set}.
+    A cool feature of this function is that it checks whether the node (node_name) is contained
+    in a sub-workflow (or sub-sub-workflow, etc.) using a recursive call to itself.
+    
+    Parameters
+    ----------
+    workflow : a Nipype workflow object
+        The workflow in which the nodes need to be altered.
+    **kwargs : key-word arguments
+        A variable amount of keyword-arguments (dicts) which take the form of
+        'node_name': {'parameter': value_to_set}.
+    """
+    for node, options in kwargs.items():
 
-    for node, options in kwargs:
+        # Which nodes (or sub-workflows) are contained in the workflow?
+        available_nodes = workflow.list_node_names()
 
-        available_nodes = workflow.__dict__.keys()
         if node in available_nodes:
-            node_inst = getattr(workflow, node)
+            # If it matches exactly (i.e. not a sub-workflow), get it
+            node_inst = workflow.get_node(node)
+
+        elif node in [n.split('.')[-1] for n in available_nodes]:
+            # Probably a sub-workflow --> get ready to input this sub-wf to the function itself
+            sub_wf_name = [n.split('.')[0] for n in available_nodes if node in n][0]
+            sub_wf = workflow.get_node(sub_wf_name)
+            sub_kwargs = {node: options}
+
+            # Recursive call to itself
+            sub_wf = set_parameters_in_nodes(sub_wf, **sub_kwargs)
+            setattr(workflow, sub_wf_name, sub_wf)  # update workflow with updated sub_wf
+            continue  # skip the rest
         else:
             msg = ("You want to set parameter(s) in node '%s' in workflow '%s' "
                    "but this node doesn't seem to exist. Known nodes: %r" %
-                   (node, "T1_to_standard", available_nodes))
+                   (node, workflow.name, available_nodes))
             raise ValueError(msg)
 
-        for arg, val in options.items():
-            available_args = node_inst.__dict__.keys()
-            if arg in available_args:
-                setattr(node_inst, arg, val)
+        # Loop over options {parameter: value pairs} of node-instance
+        for param, val in options.items():
+
+            available_params = list(node_inst.inputs.__dict__.keys())
+
+            if param in available_params:
+                # Set input if param exists
+                node_inst.set_input(param, val)
             else:
                 msg = ("You want to set the parameter '%s' in node '%s' but "
                        "this parameter doesn't exist in this node. Known "
-                       "parameters: %r" % (arg, node, available_args))
+                       "parameters: %r" % (param, node, available_params))
                 raise ValueError(msg)
 
+        # update workflow with updated node-instance
         setattr(workflow, node, node_inst)
+
     return workflow
 
 
