@@ -100,14 +100,14 @@ def create_motion_correction_workflow(name='moco', method='AFNI'):
             cost='normcorr',
             interpolation='sinc',
             mean_vol=True
-        ), name='realign_space')
+        ), name='motion_correct_EPI_space')
 
         motion_correct_all = pe.MapNode(interface=fsl.MCFLIRT(save_mats=True,
                                                               save_plots=True,
                                                               cost='normcorr',
                                                               interpolation='sinc',
                                                               stats_imgs=True),
-                                        name='realign_all',
+                                        name='motion_correct_all',
                                         iterfield=['in_file'])
 
         plot_motion = pe.MapNode(
@@ -124,6 +124,7 @@ def create_motion_correction_workflow(name='moco', method='AFNI'):
 
         motion_correction_workflow.connect(motion_correct_EPI_space, 'out_file',
                                            mean_bold, 'in_file')
+
         motion_correction_workflow.connect(mean_bold, 'out_file',
                                            motion_correct_all, 'ref_file')
 
@@ -134,6 +135,7 @@ def create_motion_correction_workflow(name='moco', method='AFNI'):
         # output node, for later saving
         motion_correction_workflow.connect(mean_bold, 'out_file', output_node,
                                            'EPI_space_file')
+
         motion_correction_workflow.connect(motion_correct_all, 'par_file',
                                            output_node,
                                            'motion_correction_parameters')
@@ -147,27 +149,29 @@ def create_motion_correction_workflow(name='moco', method='AFNI'):
         # motion_correction_workflow.connect(extend_motion_pars, 'ext_out_file', output_node, 'extended_motion_correction_parameters')
         # motion_correction_workflow.connect(extend_motion_pars, 'new_out_file', output_node, 'new_motion_correction_parameters')
 
-
         ########################################################################################
         # Plot the estimated motion parameters
         ########################################################################################
 
         plot_motion.iterables = ('plot_type', ['rotations', 'translations'])
+
         motion_correction_workflow.connect(motion_correct_all, 'par_file',
                                            plot_motion, 'in_file')
+
         motion_correction_workflow.connect(plot_motion, 'out_file', output_node,
                                            'motion_correction_plots')
 
         # and the output
-
         motion_correction_workflow.connect(mean_bold, 'out_file', rename,
                                            'in_file')
         motion_correction_workflow.connect(rename, 'out_file', datasink, 'reg')
 
         motion_correction_workflow.connect(motion_correct_all, 'out_file',
                                            datasink, 'mcf')
+
         motion_correction_workflow.connect(motion_correct_all, 'par_file',
                                            datasink, 'mcf.motion_pars')
+
         motion_correction_workflow.connect(plot_motion, 'out_file', datasink,
                                            'mcf.motion_plots')
         # motion_correction_workflow.connect(extend_motion_pars, 'ext_out_file', datasink, 'mcf.ext_motion_pars')
@@ -203,7 +207,6 @@ def create_motion_correction_workflow(name='moco', method='AFNI'):
 
         motion_correction_workflow.connect(motion_correct_EPI_space, 'out_file',
                                            mean_bold, 'in_file')
-
 
         # motion correction across runs
         motion_correction_workflow.connect(input_node, 'in_files',
