@@ -2,6 +2,25 @@ from nipype.interfaces.utility import Function
 import numpy as np
 
 
+def set_postfix(in_file, postfix):
+    """ Sets a postfix identifier for a specific filename. """
+    import os.path as op
+    return op.basename(in_file).replace('.nii.gz', '_%s' % postfix)
+
+Set_postfix = Function(function=set_postfix,
+                        input_names=['in_file', 'postfix'],
+                        output_names=['out_file'])
+
+
+def remove_extension(in_file, extension='.nii.gz'):
+    return in_file.replace(extension, '')
+
+
+Remove_extension = Function(function=remove_extension,
+                            input_names=['in_file', 'extension'],
+                            output_names=['out_file'])
+
+
 def set_parameters_in_nodes(workflow, **kwargs):
     """ Sets parameters in nodes of a workflow.
     
