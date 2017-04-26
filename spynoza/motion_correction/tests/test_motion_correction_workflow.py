@@ -18,7 +18,7 @@ def setup():
 
 #@pytest.mark.parametrize("method", ['FSL', 'AFNI'])
 @pytest.mark.moco
-def test_create_motion_correction_workflow(method='FSL'):
+def test_create_motion_correction_workflow(method='AFNI'):
     moco_wf = create_motion_correction_workflow(method=method)
     moco_wf.base_dir = '/tmp/spynoza/workingdir'
     moco_wf.inputs.inputspec.in_files = [op.join(test_data_path, 'sub-0020_gstroop_cut.nii.gz')]#,
