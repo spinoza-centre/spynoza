@@ -12,13 +12,12 @@ def setup():
     print('Setup ...')
     yield None
     print('teardown ...')
-    shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'moco'))
-    [os.remove(f) for f in glob(op.join(root_dir, 'crash*pklz'))]
+    #shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'moco'))
 
 
 #@pytest.mark.parametrize("method", ['FSL', 'AFNI'])
 @pytest.mark.moco
-def test_create_motion_correction_workflow(method='AFNI'):
+def test_create_motion_correction_workflow(method='FSL'):
     moco_wf = create_motion_correction_workflow(method=method)
     moco_wf.base_dir = '/tmp/spynoza/workingdir'
     moco_wf.inputs.inputspec.in_files = [op.join(test_data_path, 'sub-0020_gstroop_cut.nii.gz')]#,
@@ -36,8 +35,8 @@ def test_create_motion_correction_workflow(method='AFNI'):
         # ToDo: fix ugly extensions
         assert(op.isfile(op.join(datasink, op.basename(f).replace('.nii.gz', '_mcf.nii.gz'))))
         assert(op.isfile(op.join(datasink, 'motion_pars',
-                                 op.basename(f).replace('.nii.gz', '_mcf.nii.gz.par'))))
+                                 op.basename(f).replace('.nii.gz', '_mcf.par'))))
         assert (op.isfile(op.join(datasink, 'motion_plots',
-                                  op.basename(f).replace('.nii.gz', '_mcf.nii.gz_rot.png'))))
+                                  op.basename(f).replace('.nii.gz', '_mcf_rot.png'))))
         assert (op.isfile(op.join(datasink, 'motion_plots',
-                                  op.basename(f).replace('.nii.gz', '_mcf.nii.gz_rot.png'))))
+                                  op.basename(f).replace('.nii.gz', '_mcf_rot.png'))))
