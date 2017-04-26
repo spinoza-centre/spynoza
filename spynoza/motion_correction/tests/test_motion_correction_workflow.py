@@ -1,5 +1,6 @@
 import pytest
 import os.path as op
+import shutil
 from ..workflows import create_motion_correction_workflow
 from ... import test_data_path, root_dir
 
@@ -9,12 +10,12 @@ def setup():
     print('Setup ...')
     yield None
     print('teardown ...')
-    #shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'moco'))
+    shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'moco'))
 
 
-#@pytest.mark.parametrize("method", ['FSL', 'AFNI'])
+@pytest.mark.parametrize("method", ['FSL', 'AFNI'])
 @pytest.mark.moco
-def test_create_motion_correction_workflow(method='FSL'):
+def test_create_motion_correction_workflow(method):
     moco_wf = create_motion_correction_workflow(method=method)
     moco_wf.base_dir = '/tmp/spynoza/workingdir'
     moco_wf.inputs.inputspec.in_files = [op.join(test_data_path, 'sub-0020_gstroop_cut.nii.gz')]#,
