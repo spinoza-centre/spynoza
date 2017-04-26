@@ -1,7 +1,14 @@
 Spynoza
 =======
-
 python package for fMRI data processing
+
+Status
+------
+.. image:: https://travis-ci.org/spinoza-centre/spynoza.svg?branch=develop
+    :target: https://travis-ci.org/spinoza-centre/spynoza
+
+.. image:: https://coveralls.io/repos/github/spinoza-centre/spynoza/badge.svg?branch=develop
+    :target: https://coveralls.io/github/spinoza-centre/spynoza?branch=develop
 
 Prerequisites
 -------------
