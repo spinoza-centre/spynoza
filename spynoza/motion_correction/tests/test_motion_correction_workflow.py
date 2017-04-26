@@ -1,8 +1,5 @@
 import pytest
-import shutil
-import os
 import os.path as op
-from glob import glob
 from ..workflows import create_motion_correction_workflow
 from ... import test_data_path, root_dir
 

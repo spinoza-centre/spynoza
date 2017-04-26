@@ -41,6 +41,7 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
     output_node = pe.Node(IdentityInterface(fields=([
         'motion_corrected_files',
         'EPI_space_file',
+        'mask_EPI_space_file',
         'motion_correction_plots',
         'motion_correction_parameters',
         'extended_motion_correction_parameters',
