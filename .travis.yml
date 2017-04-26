@@ -35,4 +35,5 @@ script:
   - py.test -v --cov spynoza --cov-report term-missing spynoza
 
 after_success:
+    # test coveralls
     - coveralls
