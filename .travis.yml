@@ -15,6 +15,7 @@ before_install:
   - source /etc/fsl/fsl.sh
   - export FSLOUTPUTTYPE=NIFTI_GZ
   - sudo bash install_freesurfer.sh
+  - export FREESURFER_HOME=/usr/local/freesurfer
   - source $FREESURFER_HOME/SetUpFreeSurfer.sh
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
