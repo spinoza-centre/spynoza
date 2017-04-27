@@ -15,4 +15,5 @@ tar -C /usr/local -xzf freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.0.tar.gz 
     --exclude='freesurfer/average/mult-comp-cor' \
     --exclude='freesurfer/lib/cuda' \
     --exclude='freesurfer/lib/qt'
+
 echo 'Done installing freesurfer.'
