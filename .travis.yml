@@ -8,11 +8,17 @@ branches:
     #- master
     - develop
 
+cache:
+  directories:
+    - /usr/local/freesurfer
+    - $HOME/.cache/pip
+
 before_install:
   - sudo apt-get update
   - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
   - sudo apt-get -y update && sudo apt-get install -y -qq fsl-core afni tcsh bc
   - source /etc/fsl/fsl.sh
+  - export PATH="/usr/lib/afni/bin/:$PATH"
   - export FSLOUTPUTTYPE=NIFTI_GZ
   - sudo bash install_freesurfer.sh
   - export FREESURFER_HOME=/usr/local/freesurfer
