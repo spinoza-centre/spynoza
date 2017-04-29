@@ -30,7 +30,6 @@ def test_create_motion_correction_workflow(method):
                        moco_wf.inputs.inputspec.sub_id, 'mcf')
     for f in moco_wf.inputs.inputspec.in_files:
 
-        # ToDo: fix ugly extensions
         assert(op.isfile(op.join(datasink, op.basename(f).replace('.nii.gz', '_mcf.nii.gz'))))
         assert(op.isfile(op.join(datasink, 'motion_pars',
                                  op.basename(f).replace('.nii.gz', '_mcf.par'))))

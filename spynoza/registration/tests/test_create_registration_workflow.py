@@ -1,11 +1,9 @@
 import pytest
 import shutil
-import os
 import os.path as op
-from glob import glob
 from nipype.interfaces.fsl import Info
 from ..workflows import create_registration_workflow
-from ... import test_data_path, root_dir
+from ... import test_data_path
 from ...utils import set_parameters_in_nodes
 
 
@@ -17,7 +15,7 @@ def setup():
     shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'reg'))
 
 
-@pytest.mark.parametrize('use_FS', [False, True])
+@pytest.mark.parametrize('use_FS', [False])#, True])
 @pytest.mark.registration
 def test_registration_workflow(use_FS):
 
