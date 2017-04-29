@@ -12,16 +12,18 @@ def setup():
     print('Setup ...')
     yield None
     print('teardown ...')
-    shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'reg'))
+    #shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'reg'))
 
 
-@pytest.mark.parametrize('use_FS', [False])#, True])
+@pytest.mark.parametrize('use_FS', [False, True])
+@pytest.mark.parametrize('use_AFNI_ss', [True, False])
 @pytest.mark.registration
-def test_registration_workflow(use_FS):
+def test_registration_workflow(use_FS, use_AFNI_ss):
 
     analysis_info = {'do_fnirt': False,
                      'use_FS': use_FS,
-                     'do_FAST': False}
+                     'do_FAST': False,
+                     'use_AFNI_ss': use_AFNI_ss}
 
     wf = create_registration_workflow(analysis_info=analysis_info)
     wf.inputs.inputspec.EPI_space_file = op.join(test_data_path, 'sub-0020_gstroop_meanbold.nii.gz')

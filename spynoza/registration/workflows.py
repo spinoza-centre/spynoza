@@ -61,7 +61,8 @@ def create_registration_workflow(analysis_info, name='reg'):
                                                     use_FS=analysis_info[
                                                         'use_FS'],
                                                     do_fnirt=analysis_info[
-                                                        'do_fnirt'])
+                                                        'do_fnirt'],
+                                                    use_AFNI_ss=analysis_info['use_AFNI_ss'])
     concat_2_feat = create_concat_2_feat_workflow(name='concat_2_feat')
 
     output_node = pe.Node(IdentityInterface(fields=('EPI_T1_matrix_file',

@@ -2,11 +2,13 @@ import nipype.pipeline as pe
 from nipype.interfaces import fsl
 from nipype.interfaces import freesurfer
 from nipype.interfaces.utility import Function, IdentityInterface, Merge
+from nipype.interfaces.afni import SkullStrip
 import nipype.interfaces.io as nio
 
+# to do: afni skullstrip
 
 def create_T1_to_standard_workflow(name='T1_to_standard', use_FS = True,
-                                   do_fnirt = False, **kwargs):
+                                   do_fnirt = False, use_AFNI_ss=False):
     """Registers subject's T1 to standard space using FLIRT and FNIRT.
     Requires fsl tools
     Parameters
@@ -74,7 +76,10 @@ def create_T1_to_standard_workflow(name='T1_to_standard', use_FS = True,
     ########################################################################################
     # create FLIRT/FNIRT nodes
     ########################################################################################
-    bet_N = pe.Node(interface=fsl.BET(vertical_gradient = -0.1, functional=False, mask=True), name='bet_N') 
+    if use_AFNI_ss:
+        bet_N = pe.Node(interface=SkullStrip(args='-orig_vol', outputtype='NIFTI_GZ'), name='bet_N_afni')
+    else:
+        bet_N = pe.Node(interface=fsl.BET(vertical_gradient = -0.1, functional=False, mask=True), name='bet_N_fsl')
 
     flirt_t2s = pe.Node(fsl.FLIRT(cost_func='normmi', output_type = 'NIFTI_GZ', dof = 12, interp = 'sinc'),
                         name='flirt_t2s')
@@ -109,9 +114,9 @@ def create_T1_to_standard_workflow(name='T1_to_standard', use_FS = True,
         T1_to_standard_workflow.connect(input_node, 'T1_file', bet_N, 'in_file')
         T1_to_standard_workflow.connect(bet_N, 'out_file', flirt_t2s, 'in_file')
         T1_to_standard_workflow.connect(input_node, 'T1_file', output_node, 'T1_file')
+
         if do_fnirt:
             T1_to_standard_workflow.connect(bet_N, 'out_file', fnirt_N, 'in_file')
-
 
     ########################################################################################
     # continue with FLIRT step
@@ -120,7 +125,6 @@ def create_T1_to_standard_workflow(name='T1_to_standard', use_FS = True,
 
     T1_to_standard_workflow.connect(flirt_t2s, 'out_matrix_file', output_node, 'T1_standard_matrix_file')
     T1_to_standard_workflow.connect(flirt_t2s, 'out_file', output_node, 'T1_standard_file')
-
 
     ########################################################################################
     # invert step
