@@ -4,6 +4,7 @@ from ..workflows import create_compcor_workflow
 from .... import test_data_path
 
 @pytest.mark.compcor
+@pytest.mark.confound
 def test_create_compcor_workflow():
     compcor_wf = create_compcor_workflow()
     compcor_wf.base_dir = '/tmp/spynoza/workingdir'
