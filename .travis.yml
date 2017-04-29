@@ -10,7 +10,7 @@ branches:
 
 cache:
   directories:
-      - /usr/local/freesurfer
+    - /usr/local/freesurfer
     - $HOME/.cache/pip
 
 before_install:
