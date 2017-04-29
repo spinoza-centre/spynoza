@@ -10,7 +10,7 @@ branches:
 
 cache:
   directories:
-    - /usr/local/freesurfer
+      - /usr/local/freesurfer
     - $HOME/.cache/pip
 
 before_install:
@@ -42,7 +42,7 @@ install:
   - python setup.py install
 
 script:
-  - py.test -v --cov spynoza --cov-report term-missing spynoza
+  - bash run_tests.sh
 
 after_success:
     # test coveralls
