@@ -275,7 +275,7 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
                                            datasink, 'mcf.parameter_info')
         motion_correction_workflow.connect(motion_correct_all,
                                            'oned_matrix_save', datasink,
-                                           'mcf.parameter_matrix')
+                                           'mcf.motion_pars')
 
     return motion_correction_workflow
 
