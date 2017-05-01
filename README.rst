@@ -1,6 +1,9 @@
 Spynoza
 =======
-python package for fMRI data processing
+Spynoza is a package for fMRI data (pre)processing developed by researchers affiliated with the `Spinoza Centre for
+Neuroimaging <https://www.spinozacentre.nl/>`_. Specifically, the `Knapen lab <https://tknapen.github.io/>`
+(Free University Amsterdam) and the Scholte lab (University of Amsterdam) lead the development of the package. Some of
+the workflows are based on existing functionality from the `fmriprep <https://github.com/poldracklab/fmriprep>` package.
 
 Status
 ------
@@ -12,12 +15,20 @@ Status
 
 Prerequisites
 -------------
-Spynoza uses Nipype to organize processing workflows.
+Spynoza uses Nipype to organize processing workflows, which in turns relies heavily on FSL and, for some
+registration issues, Freesurfer.
 
-Setup and git workflow
-----------------------
-CD to a folder where you want the spynoza git to be setup.
-To clone the repo into that dir run::
+Installation
+------------
+Spynoza is still (very much) in development, but if you want to try it out, you can install the develop branch by::
+
+    $ pip install git+https://github.com/spinoza-centre/spynoza.git@develop
+
+Contributing: setup and git workflow
+------------------------------------
+For contributors (within the Spinoza centre organization on Github), follow these guidelines to contribute to the repo.
+First, `cd` to a folder where you want the spynoza git to be setup.
+To clone the repo into that dir and run::
 
     $ git clone git@github.com:spinoza-center/spynoza.git`
 
