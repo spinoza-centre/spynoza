@@ -37,8 +37,8 @@ before_install:
   - conda info -a
   - conda config --add channels conda-forge
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pip scipy numpy pandas scikit-learn
-  - git clone https://github.com/nipy/nipype.git
-  - cd nipype && python setup.py install && cd ..
+  - git clone https://github.com/nipy/nipype.git  # latest version!
+  - cd nipype && pip install -e . && cd ..
   - pip install nibabel pytest pytest-cov coveralls pytest-pep8 future configparser
 
 install:
