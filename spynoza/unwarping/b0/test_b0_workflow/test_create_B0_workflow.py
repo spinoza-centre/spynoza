@@ -1,7 +1,5 @@
 import pytest
 import os.path as op
-import shutil
-import socket
 from ..workflows import create_B0_workflow
 from .... import test_data_path
 
@@ -14,7 +12,6 @@ def test_create_B0_workflow():
     b0_wf.base_dir = '/tmp/spynoza/workingdir'
     b0_wf.inputs.inputspec.in_files = [op.join(test_data_path, 'func', 'sub-0020_task-harriri_bold_cut_mcf.nii.gz'),
                                        op.join(test_data_path, 'func', 'sub-0020_task-wm_bold_cut_mcf.nii.gz')]
-    b0_wf.inputs.inputspec.output_directory = '/tmp/spynoza'
     b0_wf.inputs.inputspec.fieldmap_mag = op.join(test_data_path, 'fmap', 'sub-0020_B0_magnitude.nii.gz')
     b0_wf.inputs.inputspec.fieldmap_pha = op.join(test_data_path, 'fmap', 'sub-0020_B0_phasediff.nii.gz')
     b0_wf.inputs.inputspec.wfs = 12.223
