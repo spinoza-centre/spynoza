@@ -7,7 +7,7 @@ from .... import test_data_path
 def test_create_motion_confound_workflow():
     motion_confound_wf = create_motion_confound_workflow(order=2)
     motion_confound_wf.base_dir = '/tmp/spynoza/workingdir'
-    motion_confound_wf.inputs.inputspec.par_file = op.join(test_data_path, 'sub-0020_gstroop_cut_mcf.par')
+    motion_confound_wf.inputs.inputspec.par_file = op.join(test_data_path, 'sub-0020_task-gstroop_cut_mcf.par')
     motion_confound_wf.inputs.inputspec.output_directory = '/tmp/spynoza'
     motion_confound_wf.inputs.inputspec.sub_id = 'sub-0020'
     motion_confound_wf.run()

@@ -1,3 +1,5 @@
+import os
+import socket
 import pytest
 import shutil
 import os.path as op
@@ -5,6 +7,8 @@ from nipype.interfaces.fsl import Info
 from ..workflows import create_registration_workflow
 from ... import test_data_path
 from ...utils import set_parameters_in_nodes
+
+test_data_path = op.join(test_data_path, 'sub-0020')
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -14,9 +18,16 @@ def setup():
     print('teardown ...')
     #shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'reg'))
 
+# Cannot get freesurfer installed on travis (wget stalls ...)
+is_travis = 'TRAVIS' in os.environ
+FS = [False] if is_travis else [True, False]
 
-@pytest.mark.parametrize('use_FS', [False, True])
-@pytest.mark.parametrize('use_AFNI_ss', [True, False])
+# Only test AFNI skullstrip if not on UvA desktop (weird GLX error)
+hostname = socket.gethostname()
+AFNI = [True, False] if hostname != 'uva' else [False]
+
+@pytest.mark.parametrize('use_FS', FS)
+@pytest.mark.parametrize('use_AFNI_ss', [False])
 @pytest.mark.registration
 def test_registration_workflow(use_FS, use_AFNI_ss):
 
@@ -26,13 +37,13 @@ def test_registration_workflow(use_FS, use_AFNI_ss):
                      'use_AFNI_ss': use_AFNI_ss}
 
     wf = create_registration_workflow(analysis_info=analysis_info)
-    wf.inputs.inputspec.EPI_space_file = op.join(test_data_path, 'sub-0020_gstroop_meanbold.nii.gz')
+    wf.inputs.inputspec.EPI_space_file = op.join(test_data_path, 'func', 'sub-0020_task-harriri_meanbold.nii.gz')
     wf.inputs.inputspec.output_directory = '/tmp/spynoza'
-    wf.inputs.inputspec.T1_file = op.join(test_data_path, 'sub-0020_T1w.nii.gz')
+    wf.inputs.inputspec.T1_file = op.join(test_data_path, 'anat', 'sub-0020_T1w.nii.gz')
     wf.inputs.inputspec.sub_id = 'sub-0020'
     wf.inputs.inputspec.standard_file = Info.standard_image('MNI152_T1_2mm_brain.nii.gz')
     wf.inputs.inputspec.freesurfer_subject_ID = 'sub-0020'
-    wf.inputs.inputspec.freesurfer_subject_dir = op.join(test_data_path, 'fs')
+    wf.inputs.inputspec.freesurfer_subject_dir = op.join(op.dirname(test_data_path), 'fs')
     wf.base_dir = '/tmp/spynoza/workingdir'
 
     # This is to speed up the analysis

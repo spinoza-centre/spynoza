@@ -1,1 +1,0 @@
-mris_sphere -rusage /media/lukas/data/Software/Spynoza/spynoza/spynoza/data/test_data/fs/sub-0020/touch/rusage.mris_sphere.lh.dat -seed 1234 ../surf/lh.inflated ../surf/lh.sphere

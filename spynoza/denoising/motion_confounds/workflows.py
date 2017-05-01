@@ -4,7 +4,7 @@ from nipype.interfaces.io import DataSink
 from ..nodes import Concat_confound_files
 from nipype.algorithms.confounds import FramewiseDisplacement
 
-from nodes import Extend_motion_parameters
+from .nodes import Extend_motion_parameters
 
 
 def create_motion_confound_workflow(order=2, fd_cutoff=.2,

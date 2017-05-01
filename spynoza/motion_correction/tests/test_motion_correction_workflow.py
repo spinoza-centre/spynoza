@@ -1,8 +1,11 @@
 import pytest
 import os.path as op
 import shutil
+import socket
 from ..workflows import create_motion_correction_workflow
-from ... import test_data_path, root_dir
+from ... import test_data_path
+
+test_data_path = op.join(test_data_path, 'sub-0020')
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -10,16 +13,20 @@ def setup():
     print('Setup ...')
     yield None
     print('teardown ...')
-    shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'moco'))
+    #shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'moco'))
+
+# Only test AFNI volreg if not on UvA desktop (weird GLX error)
+hostname = socket.gethostname()
+methods = ['FSL', 'AFNI'] if hostname != 'uva' else ['FSL']
 
 
-@pytest.mark.parametrize("method", ['FSL', 'AFNI'])
+@pytest.mark.parametrize("method", methods)
 @pytest.mark.moco
 def test_create_motion_correction_workflow(method):
     moco_wf = create_motion_correction_workflow(method=method)
     moco_wf.base_dir = '/tmp/spynoza/workingdir'
-    moco_wf.inputs.inputspec.in_files = [op.join(test_data_path, 'sub-0020_gstroop_cut.nii.gz')]#,
-                                        # op.join(test_data_path, 'sub-0020_anticipation_cut.nii.gz')]
+    moco_wf.inputs.inputspec.in_files = [op.join(test_data_path, 'func', 'sub-0020_task-harriri_bold_cut.nii.gz'),
+                                         op.join(test_data_path, 'func', 'sub-0020_task-wm_bold_cut.nii.gz')]
     moco_wf.inputs.inputspec.output_directory = '/tmp/spynoza'
     moco_wf.inputs.inputspec.sub_id = 'sub-0020'
     moco_wf.inputs.inputspec.tr = 2.0

@@ -84,13 +84,26 @@ def set_parameters_in_nodes(workflow, **kwargs):
 
 def extract_task(in_file):
     import os.path as op
-    task_name = op.abspath(in_file.split('task-')[-1].split('_')[0])
+    task_name = op.basename(in_file.split('task-')[-1].split('_')[0])
     return task_name
 
 
 Extract_task = Function(function=extract_task,
                         input_names=['in_file'],
                         output_names=['task_name'])
+
+
+def join_datasink_base(base, ext):
+    import os.path as op
+    out = op.join(base, ext)
+    if isinstance(out, list):
+        out = out[0]
+    return out
+
+
+Join_datasink_base = Function(function=join_datasink_base,
+                              input_names=['base', 'ext'],
+                              output_names=['out'])
 
 
 def epi_file_selector(which_file, in_files):

@@ -7,16 +7,16 @@ from ... import test_data_path
 def test_create_confound_workflow():
     confound_wf = create_confound_workflow()
     confound_wf.base_dir = '/tmp/spynoza/workingdir'
-    confound_wf.inputs.inputspec.in_file = [op.join(test_data_path, 'sub-0020_gstroop_cut_mcf.nii.gz'),
+    confound_wf.inputs.inputspec.in_file = [op.join(test_data_path, 'sub-0020_task-gstroop_cut_mcf.nii.gz'),
                                            op.join(test_data_path,
-                                                   'sub-0020_gstroop_cut_mcf.nii.gz')]
+                                                   'sub-0020_task-gstroop_cut_mcf.nii.gz')]
     confound_wf.inputs.inputspec.fast_files = [op.join(test_data_path, 'sub-0020_T1w_prob_0.nii.gz'),
                                              op.join(test_data_path, 'sub-0020_T1w_prob_1.nii.gz'),
                                              op.join(test_data_path, 'sub-0020_T1w_prob_2.nii.gz')]
     confound_wf.inputs.inputspec.highres2epi_mat = op.join(test_data_path, 'highres2example_func.mat')
-    confound_wf.inputs.inputspec.par_file = [op.join(test_data_path, 'sub-0020_gstroop_cut_mcf.par'),
+    confound_wf.inputs.inputspec.par_file = [op.join(test_data_path, 'sub-0020_task-gstroop_cut_mcf.par'),
                                            op.join(test_data_path,
-                                                   'sub-0020_gstroop_cut_mcf.par')]
+                                                   'sub-0020_task-gstroop_cut_mcf.par')]
     confound_wf.inputs.inputspec.n_comp_acompcor = 5
     confound_wf.inputs.inputspec.n_comp_tcompcor = 5
     confound_wf.inputs.inputspec.output_directory = '/tmp/spynoza'
