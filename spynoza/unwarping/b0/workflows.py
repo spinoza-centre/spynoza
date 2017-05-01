@@ -1,5 +1,5 @@
 import nipype.pipeline as pe
-import nipype.interfaces.fsl as fsl
+import nipype.interfaces.fsl.preprocess as fsl
 from nipype.interfaces.utility import IdentityInterface
 from .nodes import (Prepare_phasediff, Radials_per_second, Dilate_mask,
                     Compute_echo_spacing, Make_output_filename)
@@ -72,7 +72,7 @@ def create_B0_workflow(name ='b0_unwarping'):
                               name='registration')
    
     # transform unwrapped fieldmap (rad/s)
-    applyxfm = pe.MapNode(fsl.ApplyXfm(interp='trilinear'),
+    applyxfm = pe.MapNode(fsl.ApplyXFM(interp='trilinear'),
                           iterfield=['reference', 'in_matrix_file'],
                           name='apply_xfm')
     
@@ -115,7 +115,7 @@ def create_B0_workflow(name ='b0_unwarping'):
                     (input_node,            fugue, [('in_files', 'in_file')]),
                     (out_file,             fugue, [('out_file', 'unwarped_file')]),
                     (applyxfm,             fugue, [('out_file', 'fmap_in_file')]),
-                    (echo_spacing,         fugue, [('out_file', 'dwell_time')]),
+                    (echo_spacing,         fugue, [('echo_spacing', 'dwell_time')]),
                     (input_node,            fugue, [('te_diff', 'asym_se_time')]),
                     (input_node,            fugue, [('phase_encoding_direction', 'unwarp_direction')]),
                     (fugue,                outputnode, [('unwarped_file', 'out_files')]),
