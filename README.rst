@@ -1,9 +1,9 @@
 Spynoza
 =======
 Spynoza is a package for fMRI data (pre)processing developed by researchers affiliated with the `Spinoza Centre for
-Neuroimaging <https://www.spinozacentre.nl/>`_. Specifically, the `Knapen lab <https://tknapen.github.io/>`
+Neuroimaging <https://www.spinozacentre.nl/>`_. Specifically, the `Knapen lab <https://tknapen.github.io/>`_
 (Free University Amsterdam) and the Scholte lab (University of Amsterdam) lead the development of the package. Some of
-the workflows are based on existing functionality from the `fmriprep <https://github.com/poldracklab/fmriprep>` package.
+the workflows are based on existing functionality from the `fmriprep <https://github.com/poldracklab/fmriprep>`_ package.
 
 Status
 ------
@@ -59,7 +59,7 @@ Then, do your work, and run::
 
     $ git commit -am "Your message"
 
-Make sure you have a seperate feature branch for every distinct feature you're implementing.
+Make sure you have a separate feature branch for every distinct feature you're implementing.
 
 When your feature is finished, and you'd like to share it with your collaborators,
 merge your changes in develop without a fast-forward. First switch to the develop branch::
