@@ -46,7 +46,6 @@ def create_B0_workflow(name ='b0_unwarping'):
                                                              'phase_encoding_direction']))
 
     # Why is this hardcoded?
-    input_node.inputs.phase_encoding_direction = 'y'
     unwarp_workflow = pe.Workflow(name=name)
     
     # Normalize phase difference of the fieldmap phase to be [-pi, pi)
