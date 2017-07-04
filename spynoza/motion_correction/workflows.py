@@ -35,41 +35,38 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
     """
 
     ### NODES
-    input_node = pe.Node(IdentityInterface(
-        fields=['in_files', 'output_directory', 'which_file_is_EPI_space',
-                'sub_id', 'tr']), name='inputspec')
+    input_node = pe.Node(IdentityInterface(fields=['in_files',
+                                                    'output_directory', 
+                                                    'which_file_is_EPI_space',
+                                                    'sub_id',
+                                                    'tr']), 
+                                            name='inputspec')
     output_node = pe.Node(IdentityInterface(fields=([
-        'motion_corrected_files',
-        'EPI_space_file',
-        'mask_EPI_space_file',
-        'motion_correction_plots',
-        'motion_correction_parameters',
-        'extended_motion_correction_parameters',
-        'new_motion_correction_parameters'])), name='outputspec')
+                                                    'motion_corrected_files',
+                                                    'EPI_space_file',
+                                                    'mask_EPI_space_file',
+                                                    'motion_correction_plots',
+                                                    'motion_correction_parameters',
+                                                    'extended_motion_correction_parameters',
+                                                    'new_motion_correction_parameters'])), 
+                                            name='outputspec')
 
     ########################################################################################
     # Invariant nodes
     ########################################################################################
 
-    EPI_file_selector_node = pe.Node(interface=EPI_file_selector,
-                                     name='EPI_file_selector_node')
-
-    mean_bold = pe.Node(interface=fsl.maths.MeanImage(dimension='T'),
-                        name='mean_space')
-
-    rename_mean_bold = pe.Node(niu.Rename(format_string='session_EPI_space',
-                                          keep_ext=True),
-                               name='rename_mean_bold')
+    EPI_file_selector_node = pe.Node(interface=EPI_file_selector, name='EPI_file_selector_node')
+    mean_bold = pe.Node(interface=fsl.maths.MeanImage(dimension='T'), name='mean_space')
+    rename_mean_bold = pe.Node(niu.Rename(format_string='session_EPI_space', keep_ext=True),
+                                name='rename_mean_bold')
 
     ########################################################################################
     # Workflow
     ########################################################################################
 
     motion_correction_workflow = pe.Workflow(name=name)
-
     motion_correction_workflow.connect(input_node, 'which_file_is_EPI_space',
                                        EPI_file_selector_node, 'which_file')
-
     motion_correction_workflow.connect(input_node, 'in_files',
                                        EPI_file_selector_node, 'in_files')
 
@@ -128,34 +125,15 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
             # extend_motion_pars = pe.MapNode(Function(input_names=['moco_par_file', 'tr'], output_names=['new_out_file', 'ext_out_file'],
             # function=_extend_motion_parameters), name='extend_motion_pars', iterfield = ['moco_par_file'])
             pass
-
-        motion_correction_workflow.connect(EPI_file_selector_node,
-                                           'out_file', motion_correct_EPI_space,
-                                           'in_file')
-
-        motion_correction_workflow.connect(motion_correct_EPI_space, 'out_file',
-                                           mean_bold, 'in_file')
-
-        motion_correction_workflow.connect(mean_bold, 'out_file',
-                                           motion_correct_all, 'ref_file')
+        
+        # create reference:
+        motion_correction_workflow.connect(EPI_file_selector_node, 'out_file', motion_correct_EPI_space, 'in_file')
+        motion_correction_workflow.connect(motion_correct_EPI_space, 'out_file', mean_bold, 'in_file')
+        motion_correction_workflow.connect(mean_bold, 'out_file', motion_correct_all, 'ref_file')
 
         # motion correction across runs
-        motion_correction_workflow.connect(input_node, 'in_files',
-                                           motion_correct_all, 'in_file')
-
-        # output node, for later saving
-        motion_correction_workflow.connect(mean_bold, 'out_file', output_node,
-                                           'EPI_space_file')
-
-        motion_correction_workflow.connect(motion_correct_all, 'par_file', rename_motion_files, 'in_file')
-        motion_correction_workflow.connect(motion_correct_all, 'par_file', remove_niigz_ext, 'in_file')
-        motion_correction_workflow.connect(remove_niigz_ext, 'out_file', rename_motion_files, 'format_string')
-        motion_correction_workflow.connect(rename_motion_files, 'out_file', output_node, 'motion_correction_parameters')
-
-        #motion_correction_workflow.connect(motion_correct_all, 'out_file',
-        #                                  output_node,
-        #                                   'motion_corrected_files')
-
+        motion_correction_workflow.connect(input_node, 'in_files', motion_correct_all, 'in_file')
+        #motion_correction_workflow.connect(motion_correct_all, 'out_file', output_node, 'motion_corrected_files')
         # motion_correction_workflow.connect(motion_correct_all, 'par_file', extend_motion_pars, 'moco_par_file')
         # motion_correction_workflow.connect(input_node, 'tr', extend_motion_pars, 'tr')
         # motion_correction_workflow.connect(extend_motion_pars, 'ext_out_file', output_node, 'extended_motion_correction_parameters')
@@ -165,28 +143,30 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
         # Plot the estimated motion parameters
         ########################################################################################
 
+        # rename:
+        motion_correction_workflow.connect(mean_bold, 'out_file', rename_mean_bold, 'in_file')
+        motion_correction_workflow.connect(motion_correct_all, 'par_file', rename_motion_files, 'in_file')
+        motion_correction_workflow.connect(motion_correct_all, 'par_file', remove_niigz_ext, 'in_file')
+        motion_correction_workflow.connect(remove_niigz_ext, 'out_file', rename_motion_files, 'format_string')
+        
+        # plots:
         plot_motion.iterables = ('plot_type', ['rotations', 'translations'])
-
         motion_correction_workflow.connect(rename_motion_files, 'out_file', plot_motion, 'in_file')
-
-        motion_correction_workflow.connect(plot_motion, 'out_file', output_node,
-                                           'motion_correction_plots')
-
-        # and the output
-        motion_correction_workflow.connect(mean_bold, 'out_file', rename_mean_bold,
-                                           'in_file')
+        motion_correction_workflow.connect(plot_motion, 'out_file', output_node, 'motion_correction_plots')
+        
+        # output node:
+        motion_correction_workflow.connect(mean_bold, 'out_file', output_node, 'EPI_space_file')
+        motion_correction_workflow.connect(rename_motion_files, 'out_file', output_node, 'motion_correction_parameters')
+        motion_correction_workflow.connect(motion_correct_all, 'out_file', output_node, 'motion_corrected_files')
+        
+        # datasink:
         motion_correction_workflow.connect(rename_mean_bold, 'out_file', datasink, 'reg')
-
-        motion_correction_workflow.connect(motion_correct_all, 'out_file',
-                                           datasink, 'mcf')
-
+        motion_correction_workflow.connect(motion_correct_all, 'out_file', datasink, 'mcf')
         motion_correction_workflow.connect(rename_motion_files, 'out_file', datasink, 'mcf.motion_pars')
-
         motion_correction_workflow.connect(plot_motion, 'out_file', datasink, 'mcf.motion_plots')
-
         # motion_correction_workflow.connect(extend_motion_pars, 'ext_out_file', datasink, 'mcf.ext_motion_pars')
         # motion_correction_workflow.connect(extend_motion_pars, 'new_out_file', datasink, 'mcf.new_motion_pars')
-
+        
     ########################################################################################
     # AFNI 3DVolReg
     ########################################################################################
@@ -197,86 +177,56 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
     # intermediate FLIRT step.
 
     if method == 'AFNI':
-        motion_correct_EPI_space = pe.Node(interface=afni.Volreg(
-            outputtype='NIFTI_GZ',
-            zpad=5,
-            args=' -cubic '  # -twopass -Fourier
-        ), name='motion_correct_EPI_space')
+        motion_correct_EPI_space = pe.Node(interface=afni.Volreg(outputtype='NIFTI_GZ',
+                                                                zpad=5,
+                                                                args=' -cubic '  # -twopass -Fourier
+                                                                ), 
+                                            name='motion_correct_EPI_space')
 
-        motion_correct_all = pe.MapNode(interface=afni.Volreg(
-            outputtype='NIFTI_GZ',
-            zpad=5,
-            args=' -cubic '  # -twopass
-        ), name='motion_correct_all',
-            iterfield=['in_file'])
+        motion_correct_all = pe.MapNode(interface=afni.Volreg(outputtype='NIFTI_GZ',
+                                                                zpad=5,
+                                                                args=' -cubic '  # -twopass
+                                                                ), 
+                                        name='motion_correct_all',
+                                        iterfield=['in_file'])
 
         # for renaming *_volreg.nii.gz to *_mcf.nii.gz
         set_postfix_mcf = pe.MapNode(interface=Set_postfix,
                                      name='set_postfix_mcf', iterfield=['in_file'])
         set_postfix_mcf.inputs.postfix = 'mcf'
 
-        rename_volreg = pe.MapNode(interface=Rename(
-            keep_ext=True), name='rename_volreg',
-            iterfield=['in_file', 'format_string'])
+        rename_volreg = pe.MapNode(interface=Rename(keep_ext=True), 
+                                    name='rename_volreg',
+                                    iterfield=['in_file', 'format_string'])
 
         # curate for moco between sessions
-        motion_correction_workflow.connect(EPI_file_selector_node,
-                                           'out_file', motion_correct_EPI_space,
-                                           'in_file')
-
-        motion_correction_workflow.connect(motion_correct_EPI_space, 'out_file',
-                                           mean_bold, 'in_file')
+        motion_correction_workflow.connect(EPI_file_selector_node, 'out_file', motion_correct_EPI_space, 'in_file')
+        motion_correction_workflow.connect(motion_correct_EPI_space, 'out_file', mean_bold, 'in_file')
 
         # motion correction across runs
-        motion_correction_workflow.connect(input_node, 'in_files',
-                                           motion_correct_all, 'in_file')
-        motion_correction_workflow.connect(mean_bold, 'out_file',
-                                           motion_correct_all, 'basefile')
-
+        motion_correction_workflow.connect(input_node, 'in_files', motion_correct_all, 'in_file')
+        motion_correction_workflow.connect(mean_bold, 'out_file', motion_correct_all, 'basefile')
         # motion_correction_workflow.connect(mean_bold, 'out_file', motion_correct_all, 'rotparent')
         # motion_correction_workflow.connect(mean_bold, 'out_file', motion_correct_all, 'gridparent')
 
-        # output node, for later saving
-        motion_correction_workflow.connect(mean_bold, 'out_file', output_node,
-                                           'EPI_space_file')
-        motion_correction_workflow.connect(motion_correct_all, 'md1d_file',
-                                           output_node, 'max_displacement_info')
-        motion_correction_workflow.connect(motion_correct_all, 'oned_file',
-                                           output_node,
-                                           'motion_correction_parameter_info')
-        motion_correction_workflow.connect(motion_correct_all,
-                                           'oned_matrix_save', output_node,
-                                           'motion_correction_parameter_matrix')
+        # output node:
+        motion_correction_workflow.connect(mean_bold, 'out_file', output_node, 'EPI_space_file')
+        motion_correction_workflow.connect(motion_correct_all, 'md1d_file', output_node, 'max_displacement_info')
+        motion_correction_workflow.connect(motion_correct_all, 'oned_file', output_node, 'motion_correction_parameter_info')
+        motion_correction_workflow.connect(motion_correct_all, 'oned_matrix_save', output_node, 'motion_correction_parameter_matrix')
+        motion_correction_workflow.connect(input_node, 'in_files', set_postfix_mcf, 'in_file')
+        motion_correction_workflow.connect(set_postfix_mcf, 'out_file', rename_volreg, 'format_string')
+        motion_correction_workflow.connect(motion_correct_all, 'out_file', rename_volreg, 'in_file')
+        motion_correction_workflow.connect(rename_volreg, 'out_file', output_node, 'motion_corrected_files')
 
-        motion_correction_workflow.connect(input_node, 'in_files',
-                                           set_postfix_mcf, 'in_file')
-
-        motion_correction_workflow.connect(set_postfix_mcf, 'out_file',
-                                           rename_volreg, 'format_string')
-
-        motion_correction_workflow.connect(motion_correct_all, 'out_file',
-                                           rename_volreg, 'in_file')
-
-        motion_correction_workflow.connect(rename_volreg, 'out_file',
-                                           output_node,
-                                           'motion_corrected_files')
-
-        # and the output
-        motion_correction_workflow.connect(mean_bold, 'out_file', rename_mean_bold,
-                                           'in_file')
+        # datasink:
+        motion_correction_workflow.connect(mean_bold, 'out_file', rename_mean_bold, 'in_file')
         motion_correction_workflow.connect(rename_mean_bold, 'out_file', datasink, 'reg')
-
-        motion_correction_workflow.connect(rename_volreg, 'out_file',
-                                           datasink, 'mcf')
-        motion_correction_workflow.connect(motion_correct_all, 'md1d_file',
-                                           datasink,
-                                           'mcf.max_displacement_info')
-        motion_correction_workflow.connect(motion_correct_all, 'oned_file',
-                                           datasink, 'mcf.parameter_info')
-        motion_correction_workflow.connect(motion_correct_all,
-                                           'oned_matrix_save', datasink,
-                                           'mcf.motion_pars')
-
+        motion_correction_workflow.connect(rename_volreg, 'out_file', datasink, 'mcf')
+        motion_correction_workflow.connect(motion_correct_all, 'md1d_file', datasink, 'mcf.max_displacement_info')
+        motion_correction_workflow.connect(motion_correct_all, 'oned_file', datasink, 'mcf.parameter_info')
+        motion_correction_workflow.connect(motion_correct_all, 'oned_matrix_save', datasink, 'mcf.motion_pars')
+        
     return motion_correction_workflow
 
 

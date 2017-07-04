@@ -18,11 +18,12 @@ def _preprocess_nii_files_to_pnm_evs_prefix(filename):
 
     return out_string
 
-def _distill_slice_times_from_gradients(in_file, phys_file, nr_dummies, MB_factor = 1):
+def _distill_slice_times_from_gradients(in_file, phys_file, nr_dummies, MB_factor=1, sample_rate=496):
     import os
+    import numpy as np
     import pandas as pd
-    # sample rate:
-    sample_rate = 496
+    import nibabel as nib
+    import matplotlib.pyplot as plt
     
     # output:
     name, fext = os.path.splitext(os.path.basename(in_file))
@@ -31,16 +32,16 @@ def _distill_slice_times_from_gradients(in_file, phys_file, nr_dummies, MB_facto
     
     # load nifti and attributes:
     nifti = nib.load(in_file)
-    nr_slices = nifti.header.get_data_shape()[2] / MB_factor
+    nr_slices = int(nifti.header.get_data_shape()[2] / MB_factor)
     nr_volumes = nifti.header.get_data_shape()[3]
     tr = float(nifti.header['pixdim'][4])
     
     # load physio data:
-    phys = pd.read_csv(phys_file, sep='\t')
+    phys = np.loadtxt(phys_file, skiprows=5)
     
     # compute gradient signal as sum x y z, and z-score:
     gradients = [6,7,8]
-    gradient_signal = np.array([phys[:,g] for g in gradients]).sum(axis = 0)
+    gradient_signal = np.array([phys[:,g] for g in gradients]).sum(axis=0)
     gradient_signal = (gradient_signal-gradient_signal.mean()) / gradient_signal.std()
     
     # threshold:
@@ -55,23 +56,23 @@ def _distill_slice_times_from_gradients(in_file, phys_file, nr_dummies, MB_facto
     
     # slice time indexes:
     x = np.arange(gradient_signal.shape[0])
-    slice_times = x[np.array(np.diff(np.array(gradient_signal>threshold, dtype=int))==1, dtype=bool)]+1
-
+    slice_times = x[np.r_[False, np.array(np.diff(np.array(gradient_signal>threshold, dtype=int))==1, dtype=bool)]]
+    
     # check if we had a double (due to shape gradient signal):
     if slice_times.shape[0] > (nr_volumes*nr_slices*2):
         slice_times = slice_times[0::2]
     
     # identify gap between shimming and dummies:
     gap = np.where(np.diff(slice_times) > ((nr_volumes / float(nr_slices))*10.0))[0][-1]
-    
+        
     # dummy slices and volumes:
     dummy_slice_indices = (np.arange(slice_times.shape[0]) > gap) * (np.arange(slice_times.shape[0]) < gap + (nr_dummies * nr_slices))
-    dummy_slices = np.arange(x.shape[0])[dummy_slice_indices]
+    dummy_slices = np.arange(slice_times.shape[0])[dummy_slice_indices]
     dummy_volumes = dummy_slices[0::nr_slices]
 
     # scans slices and volumes:
     scan_slice_indices = (np.arange(slice_times.shape[0]) > dummy_slices[-1])
-    scan_slices = np.arange(x.shape[0])[scan_slice_indices][0:(nr_volumes*nr_slices)]
+    scan_slices = np.arange(slice_times.shape[0])[scan_slice_indices][0:(nr_volumes*nr_slices)]
     scan_volumes = scan_slices[0:(nr_volumes*nr_slices):nr_slices]
 
     # append to physio file:
@@ -80,11 +81,11 @@ def _distill_slice_times_from_gradients(in_file, phys_file, nr_dummies, MB_facto
     scan_volumes_timecourse = np.zeros(x.shape[0])
     scan_volumes_timecourse[slice_times[scan_volumes]] = 1
     dummies_volumes_timecourse = np.zeros(x.shape[0])
-    dummies_volumes_timecourse[slice_times[dummy_volumes]] = 1
+    dummies_volumes_timecourse[slice_times[dummy_volumes]] = 1    
     
     # output new physio file:
     phys_new = np.hstack((np.asmatrix(phys[:,4]).T, np.asmatrix(phys[:,5]).T, np.asmatrix(scan_slices_timecourse).T, np.asmatrix(scan_volumes_timecourse).T))
-    np.savetxt(out_file, phys_new, fmt='%3.2f', delimiter='\t')
+    np.savetxt(out_file, phys_new, fmt=str('%3.2f'), delimiter='\t')
     
     # generate a list of figures:
     plot_timewindow = [np.arange(0, slice_times[dummy_volumes[-1]]+(4*sample_rate)),
@@ -104,4 +105,3 @@ def _distill_slice_times_from_gradients(in_file, phys_file, nr_dummies, MB_facto
     f.savefig(fig_file)
     
     return out_file, fig_file
-
