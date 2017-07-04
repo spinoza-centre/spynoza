@@ -31,8 +31,7 @@ def create_retroicor_workflow(name = 'retroicor', order_or_timing = 'order'):
                                                     'phys_sample_rate',
                                                     'slice_timing',
                                                     'slice_order',
-                                                    'hr',
-                                                    'rvt',
+                                                    'hr_rvt',
                                                     ]), name='inputspec')
 
     # the slice time preprocessing node before we go into popp (PreparePNM)
@@ -77,9 +76,8 @@ def create_retroicor_workflow(name = 'retroicor', order_or_timing = 'order'):
     retroicor_workflow.connect(input_node, 'phys_sample_rate', prepare_pnm, 'sampling_rate')
     retroicor_workflow.connect(input_node, 'tr', prepare_pnm, 'tr')
     retroicor_workflow.connect(slice_times_from_gradients, 'out_file', prepare_pnm, 'in_file')
-    retroicor_workflow.connect(input_node, 'hr', prepare_pnm, 'hr')
-    retroicor_workflow.connect(input_node, 'rvt', prepare_pnm, 'rvt')
-
+    retroicor_workflow.connect(input_node, 'hr_rvt', prepare_pnm, 'hr_rvt')
+    
     # pnm evs:
     retroicor_workflow.connect(input_node, 'in_files', pnm_prefixer, 'filename')
     retroicor_workflow.connect(pnm_prefixer, 'out_string', pnm_evs, 'prefix')

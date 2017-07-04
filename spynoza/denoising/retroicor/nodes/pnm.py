@@ -16,8 +16,7 @@ class PreparePNMInput(FSLCommandInputSpec):
     smoothcard = traits.Float(0.1, argstr='--smoothcard=%f', usedefault=True)
     sampling_rate = traits.Int(496, argstr='-s %d', desc='sampling_rate')
     tr = traits.Float(2.0, argstr='--tr=%f', usedefault=True)
-    hr = traits.Bool(argstr='--heartrate',)
-    rvt = traits.Bool(argstr='--rvt',)
+    hr_rvt = traits.Bool(argstr='--heartrate --rvt',)
     
 class PreparePNMOutput(TraitedSpec):
     time = File(exists=True, desc="Time triggers")
