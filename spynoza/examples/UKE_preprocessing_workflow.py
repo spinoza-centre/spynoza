@@ -7,12 +7,13 @@ def create_preprocessing_workflow(analysis_parameters, name='yesno_3T'):
 
     # Importing of custom nodes from spynoza packages; assumes that spynoza is installed:
     # pip install git+https://github.com/spinoza-centre/spynoza.git@develop
-    from spynoza.filtering.nodes import savgol_filter
-    from spynoza.utils import get_scaninfo, pickfirst, percent_signal_change, average_over_runs, pickle_to_json, set_nifti_intercept_slope
+    from spynoza.utils import get_scaninfo, pickfirst, average_over_runs, set_nifti_intercept_slope
     from spynoza.uniformization.workflows import create_non_uniformity_correct_4D_file
     from spynoza.unwarping.b0.workflows import create_B0_workflow
     from spynoza.motion_correction.workflows import create_motion_correction_workflow
     from spynoza.registration.workflows import create_registration_workflow
+    from spynoza.filtering.nodes import sgfilter
+    from spynoza.conversion.nodes import psc
     from spynoza.denoising.retroicor.workflows import create_retroicor_workflow
     from spynoza.masking.workflows import create_masks_from_surface_workflow
     from spynoza.glm.nodes import fit_nuisances
@@ -83,38 +84,16 @@ def create_preprocessing_workflow(analysis_parameters, name='yesno_3T'):
     #     fsl.BET(frac=analysis_parameters['bet_f_value'], vertical_gradient = analysis_parameters['bet_g_value'],
     #             functional=True, mask = True), name='bet_epi', iterfield=['in_file'])
     
-    # node for converting pickle files to json
-    pj = pe.MapNode(Function(input_names=['in_file'],
-                                    output_names=['out_file'],
-                                    function=pickle_to_json),
-                                    name='pj', iterfield=['in_file'])
-    
-    # node for temporal filtering
-    sgfilter = pe.MapNode(interface=Function(input_names=['in_file', 'window_length', 'polyorder'],
-                                    output_names=['out_file'],
-                                    function=savgol_filter),
-                                    name='sgfilter',
-                                    iterfield=['in_file'])
-    sgfilter.inputs.window_length = analysis_parameters['sg_filter_window_length']
-    sgfilter.inputs.polyorder = analysis_parameters['sg_filter_order']
-    
-    # node for percent signal change
-    psc = pe.MapNode(Function(input_names=['in_file', 'func'],
-                                    output_names=['out_file'],
-                                    function=percent_signal_change),
-                                    name='percent_signal_change',
-                                    iterfield=['in_file'])
-    
     datasink = pe.Node(DataSink(), name='sinker')
     datasink.inputs.parameterization = False
-
+    
     ########################################################################################
     # workflow
     ########################################################################################
-
+    
     # the actual top-level workflow
     preprocessing_workflow = pe.Workflow(name=name)
-
+    
     # data source 
     preprocessing_workflow.connect(input_node, 'raw_directory', datasource, 'base_directory')
     preprocessing_workflow.connect(input_node, 'sub_id', datasource, 'sub_id')
@@ -124,9 +103,11 @@ def create_preprocessing_workflow(analysis_parameters, name='yesno_3T'):
     # and data sink
     preprocessing_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
     
+    # copy raw data to output folder:
     preprocessing_workflow.connect(datasource, 'func', datasink, 'raw')
     
-    # # BET
+    # BET (we don't do this, because we expect the raw data in the bids folder to be betted
+    # already for anonymization purposes)
     # preprocessing_workflow.connect(datasource, 'func', bet_epi, 'in_file')
     
     # non-uniformity correction
@@ -135,10 +116,12 @@ def create_preprocessing_workflow(analysis_parameters, name='yesno_3T'):
     
     #B0 field correction:
     if analysis_parameters['B0_or_topup'] == 'B0':
+        
         # set slope/intercept to unity for B0 map
         preprocessing_workflow.connect(datasource, 'magnitude', int_slope_B0_magnitude, 'in_file')
         preprocessing_workflow.connect(datasource, 'phasediff', int_slope_B0_phasediff, 'in_file')
-
+        
+        #B0 field correction:
         B0_wf = create_B0_workflow(name = 'B0')
         preprocessing_workflow.connect(datasource, 'func', B0_wf, 'inputspec.in_files')
         preprocessing_workflow.connect(int_slope_B0_magnitude, 'out_file', B0_wf, 'inputspec.fieldmap_mag')
@@ -170,6 +153,8 @@ def create_preprocessing_workflow(analysis_parameters, name='yesno_3T'):
     preprocessing_workflow.connect(input_node, 'standard_file', reg, 'inputspec.standard_file')
     
     # temporal filtering
+    preprocessing_workflow.connect(input_node, 'sg_filter_window_length', sgfilter, 'window_length')
+    preprocessing_workflow.connect(input_node, 'sg_filter_order', sgfilter, 'polyorder')
     preprocessing_workflow.connect(motion_proc, 'outputspec.motion_corrected_files', sgfilter, 'in_file')
     preprocessing_workflow.connect(sgfilter, 'out_file', datasink, 'tf')
     
@@ -312,7 +297,7 @@ def configure_workflow(preprocessing_workflow, analysis_parameters, acquisition_
     preprocessing_workflow.inputs.inputspec.sg_filter_window_length = analysis_parameters['sg_filter_window_length']
     preprocessing_workflow.inputs.inputspec.sg_filter_order = analysis_parameters['sg_filter_order']
 
-    # Retroicor:
+    # RETROICOR:
     preprocessing_workflow.inputs.inputspec.MB_factor = acquisition_parameters['MultiBandFactor']
     preprocessing_workflow.inputs.inputspec.nr_dummies = acquisition_parameters['NumberDummyScans']
     preprocessing_workflow.inputs.inputspec.tr = acquisition_parameters['RepetitionTime']
