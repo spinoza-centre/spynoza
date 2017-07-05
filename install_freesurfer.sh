@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 echo 'Installing freesurfer ...'
 wget -f https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.0/freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.0.tar.gz --tries=0
-tar -xzfv freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.0.tar.gz -C /usr/local \
+tar -zvxf freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.0.tar.gz -C /usr/local \
     --exclude='freesurfer/trctrain' \
     --exclude='freesurfer/subjects/fsaverage_sym' \
     --exclude='freesurfer/subjects/fsaverage3' \

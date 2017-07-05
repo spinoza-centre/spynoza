@@ -39,35 +39,61 @@ contribution. We can branch off of master by running::
 
     $ git checkout -b my_feature
 
-To get an overview of the branches we've created, run::
+By now, we created and switched to the new branch `my_feature`.
+When working on your feature, make sure you first switch to your feature branch to
+avoid changing the master branch accidentally.
 
-    $ git branch
-
-To switch to another branch run::
-
-    $ git checkout branch_name
-
-When working on your feature, make sure you first switch to your feature branch.
-Then, do your work, and run::
+Then, work on your feature and once you're done (and staged your changes) run::
 
     $ git commit -am "Your message"
 
-Make sure you have a separate feature branch for every distinct feature you're implementing.
-
 When your feature is finished, and you'd like to share it with your collaborators,
-merge your changes in develop without a fast-forward. First switch to the develop branch::
+first push it to Github::
 
-    $ git checkout develop
+    $ git push -u origin my_feature
 
-Then merge your feature changes into develop::
+Then, go to Github and propose a "pull request" (PR) by clicking on the
+"New pull request" button (next to the "Branch" button). Then, choose
+the master branch as "base" and your feature-branch as the "compare" branch,
+write a short description of your implemented feature and how it impacts the
+master branch, as indicated in the image below:
 
-    $ git merge --no-ff my_feature
+.. image:: imgs/PR_example.png
 
-Now push changes to the server::
+Finally, click the green "Create pull request" button to submit the PR.
+One of the other Spynoza-members will review your PR and, if it seems sensible/doesn't break anything,
+it will be accepted and merged into master! One way to check if your code doesn't break anything is to
+run the ``run_tests.sh`` script, which triggers ``py.test`` to run all the tests in Spynoza. It would
+be even better if you write new tests accompanying your new feature, such that we can check whether
+future features impact/break your currect feature! Check the next section on how to write and run
+tests for Spynoza.
 
-    $ git push origin develop
-    $ git push origin my_feature
+Writing and running tests for Spynoza
+-------------------------------------
+Spynoza uses the ``py.test`` testing framework for running all unit-tests included in the package.
+Currently, we also use `Travis-CI <https://travis-ci.org/>`_ for automatic testing ("continuous integration")
+upon each push to master. If you want to run your tests locally, simply run::
 
-You are now free to delete your own feature branch if you wish using::
+    $ bash run_tests.sh
 
-    $ git branch -d my_feature
+The ``run_tests.sh`` script is located in the root-directory of the Spynoza repo. Running the tests
+locally assumes that you have installed the neuroimaging packages ``FSL``, ``AFNI``, and ``Freesurfer``,
+and additionally the testing packages ``py.test``, ``pytest-cov``, and ``coveralls``. These can be installed
+by::
+
+    $ pip install pytest pytest-cov coveralls
+
+In addition to the neuroimaging software and testing packages, make sure you have the regular dependencies
+for Spynoza installed (``scikit-learn``, ``nibabel``, ``nipype``, ``scipy``, ``numpy``, ``pandas``).
+
+If you want to write your own tests for your new or existing features (which we encourage!), check out the
+`py.test website <https://docs.pytest.org/en/latest/>`_ and check out already existing test-modules in Spynoza
+(which can be recognized by the ``test_*.py`` format)!
+
+Writing documentation for Spynoza
+---------------------------------
+Currently, Spynoza uses Numpy-style docstrings (see `here <http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_numpy.html>`_
+for an example), which can be converted to html-formatted documentation using `sphinx <http://www.sphinx-doc.org/en/stable/>`_
+and subsequently served/deployed using Github-pages. Also, triple-quoted strings on top of your module are converted to
+html-based documentation, so it's always a good idea to include some info about the module on the top of your file in
+triple-quoted strings!
