@@ -1,9 +1,9 @@
 Spynoza
 =======
 Spynoza is a package for fMRI data (pre)processing developed by researchers affiliated with the `Spinoza Centre for
-Neuroimaging <https://www.spinozacentre.nl/>`_. Specifically, the `Knapen lab <https://tknapen.github.io/>`_
-(Free University Amsterdam) and the Scholte lab (University of Amsterdam) lead the development of the package. Some of
-the workflows are based on existing functionality from the `fmriprep <https://github.com/poldracklab/fmriprep>`_ package.
+Neuroimaging <https://www.spinozacentre.nl/>`_, most prominently researchers from the `Donner Lab <http://wordpress.tobiasdonner.net/>`_ 
+in Hamburg, the `Knapen lab <https://tknapen.github.io/>`_ (Free University Amsterdam), and the Scholte lab 
+(University of Amsterdam). 
 
 Status
 ------
@@ -16,35 +16,28 @@ Status
 Prerequisites
 -------------
 Spynoza uses Nipype to organize processing workflows, which in turns relies heavily on FSL and, for some
-registration issues, Freesurfer.
+workflows, Freesurfer and AFNI.
 
 Installation
 ------------
-Spynoza is still (very much) in development, but if you want to try it out, you can install the develop branch by::
+Spynoza is still (very much) in development, but if you want to try it out, you can install the master branch by::
 
-    $ pip install git+https://github.com/spinoza-centre/spynoza.git@develop
+    $ pip install git+https://github.com/spinoza-centre/spynoza.git@master
 
 Contributing: setup and git workflow
 ------------------------------------
 For contributors (within the Spinoza centre organization on Github), follow these guidelines to contribute to the repo.
 First, `cd` to a folder where you want the spynoza git to be setup.
-To clone the repo into that dir and run::
+To clone the repo into that dir, run the following::
 
     $ git clone git@github.com:spinoza-center/spynoza.git`
 
-This cloned the master branch into the repo. We also need the develop branch.
-To create a new branch that syncs with the upstream develop branch run
-(no need to run additional pull)::
-
-    $ git checkout --track origin/develop
-
-This ensures that when you run `git pull` from the develop branch,
-it syncs with the origin/develop branch (instead of origin/master).
+This cloned the master branch into the repo. 
 
 Now we'll want to create our own feature branch to start working on our
-contribution. We can branch off of develop by running::
+contribution. We can branch off of master by running::
 
-    $ git checkout -b my_feature develop
+    $ git checkout -b my_feature
 
 To get an overview of the branches we've created, run::
 
