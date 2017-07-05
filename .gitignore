@@ -61,3 +61,4 @@ target/
 *.swp*
 # notebook stuff
 *.ipynb_checkpoints*
+crash*
