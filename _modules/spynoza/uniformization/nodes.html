@@ -1,0 +1,289 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.uniformization.nodes &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>spynoza.uniformization.nodes</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for spynoza.uniformization.nodes</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">nipype.interfaces.afni.base</span> <span class="k">import</span> <span class="p">(</span><span class="n">AFNICommand</span><span class="p">,</span> <span class="n">AFNICommandInputSpec</span><span class="p">,</span>
+                                         <span class="n">AFNICommandOutputSpec</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="k">import</span> <span class="p">(</span><span class="n">File</span><span class="p">,</span> <span class="n">traits</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="UniformizeInputSpec"><a class="viewcode-back" href="../../../source/spynoza.uniformization.nodes.html#spynoza.uniformization.nodes.UniformizeInputSpec">[docs]</a><span class="k">class</span> <span class="nc">UniformizeInputSpec</span><span class="p">(</span><span class="n">AFNICommandInputSpec</span><span class="p">):</span>
+
+    <span class="n">in_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+		<span class="n">argstr</span><span class="o">=</span><span class="s2">&quot;-anat </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+		<span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">desc</span><span class="o">=</span><span class="s2">&quot;file to be unifized&quot;</span><span class="p">)</span>
+    <span class="n">clip_low</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span>
+    	<span class="mi">6</span><span class="p">,</span> 
+    	<span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-clip_low </span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span> 
+    	<span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Use LOW as the voxel intensity separating brain from air.</span>
+<span class="s2">   NOTE: The historic clip_low value was 25.</span>
+<span class="s2">      But that only works for certain types of input data and can</span>
+<span class="s2">      result in bad output depending on the range of values in</span>
+<span class="s2">      the input dataset.</span>
+<span class="s2">      The new default sets -clip_low via -auto_clip option.&quot;&quot;&quot;</span><span class="p">)</span>    
+    <span class="n">clip_high</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span>
+    	<span class="mi">200</span><span class="p">,</span> 
+    	<span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-clip_high </span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span> 
+    	<span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Do not include voxels with intensity higher</span>
+<span class="s2">                  than HIGH in calculations.&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="n">auto_clip</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span>
+    	<span class="kc">True</span><span class="p">,</span> 
+    	<span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Automatically set the clip levels.</span>
+<span class="s2">	LOW in a procedure similar to 3dClipLevel,</span>
+<span class="s2">	HIGH is set to 3*LOW. (Default since Jan. 2011)&quot;&quot;&quot;</span><span class="p">,</span>
+		<span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-auto_clip&#39;</span><span class="p">,</span> 
+		<span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>   
+    <span class="n">niter</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span>
+    	<span class="mi">5</span><span class="p">,</span> 
+    	<span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Set the number of iterations for concentrating PDF</span>
+<span class="s2">	Default is 5.&quot;&quot;&quot;</span><span class="p">,</span>
+		<span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-niter </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> 
+		<span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>   
+    <span class="n">quiet</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span>
+    	<span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Suppress output to screen&#39;</span><span class="p">,</span>
+		<span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-q&#39;</span><span class="p">)</span> 
+    <span class="n">out_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">name_template</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_uni&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;output image file name&#39;</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-prefix </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">name_source</span><span class="o">=</span><span class="s1">&#39;in_file&#39;</span><span class="p">)</span>    </div>
+
+
+<div class="viewcode-block" id="Uniformize"><a class="viewcode-back" href="../../../source/spynoza.uniformization.nodes.html#spynoza.uniformization.nodes.Uniformize">[docs]</a><span class="k">class</span> <span class="nc">Uniformize</span><span class="p">(</span><span class="n">AFNICommand</span><span class="p">):</span>
+    <span class="n">_cmd</span> <span class="o">=</span> <span class="s1">&#39;3dUniformize&#39;</span>
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">UniformizeInputSpec</span>
+    <span class="n">output_spec</span> <span class="o">=</span> <span class="n">AFNICommandOutputSpec</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

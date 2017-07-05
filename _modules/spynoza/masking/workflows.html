@@ -1,0 +1,572 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.masking.workflows &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>spynoza.masking.workflows</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for spynoza.masking.workflows</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">nipype.pipeline</span> <span class="k">as</span> <span class="nn">pe</span>
+<span class="kn">import</span> <span class="nn">nipype.interfaces.io</span> <span class="k">as</span> <span class="nn">nio</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="k">import</span> <span class="n">fsl</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="k">import</span> <span class="n">freesurfer</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">IdentityInterface</span><span class="p">,</span> <span class="n">Merge</span>
+<span class="kn">from</span> <span class="nn">.nodes</span> <span class="k">import</span> <span class="n">FS_aseg_file</span><span class="p">,</span> <span class="n">FS_label_list_glob</span>
+
+
+<div class="viewcode-block" id="create_transform_aseg_to_EPI_workflow"><a class="viewcode-back" href="../../../source/spynoza.masking.workflows.html#spynoza.masking.workflows.create_transform_aseg_to_EPI_workflow">[docs]</a><span class="k">def</span> <span class="nf">create_transform_aseg_to_EPI_workflow</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;transform_aseg_to_EPI&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Transforms freesurfer volume-aseg to EPI space and dumps it in the masks folder</span>
+<span class="sd">    Requires fsl and freesurfer tools</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : string</span>
+<span class="sd">        name of workflow</span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface = create_transform_aseg_to_EPI_workflow(&#39;transform_aseg_to_EPI&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.EPI_space_file = &#39;example_func.nii.gz&#39;</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.label_directory = &#39;retmap&#39;</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.freesurfer_subject_ID = &#39;sub_01&#39;</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.freesurfer_subject_dir = &#39;$SUBJECTS_DIR&#39;</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.aseg =  &#39;aparc.a2009s+aseg.mgz&#39;</span>
+
+<span class="sd"> </span>
+<span class="sd">    Inputs::</span>
+<span class="sd">          inputspec.EPI_space_file : EPI session file</span>
+<span class="sd">          inputspec.reg_file : EPI session registration file</span>
+<span class="sd">          inputspec.re : regular expression for the </span>
+<span class="sd">          inputspec.fill_thresh :  label2vol fill threshold argument</span>
+<span class="sd">          inputspec.freesurfer_subject_ID : FS subject ID</span>
+<span class="sd">          inputspec.freesurfer_subject_dir : $SUBJECTS_DIR</span>
+<span class="sd">          inputspec.label_directory : directory that contains the labels in &#39;label&#39;</span>
+<span class="sd">          inputspec.output_directory : output directory in which a subfolder </span>
+<span class="sd">                                        with the name of label_directory is placed.</span>
+<span class="sd">    Outputs::</span>
+<span class="sd">           outputspec.output_masks : the output masks that are created.</span>
+<span class="sd">           outputspec.EPI_T1_matrix_file : FLIRT registration file that maps EPI space to T1</span>
+<span class="sd">           outputspec.T1_EPI_matrix_file : FLIRT registration file that maps T1 space to EPI</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">### NODES</span>
+    <span class="n">input_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;EPI_space_file&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;freesurfer_subject_ID&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;freesurfer_subject_dir&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;aseg&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;reg_file&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputspec&#39;</span><span class="p">)</span>
+    <span class="n">output_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;output_mask&#39;</span><span class="p">)),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputspec&#39;</span><span class="p">)</span>
+
+    <span class="n">vol_trans_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">freesurfer</span><span class="o">.</span><span class="n">ApplyVolTransform</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;vol_trans&#39;</span><span class="p">)</span>
+
+    <span class="c1"># housekeeping function for finding T1 file in FS directory</span>
+    <span class="n">FS_aseg_file_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">FS_aseg_file</span><span class="p">,</span>
+                                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;FS_aseg_file&#39;</span><span class="p">)</span>
+    <span class="n">mriConvert_N</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">freesurfer</span><span class="o">.</span><span class="n">MRIConvert</span><span class="p">(</span><span class="n">out_type</span> <span class="o">=</span> <span class="s1">&#39;nii.gz&#39;</span><span class="p">),</span> 
+                          <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;mriConvert_N&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># actual workflow</span>
+    <span class="c1">########################################################################################</span>
+
+    <span class="n">transform_aseg_to_EPI_workflow</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="n">transform_aseg_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;freesurfer_subject_ID&#39;</span><span class="p">,</span> <span class="n">FS_aseg_file_node</span><span class="p">,</span> <span class="s1">&#39;freesurfer_subject_ID&#39;</span><span class="p">)</span>
+    <span class="n">transform_aseg_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;freesurfer_subject_dir&#39;</span><span class="p">,</span> <span class="n">FS_aseg_file_node</span><span class="p">,</span> <span class="s1">&#39;freesurfer_subject_dir&#39;</span><span class="p">)</span>
+    <span class="n">transform_aseg_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;aseg&#39;</span><span class="p">,</span> <span class="n">FS_aseg_file_node</span><span class="p">,</span> <span class="s1">&#39;aseg&#39;</span><span class="p">)</span>
+
+    <span class="n">transform_aseg_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">FS_aseg_file_node</span><span class="p">,</span> <span class="s1">&#39;aseg_mgz_path&#39;</span><span class="p">,</span> <span class="n">vol_trans_node</span><span class="p">,</span> <span class="s1">&#39;source_file&#39;</span><span class="p">)</span>
+    <span class="n">transform_aseg_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;reg_file&#39;</span><span class="p">,</span> <span class="n">vol_trans_node</span><span class="p">,</span> <span class="s1">&#39;reg_file&#39;</span><span class="p">)</span>    
+
+    <span class="n">transform_aseg_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">vol_trans_node</span><span class="p">,</span> <span class="s1">&#39;transformed_file&#39;</span><span class="p">,</span> <span class="n">mriConvert_N</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">transform_aseg_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">mriConvert_N</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;output_mask&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># outputs via datasink</span>
+    <span class="c1">########################################################################################</span>
+    <span class="n">datasink</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">nio</span><span class="o">.</span><span class="n">DataSink</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sinker&#39;</span><span class="p">)</span>
+
+    <span class="c1"># first link the workflow&#39;s output_directory into the datasink.</span>
+    <span class="n">transform_aseg_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;base_directory&#39;</span><span class="p">)</span>
+    <span class="c1"># and the rest</span>
+    <span class="n">transform_aseg_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">mriConvert_N</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;masks&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">transform_aseg_to_EPI_workflow</span></div>
+
+
+
+<div class="viewcode-block" id="create_transform_atlas_to_EPI_workflow"><a class="viewcode-back" href="../../../source/spynoza.masking.workflows.html#spynoza.masking.workflows.create_transform_atlas_to_EPI_workflow">[docs]</a><span class="k">def</span> <span class="nf">create_transform_atlas_to_EPI_workflow</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;transform_atlas_to_EPI&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Transforms MNI-based volume-atlas to EPI space and dumps it in the masks folder.</span>
+<span class="sd">    As this does not split up the file according to the values, this will work also for </span>
+<span class="sd">    MNI-based single ROI definitions.</span>
+<span class="sd">    Requires fsl tools</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : string</span>
+<span class="sd">        name of workflow</span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; transform_atlas_to_EPI = create_transform_aseg_to_EPI_workflow(&#39;transform_aseg_to_EPI&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; transform_atlas_to_EPI.inputs.inputspec.EPI_space_file = &#39;example_func.nii.gz&#39;</span>
+<span class="sd">    &gt;&gt;&gt; transform_atlas_to_EPI.inputs.inputspec.output_directory = full path to opd</span>
+<span class="sd">    &gt;&gt;&gt; transform_atlas_to_EPI.inputs.inputspec.output_filename = &#39;mni_harvard_oxford&#39;</span>
+<span class="sd">    &gt;&gt;&gt; transform_atlas_to_EPI.inputs.inputspec.atlas =  &#39;/usr/local/fsl/data/atlases/HarvardOxford/HarvardOxford-sub-maxprob-thr50-2mm.nii.gz&#39;</span>
+<span class="sd">    &gt;&gt;&gt; transform_atlas_to_EPI.inputs.inputspec.reg_file =  full path to opd /reg/feat/standard2example_func.mat</span>
+
+<span class="sd"> </span>
+<span class="sd">    Inputs::</span>
+<span class="sd">          inputspec.EPI_space_file : EPI session file</span>
+<span class="sd">          inputspec.reg_file : standard2example_func.mat</span>
+<span class="sd">          inputspec.output_directory : output directory in which a subfolder </span>
+<span class="sd">                                        with the name of label_directory is placed.</span>
+<span class="sd">          inputspec.output_filename : output filename</span>
+<span class="sd">          inputspec.atlas : full path to atlas file</span>
+<span class="sd">    Outputs::</span>
+<span class="sd">           outputspec.output_mask : the output masks that are created.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+    <span class="kn">import</span> <span class="nn">glob</span>
+    <span class="kn">import</span> <span class="nn">nipype.pipeline</span> <span class="k">as</span> <span class="nn">pe</span>
+    <span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="k">import</span> <span class="n">fsl</span>
+    <span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="k">import</span> <span class="n">freesurfer</span>
+    <span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">Function</span><span class="p">,</span> <span class="n">IdentityInterface</span><span class="p">,</span> <span class="n">Merge</span>
+    <span class="kn">import</span> <span class="nn">nipype.interfaces.io</span> <span class="k">as</span> <span class="nn">nio</span>
+
+    <span class="c1">### NODES</span>
+    <span class="n">input_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;EPI_space_file&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;output_filename&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;atlas&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;reg_file&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputspec&#39;</span><span class="p">)</span>
+    <span class="n">output_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;output_mask&#39;</span><span class="p">)),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputspec&#39;</span><span class="p">)</span>
+
+    <span class="n">vol_trans_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">ApplyXfm</span><span class="p">(</span><span class="n">apply_xfm</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">interp</span> <span class="o">=</span> <span class="s1">&#39;sinc&#39;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;vol_trans&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># actual workflow</span>
+    <span class="c1">########################################################################################</span>
+
+    <span class="n">transform_atlas_to_EPI_workflow</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="n">transform_atlas_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;atlas&#39;</span><span class="p">,</span> <span class="n">vol_trans_node</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">transform_atlas_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;reg_file&#39;</span><span class="p">,</span> <span class="n">vol_trans_node</span><span class="p">,</span> <span class="s1">&#39;in_matrix_file&#39;</span><span class="p">)</span>
+    <span class="n">transform_atlas_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;EPI_space_file&#39;</span><span class="p">,</span> <span class="n">vol_trans_node</span><span class="p">,</span> <span class="s1">&#39;reference&#39;</span><span class="p">)</span>
+
+    <span class="n">transform_atlas_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">vol_trans_node</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;output_mask&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># outputs via datasink</span>
+    <span class="c1">########################################################################################</span>
+    <span class="n">datasink</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">nio</span><span class="o">.</span><span class="n">DataSink</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sinker&#39;</span><span class="p">)</span>
+
+    <span class="c1"># first link the workflow&#39;s output_directory into the datasink.</span>
+    <span class="n">transform_atlas_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;base_directory&#39;</span><span class="p">)</span>
+    <span class="c1"># and the rest</span>
+    <span class="n">transform_atlas_to_EPI_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">vol_trans_node</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;roi.atlas&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">transform_atlas_to_EPI_workflow</span></div>
+
+
+<div class="viewcode-block" id="create_masks_from_surface_workflow"><a class="viewcode-back" href="../../../source/spynoza.masking.workflows.html#spynoza.masking.workflows.create_masks_from_surface_workflow">[docs]</a><span class="k">def</span> <span class="nf">create_masks_from_surface_workflow</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;masks_from_surface&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates EPI space masks from surface labels</span>
+<span class="sd">    Requires fsl and freesurfer tools</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : string</span>
+<span class="sd">        name of workflow</span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface = create_masks_from_surface_workflow(&#39;masks_from_surface&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.EPI_space_file = &#39;example_func.nii.gz&#39;</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.label_directory = &#39;retmap&#39;</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.freesurfer_subject_ID = &#39;sub_01&#39;</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.freesurfer_subject_dir = &#39;$SUBJECTS_DIR&#39;</span>
+<span class="sd">    </span>
+<span class="sd">    from spynoza.workflows.sub_workflows.masks import create_masks_from_surface_workflow</span>
+<span class="sd">    mfs = create_masks_from_surface_workflow(name = &#39;mfs&#39;)</span>
+<span class="sd">    mfs.inputs.inputspec.freesurfer_subject_dir = &#39;/home/raw_data/-2014/reward/human_reward/data/FS_SJID&#39;</span>
+<span class="sd">    mfs.inputs.inputspec.label_directory = &#39;retmap&#39;</span>
+<span class="sd">    mfs.inputs.inputspec.EPI_space_file = &#39;/home/shared/-2014/reward/new/sub-002/reg/example_func.nii.gz&#39;</span>
+<span class="sd">    mfs.inputs.inputspec.output_directory = &#39;/home/shared/-2014/reward/new/sub-002/masks/&#39;</span>
+<span class="sd">    mfs.inputs.inputspec.freesurfer_subject_ID = &#39;sub-002&#39;</span>
+<span class="sd">    mfs.inputs.inputspec.reg_file = &#39;/home/shared/-2014/reward/new/sub-002/reg/register.dat&#39;</span>
+<span class="sd">    mfs.inputs.inputspec.fill_thresh = 0.01</span>
+<span class="sd">    mfs.inputs.inputspec.re = &#39;*.label&#39;</span>
+<span class="sd">    mfs.run(&#39;MultiProc&#39;, plugin_args={&#39;n_procs&#39;: 32})</span>
+
+
+<span class="sd">    Inputs::</span>
+<span class="sd">          inputspec.EPI_space_file : EPI session file</span>
+<span class="sd">          inputspec.reg_file : EPI session registration file</span>
+<span class="sd">          inputspec.re : regular expression for the </span>
+<span class="sd">          inputspec.fill_thresh :  label2vol fill threshold argument</span>
+<span class="sd">          inputspec.freesurfer_subject_ID : FS subject ID</span>
+<span class="sd">          inputspec.freesurfer_subject_dir : $SUBJECTS_DIR</span>
+<span class="sd">          inputspec.label_directory : directory that contains the labels in &#39;label&#39;</span>
+<span class="sd">          inputspec.output_directory : output directory in which a subfolder </span>
+<span class="sd">                                        with the name of label_directory is placed.</span>
+<span class="sd">    Outputs::</span>
+<span class="sd">           outputspec.output_masks : the output masks that are created.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">### NODES</span>
+    <span class="kn">import</span> <span class="nn">nipype.pipeline</span> <span class="k">as</span> <span class="nn">pe</span>
+    <span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">Function</span><span class="p">,</span> <span class="n">IdentityInterface</span><span class="p">,</span> <span class="n">Merge</span>
+    <span class="kn">import</span> <span class="nn">nipype.interfaces.io</span> <span class="k">as</span> <span class="nn">nio</span>
+    <span class="kn">import</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">as</span> <span class="nn">niu</span>
+    <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+
+    <span class="n">input_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;EPI_space_file&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;freesurfer_subject_ID&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;freesurfer_subject_dir&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;label_directory&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;reg_file&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;fill_thresh&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;re&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputspec&#39;</span><span class="p">)</span>
+    <span class="n">output_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">([</span>
+        <span class="s1">&#39;masks&#39;</span><span class="p">])),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputspec&#39;</span><span class="p">)</span>
+
+    <span class="c1"># housekeeping function for finding label files in FS directory</span>
+    <span class="n">FS_label_list_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">FS_label_list_glob</span><span class="p">,</span>
+                                 <span class="n">name</span><span class="o">=</span><span class="s1">&#39;FS_label_list_node&#39;</span><span class="p">)</span>
+
+    <span class="n">label_2_vol_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">freesurfer</span><span class="o">.</span><span class="n">Label2Vol</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;l2v&#39;</span><span class="p">,</span>
+                                <span class="n">iterfield</span> <span class="o">=</span> <span class="s1">&#39;label_file&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># actual workflow</span>
+    <span class="c1">########################################################################################</span>
+
+    <span class="n">masks_from_surface_workflow</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;freesurfer_subject_ID&#39;</span><span class="p">,</span> <span class="n">FS_label_list_node</span><span class="p">,</span> <span class="s1">&#39;freesurfer_subject_ID&#39;</span><span class="p">)</span>    
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;freesurfer_subject_dir&#39;</span><span class="p">,</span> <span class="n">FS_label_list_node</span><span class="p">,</span> <span class="s1">&#39;freesurfer_subject_dir&#39;</span><span class="p">)</span>
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;label_directory&#39;</span><span class="p">,</span> <span class="n">FS_label_list_node</span><span class="p">,</span> <span class="s1">&#39;label_directory&#39;</span><span class="p">)</span>
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;re&#39;</span><span class="p">,</span> <span class="n">FS_label_list_node</span><span class="p">,</span> <span class="s1">&#39;re&#39;</span><span class="p">)</span>
+
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;reg_file&#39;</span><span class="p">,</span> <span class="n">label_2_vol_node</span><span class="p">,</span> <span class="s1">&#39;reg_file&#39;</span><span class="p">)</span>
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;EPI_space_file&#39;</span><span class="p">,</span> <span class="n">label_2_vol_node</span><span class="p">,</span> <span class="s1">&#39;template_file&#39;</span><span class="p">)</span>
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;fill_thresh&#39;</span><span class="p">,</span> <span class="n">label_2_vol_node</span><span class="p">,</span> <span class="s1">&#39;fill_thresh&#39;</span><span class="p">)</span>
+
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;freesurfer_subject_dir&#39;</span><span class="p">,</span> <span class="n">label_2_vol_node</span><span class="p">,</span> <span class="s1">&#39;subjects_dir&#39;</span><span class="p">)</span>
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;freesurfer_subject_ID&#39;</span><span class="p">,</span> <span class="n">label_2_vol_node</span><span class="p">,</span> <span class="s1">&#39;subject_id&#39;</span><span class="p">)</span>
+
+    <span class="c1"># and the iter field filled in from the label collection node</span>
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">FS_label_list_node</span><span class="p">,</span> <span class="s1">&#39;label_list&#39;</span><span class="p">,</span> <span class="n">label_2_vol_node</span><span class="p">,</span> <span class="s1">&#39;label_file&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># outputs via datasink</span>
+    <span class="c1">########################################################################################</span>
+    <span class="n">datasink</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">nio</span><span class="o">.</span><span class="n">DataSink</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sinker&#39;</span><span class="p">)</span>
+    <span class="n">datasink</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">parameterization</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># first link the workflow&#39;s output_directory into the datasink.</span>
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;base_directory&#39;</span><span class="p">)</span>
+
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">label_2_vol_node</span><span class="p">,</span> <span class="s1">&#39;vol_label_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;roi&#39;</span><span class="p">)</span>
+    <span class="n">masks_from_surface_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">label_2_vol_node</span><span class="p">,</span> <span class="s1">&#39;vol_label_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;masks&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">masks_from_surface_workflow</span></div>
+
+
+
+<div class="viewcode-block" id="create_fast2mask_workflow"><a class="viewcode-back" href="../../../source/spynoza.masking.workflows.html#spynoza.masking.workflows.create_fast2mask_workflow">[docs]</a><span class="k">def</span> <span class="nf">create_fast2mask_workflow</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;fast2mask&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Performs tissue segmentation FSL-Fast from T1, and transforms the resulting</span>
+<span class="sd">    masks to EPI space masks. Assumes T1 anatomical for now.</span>
+<span class="sd">    Requires fsl</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : string</span>
+<span class="sd">        name of workflow</span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface = create_fast2mask_workflow(&#39;fast2mask&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.EPI_space_file = &#39;example_func.nii.gz&#39;</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.anatomical_file = &#39;retmap&#39;</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.output_directory = &#39;sub_01&#39;</span>
+<span class="sd">    &gt;&gt;&gt; masks_from_surface.inputs.inputspec.registration_matrix_file = &#39;highres2example_func.nii.gz&#39;</span>
+<span class="sd"> </span>
+<span class="sd">    Inputs::</span>
+<span class="sd">          inputspec.EPI_space_file : EPI session file</span>
+<span class="sd">          inputspec.anatomical_file : EPI session registration file</span>
+<span class="sd">          inputspec.registration_matrix_file :  FSL style registration matrix, from anatomical to EPI space</span>
+<span class="sd">          inputspec.output_directory : output directory in which a subfolder </span>
+<span class="sd">                                        with the name of label_directory is placed.</span>
+<span class="sd">    Outputs::</span>
+<span class="sd">           outputspec.output_masks : the output masks that are created.</span>
+<span class="sd">           outputspec.EPI_T1_matrix_file : FLIRT registration file that maps EPI space to T1</span>
+<span class="sd">           outputspec.T1_EPI_matrix_file : FLIRT registration file that maps T1 space to EPI</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">### NODES</span>
+    <span class="n">input_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;EPI_space_file&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;anatomical_file&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;registration_matrix_file&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputspec&#39;</span><span class="p">)</span>
+    <span class="n">output_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out_files&#39;</span><span class="p">)),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputspec&#39;</span><span class="p">)</span>
+
+    <span class="n">fast_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">FAST</span><span class="p">(</span><span class="n">img_type</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">probability_maps</span> <span class="o">=</span> <span class="kc">True</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
+
+    <span class="n">fast_output_merge_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">Merge</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">infields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;prob&#39;</span><span class="p">])</span>
+
+    <span class="n">apply_xfm_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">fsl</span><span class="o">.</span><span class="n">ApplyXfm</span><span class="p">(</span><span class="n">apply_xfm</span> <span class="o">=</span> <span class="kc">True</span><span class="p">),</span> <span class="n">iterfield</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">])</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># actual workflow</span>
+    <span class="c1">########################################################################################</span>
+
+    <span class="n">fast2mask_workflow</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="n">fast2mask_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;anatomical_file&#39;</span><span class="p">,</span> <span class="n">fast_node</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">)</span>
+
+    <span class="n">fast2mask_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">fast_node</span><span class="p">,</span> <span class="s1">&#39;probability_maps&#39;</span><span class="p">,</span> <span class="n">fast_output_merge_node</span><span class="p">,</span> <span class="s1">&#39;prob&#39;</span><span class="p">)</span>
+    <span class="n">fast2mask_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">fast_node</span><span class="p">,</span> <span class="s1">&#39;tissue_class_files&#39;</span><span class="p">,</span> <span class="n">fast_output_merge_node</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">)</span>
+
+    <span class="n">fast2mask_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">fast_output_merge_node</span><span class="p">,</span> <span class="s1">&#39;out_files&#39;</span><span class="p">,</span> <span class="n">apply_xfm_node</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">fast2mask_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;registration_matrix_file&#39;</span><span class="p">,</span> <span class="n">apply_xfm_node</span><span class="p">,</span> <span class="s1">&#39;in_matrix_file&#39;</span><span class="p">)</span>
+    <span class="n">fast2mask_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;EPI_space_file&#39;</span><span class="p">,</span> <span class="n">apply_xfm_node</span><span class="p">,</span> <span class="s1">&#39;reference&#39;</span><span class="p">)</span>
+
+    <span class="n">fast2mask_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">apply_xfm_node</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;out_files&#39;</span><span class="p">)</span>
+
+   <span class="c1">########################################################################################</span>
+    <span class="c1"># outputs via datasink</span>
+    <span class="c1">########################################################################################</span>
+    <span class="n">datasink</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">nio</span><span class="o">.</span><span class="n">DataSink</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sinker&#39;</span><span class="p">)</span>
+    <span class="n">datasink</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">parameterization</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># first link the workflow&#39;s output_directory into the datasink.</span>
+    <span class="n">fast2mask_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;base_directory&#39;</span><span class="p">)</span>
+    <span class="n">fast2mask_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;sub_id&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;container&#39;</span><span class="p">)</span>
+    <span class="c1"># and the rest</span>
+    <span class="n">fast2mask_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">apply_xfm_node</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;masks.fast&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fast2mask_workflow</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

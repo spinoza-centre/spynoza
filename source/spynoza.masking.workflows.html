@@ -1,0 +1,405 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.masking.workflows module &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="spynoza.masking package" href="spynoza.masking.html"/>
+        <link rel="next" title="spynoza.meta_workflows package" href="spynoza.meta_workflows.html"/>
+        <link rel="prev" title="spynoza.masking.nodes module" href="spynoza.masking.nodes.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="spynoza.masking.html">spynoza.masking package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="spynoza.masking.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="spynoza.masking.nodes.html">spynoza.masking.nodes module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">spynoza.masking.workflows module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="spynoza.html">&lt;no title&gt;</a> &raquo;</li>
+        
+          <li><a href="spynoza.masking.html">spynoza.masking package</a> &raquo;</li>
+        
+      <li>spynoza.masking.workflows module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/source/spynoza.masking.workflows.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-spynoza.masking.workflows">
+<span id="spynoza-masking-workflows-module"></span><h1>spynoza.masking.workflows module<a class="headerlink" href="#module-spynoza.masking.workflows" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="spynoza.masking.workflows.create_fast2mask_workflow">
+<code class="descname">create_fast2mask_workflow</code><span class="sig-paren">(</span><em>name='fast2mask'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/masking/workflows.html#create_fast2mask_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.masking.workflows.create_fast2mask_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs tissue segmentation FSL-Fast from T1, and transforms the resulting
+masks to EPI space masks. Assumes T1 anatomical for now.
+Requires fsl
+:param name: name of workflow
+:type name: string</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span> <span class="o">=</span> <span class="n">create_fast2mask_workflow</span><span class="p">(</span><span class="s1">&#39;fast2mask&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">EPI_space_file</span> <span class="o">=</span> <span class="s1">&#39;example_func.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">anatomical_file</span> <span class="o">=</span> <span class="s1">&#39;retmap&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">output_directory</span> <span class="o">=</span> <span class="s1">&#39;sub_01&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">registration_matrix_file</span> <span class="o">=</span> <span class="s1">&#39;highres2example_func.nii.gz&#39;</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Inputs::</dt>
+<dd><p class="first">inputspec.EPI_space_file : EPI session file
+inputspec.anatomical_file : EPI session registration file
+inputspec.registration_matrix_file :  FSL style registration matrix, from anatomical to EPI space
+inputspec.output_directory : output directory in which a subfolder</p>
+<blockquote class="last">
+<div>with the name of label_directory is placed.</div></blockquote>
+</dd>
+<dt>Outputs::</dt>
+<dd>outputspec.output_masks : the output masks that are created.
+outputspec.EPI_T1_matrix_file : FLIRT registration file that maps EPI space to T1
+outputspec.T1_EPI_matrix_file : FLIRT registration file that maps T1 space to EPI</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.masking.workflows.create_masks_from_surface_workflow">
+<code class="descname">create_masks_from_surface_workflow</code><span class="sig-paren">(</span><em>name='masks_from_surface'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/masking/workflows.html#create_masks_from_surface_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.masking.workflows.create_masks_from_surface_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates EPI space masks from surface labels
+Requires fsl and freesurfer tools
+:param name: name of workflow
+:type name: string</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span> <span class="o">=</span> <span class="n">create_masks_from_surface_workflow</span><span class="p">(</span><span class="s1">&#39;masks_from_surface&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">EPI_space_file</span> <span class="o">=</span> <span class="s1">&#39;example_func.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">label_directory</span> <span class="o">=</span> <span class="s1">&#39;retmap&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">freesurfer_subject_ID</span> <span class="o">=</span> <span class="s1">&#39;sub_01&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">freesurfer_subject_dir</span> <span class="o">=</span> <span class="s1">&#39;$SUBJECTS_DIR&#39;</span>
+</pre></div>
+</div>
+<p>from spynoza.workflows.sub_workflows.masks import create_masks_from_surface_workflow
+mfs = create_masks_from_surface_workflow(name = &#8216;mfs&#8217;)
+mfs.inputs.inputspec.freesurfer_subject_dir = &#8216;/home/raw_data/-2014/reward/human_reward/data/FS_SJID&#8217;
+mfs.inputs.inputspec.label_directory = &#8216;retmap&#8217;
+mfs.inputs.inputspec.EPI_space_file = &#8216;/home/shared/-2014/reward/new/sub-002/reg/example_func.nii.gz&#8217;
+mfs.inputs.inputspec.output_directory = &#8216;/home/shared/-2014/reward/new/sub-002/masks/&#8217;
+mfs.inputs.inputspec.freesurfer_subject_ID = &#8216;sub-002&#8217;
+mfs.inputs.inputspec.reg_file = &#8216;/home/shared/-2014/reward/new/sub-002/reg/register.dat&#8217;
+mfs.inputs.inputspec.fill_thresh = 0.01
+mfs.inputs.inputspec.re = &#8216;<a href="#id1"><span class="problematic" id="id2">*</span></a>.label&#8217;
+mfs.run(&#8216;MultiProc&#8217;, plugin_args={&#8216;n_procs&#8217;: 32})</p>
+<dl class="docutils">
+<dt>Inputs::</dt>
+<dd><p class="first">inputspec.EPI_space_file : EPI session file
+inputspec.reg_file : EPI session registration file
+inputspec.re : regular expression for the
+inputspec.fill_thresh :  label2vol fill threshold argument
+inputspec.freesurfer_subject_ID : FS subject ID
+inputspec.freesurfer_subject_dir : $SUBJECTS_DIR
+inputspec.label_directory : directory that contains the labels in &#8216;label&#8217;
+inputspec.output_directory : output directory in which a subfolder</p>
+<blockquote class="last">
+<div>with the name of label_directory is placed.</div></blockquote>
+</dd>
+<dt>Outputs::</dt>
+<dd>outputspec.output_masks : the output masks that are created.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.masking.workflows.create_transform_aseg_to_EPI_workflow">
+<code class="descname">create_transform_aseg_to_EPI_workflow</code><span class="sig-paren">(</span><em>name='transform_aseg_to_EPI'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/masking/workflows.html#create_transform_aseg_to_EPI_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.masking.workflows.create_transform_aseg_to_EPI_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms freesurfer volume-aseg to EPI space and dumps it in the masks folder
+Requires fsl and freesurfer tools
+:param name: name of workflow
+:type name: string</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span> <span class="o">=</span> <span class="n">create_transform_aseg_to_EPI_workflow</span><span class="p">(</span><span class="s1">&#39;transform_aseg_to_EPI&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">EPI_space_file</span> <span class="o">=</span> <span class="s1">&#39;example_func.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">label_directory</span> <span class="o">=</span> <span class="s1">&#39;retmap&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">freesurfer_subject_ID</span> <span class="o">=</span> <span class="s1">&#39;sub_01&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">freesurfer_subject_dir</span> <span class="o">=</span> <span class="s1">&#39;$SUBJECTS_DIR&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks_from_surface</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">aseg</span> <span class="o">=</span>  <span class="s1">&#39;aparc.a2009s+aseg.mgz&#39;</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Inputs::</dt>
+<dd><p class="first">inputspec.EPI_space_file : EPI session file
+inputspec.reg_file : EPI session registration file
+inputspec.re : regular expression for the
+inputspec.fill_thresh :  label2vol fill threshold argument
+inputspec.freesurfer_subject_ID : FS subject ID
+inputspec.freesurfer_subject_dir : $SUBJECTS_DIR
+inputspec.label_directory : directory that contains the labels in &#8216;label&#8217;
+inputspec.output_directory : output directory in which a subfolder</p>
+<blockquote class="last">
+<div>with the name of label_directory is placed.</div></blockquote>
+</dd>
+<dt>Outputs::</dt>
+<dd>outputspec.output_masks : the output masks that are created.
+outputspec.EPI_T1_matrix_file : FLIRT registration file that maps EPI space to T1
+outputspec.T1_EPI_matrix_file : FLIRT registration file that maps T1 space to EPI</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.masking.workflows.create_transform_atlas_to_EPI_workflow">
+<code class="descname">create_transform_atlas_to_EPI_workflow</code><span class="sig-paren">(</span><em>name='transform_atlas_to_EPI'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/masking/workflows.html#create_transform_atlas_to_EPI_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.masking.workflows.create_transform_atlas_to_EPI_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms MNI-based volume-atlas to EPI space and dumps it in the masks folder.
+As this does not split up the file according to the values, this will work also for
+MNI-based single ROI definitions.
+Requires fsl tools
+:param name: name of workflow
+:type name: string</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">transform_atlas_to_EPI</span> <span class="o">=</span> <span class="n">create_transform_aseg_to_EPI_workflow</span><span class="p">(</span><span class="s1">&#39;transform_aseg_to_EPI&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_atlas_to_EPI</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">EPI_space_file</span> <span class="o">=</span> <span class="s1">&#39;example_func.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_atlas_to_EPI</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">output_directory</span> <span class="o">=</span> <span class="n">full</span> <span class="n">path</span> <span class="n">to</span> <span class="n">opd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_atlas_to_EPI</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">output_filename</span> <span class="o">=</span> <span class="s1">&#39;mni_harvard_oxford&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_atlas_to_EPI</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">atlas</span> <span class="o">=</span>  <span class="s1">&#39;/usr/local/fsl/data/atlases/HarvardOxford/HarvardOxford-sub-maxprob-thr50-2mm.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_atlas_to_EPI</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">reg_file</span> <span class="o">=</span>  <span class="n">full</span> <span class="n">path</span> <span class="n">to</span> <span class="n">opd</span> <span class="o">/</span><span class="n">reg</span><span class="o">/</span><span class="n">feat</span><span class="o">/</span><span class="n">standard2example_func</span><span class="o">.</span><span class="n">mat</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Inputs::</dt>
+<dd><p class="first">inputspec.EPI_space_file : EPI session file
+inputspec.reg_file : standard2example_func.mat
+inputspec.output_directory : output directory in which a subfolder</p>
+<blockquote>
+<div>with the name of label_directory is placed.</div></blockquote>
+<p class="last">inputspec.output_filename : output filename
+inputspec.atlas : full path to atlas file</p>
+</dd>
+<dt>Outputs::</dt>
+<dd>outputspec.output_mask : the output masks that are created.</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="spynoza.meta_workflows.html" class="btn btn-neutral float-right" title="spynoza.meta_workflows package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="spynoza.masking.nodes.html" class="btn btn-neutral" title="spynoza.masking.nodes module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

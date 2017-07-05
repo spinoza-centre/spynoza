@@ -1,0 +1,629 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.utils &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>spynoza.utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for spynoza.utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">nipype.pipeline</span> <span class="k">as</span> <span class="nn">pe</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">Function</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="set_postfix"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.set_postfix">[docs]</a><span class="k">def</span> <span class="nf">set_postfix</span><span class="p">(</span><span class="n">in_file</span><span class="p">,</span> <span class="n">postfix</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets a postfix identifier for a specific filename. &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+    <span class="k">return</span> <span class="n">op</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.nii.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">postfix</span><span class="p">)</span></div>
+
+<span class="n">Set_postfix</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">set_postfix</span><span class="p">,</span>
+                        <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="s1">&#39;postfix&#39;</span><span class="p">],</span>
+                        <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="remove_extension"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.remove_extension">[docs]</a><span class="k">def</span> <span class="nf">remove_extension</span><span class="p">(</span><span class="n">in_file</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s1">&#39;.nii.gz&#39;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">in_file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">extension</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
+
+
+<span class="n">Remove_extension</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">remove_extension</span><span class="p">,</span>
+                            <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="s1">&#39;extension&#39;</span><span class="p">],</span>
+                            <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="set_parameters_in_nodes"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.set_parameters_in_nodes">[docs]</a><span class="k">def</span> <span class="nf">set_parameters_in_nodes</span><span class="p">(</span><span class="n">workflow</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets parameters in nodes of a workflow.</span>
+<span class="sd">    </span>
+<span class="sd">    This function sets parameters of nodes in a workflow. It takes a variable amount of</span>
+<span class="sd">    keyword-arguments, which should take the form of `&#39;node_name&#39;={&#39;parameter&#39;: value_to_set}.</span>
+<span class="sd">    A cool feature of this function is that it checks whether the node (node_name) is contained</span>
+<span class="sd">    in a sub-workflow (or sub-sub-workflow, etc.) using a recursive call to itself.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    workflow : a Nipype workflow object</span>
+<span class="sd">        The workflow in which the nodes need to be altered.</span>
+<span class="sd">    **kwargs : key-word arguments</span>
+<span class="sd">        A variable amount of keyword-arguments (dicts) which take the form of</span>
+<span class="sd">        &#39;node_name&#39;: {&#39;parameter&#39;: value_to_set}.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">options</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+        <span class="c1"># Which nodes (or sub-workflows) are contained in the workflow?</span>
+        <span class="n">available_nodes</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">list_node_names</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">available_nodes</span><span class="p">:</span>
+            <span class="c1"># If it matches exactly (i.e. not a sub-workflow), get it</span>
+            <span class="n">node_inst</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">node</span> <span class="ow">in</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">available_nodes</span><span class="p">]:</span>
+            <span class="c1"># Probably a sub-workflow --&gt; get ready to input this sub-wf to the function itself</span>
+            <span class="n">sub_wf_name</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">available_nodes</span> <span class="k">if</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">n</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">sub_wf</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">sub_wf_name</span><span class="p">)</span>
+            <span class="n">sub_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">node</span><span class="p">:</span> <span class="n">options</span><span class="p">}</span>
+
+            <span class="c1"># Recursive call to itself</span>
+            <span class="n">sub_wf</span> <span class="o">=</span> <span class="n">set_parameters_in_nodes</span><span class="p">(</span><span class="n">sub_wf</span><span class="p">,</span> <span class="o">**</span><span class="n">sub_kwargs</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">workflow</span><span class="p">,</span> <span class="n">sub_wf_name</span><span class="p">,</span> <span class="n">sub_wf</span><span class="p">)</span>  <span class="c1"># update workflow with updated sub_wf</span>
+            <span class="k">continue</span>  <span class="c1"># skip the rest</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;You want to set parameter(s) in node &#39;</span><span class="si">%s</span><span class="s2">&#39; in workflow &#39;</span><span class="si">%s</span><span class="s2">&#39; &quot;</span>
+                   <span class="s2">&quot;but this node doesn&#39;t seem to exist. Known nodes: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span>
+                   <span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">workflow</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">available_nodes</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># Loop over options {parameter: value pairs} of node-instance</span>
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+            <span class="n">available_params</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">node_inst</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+            <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">available_params</span><span class="p">:</span>
+                <span class="c1"># Set input if param exists</span>
+                <span class="n">node_inst</span><span class="o">.</span><span class="n">set_input</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;You want to set the parameter &#39;</span><span class="si">%s</span><span class="s2">&#39; in node &#39;</span><span class="si">%s</span><span class="s2">&#39; but &quot;</span>
+                       <span class="s2">&quot;this parameter doesn&#39;t exist in this node. Known &quot;</span>
+                       <span class="s2">&quot;parameters: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">available_params</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># update workflow with updated node-instance</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">workflow</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">node_inst</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">workflow</span></div>
+
+
+<div class="viewcode-block" id="extract_task"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.extract_task">[docs]</a><span class="k">def</span> <span class="nf">extract_task</span><span class="p">(</span><span class="n">in_file</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+    <span class="n">task_name</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">in_file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;task-&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">task_name</span></div>
+
+
+<span class="n">Extract_task</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">extract_task</span><span class="p">,</span>
+                        <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">],</span>
+                        <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;task_name&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="join_datasink_base"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.join_datasink_base">[docs]</a><span class="k">def</span> <span class="nf">join_datasink_base</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+<span class="n">Join_datasink_base</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">join_datasink_base</span><span class="p">,</span>
+                              <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;base&#39;</span><span class="p">,</span> <span class="s1">&#39;ext&#39;</span><span class="p">],</span>
+                              <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="epi_file_selector"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.epi_file_selector">[docs]</a><span class="k">def</span> <span class="nf">epi_file_selector</span><span class="p">(</span><span class="n">which_file</span><span class="p">,</span> <span class="n">in_files</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Selects which EPI file will be the standard EPI space.</span>
+<span class="sd">    Choices are: &#39;middle&#39;, &#39;last&#39;, &#39;first&#39;, or any integer in the list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">math</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+
+    <span class="k">if</span> <span class="n">which_file</span> <span class="o">==</span> <span class="s1">&#39;middle&#39;</span><span class="p">:</span>  <span class="c1"># middle from the list</span>
+        <span class="k">return</span> <span class="n">in_files</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">in_files</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))]</span>
+    <span class="k">elif</span> <span class="n">which_file</span> <span class="o">==</span> <span class="s1">&#39;first&#39;</span><span class="p">:</span>  <span class="c1"># first from the list</span>
+        <span class="k">return</span> <span class="n">in_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">which_file</span> <span class="o">==</span> <span class="s1">&#39;last&#39;</span><span class="p">:</span>  <span class="c1"># last from the list</span>
+        <span class="k">return</span> <span class="n">in_files</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">which_file</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>  <span class="c1"># the xth from the list</span>
+        <span class="k">return</span> <span class="n">in_files</span><span class="p">[</span><span class="n">which_file</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">which_file</span><span class="p">):</span>  <span class="c1"># take another file, not from the list</span>
+        <span class="k">return</span> <span class="n">which_file</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;value of which_file, </span><span class="si">%s</span><span class="s1">, doesn</span><span class="se">\&#39;</span><span class="s1">t allow choosing an actual file.&#39;</span>
+               <span class="o">%</span> <span class="n">which_file</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<span class="n">EPI_file_selector</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">epi_file_selector</span><span class="p">,</span>
+                             <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;which_file&#39;</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">],</span>
+                             <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="pick_last"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.pick_last">[docs]</a><span class="k">def</span> <span class="nf">pick_last</span><span class="p">(</span><span class="n">in_files</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">in_files</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">in_files</span></div>
+
+
+<div class="viewcode-block" id="get_scaninfo"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.get_scaninfo">[docs]</a><span class="k">def</span> <span class="nf">get_scaninfo</span><span class="p">(</span><span class="n">in_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Extracts info from nifti file.</span>
+
+<span class="sd">    Extracts affine, shape (x, y, z, t), dynamics (t), voxel-size and TR from</span>
+<span class="sd">    a given nifti-file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    in_file : nifti-file (.nii.gz or .nii)</span>
+<span class="sd">        Nifti file to extract info from.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TR : float</span>
+<span class="sd">        Temporal resolution of functional scan</span>
+<span class="sd">    shape : tuple</span>
+<span class="sd">        Dimensions of scan (x, y, z, time)</span>
+<span class="sd">    dyns : int</span>
+<span class="sd">        Number of dynamics (time)</span>
+<span class="sd">    voxsize : tuple</span>
+<span class="sd">        Size of voxels (x, y, z = slice thickness)</span>
+<span class="sd">    affine : np.ndarray</span>
+<span class="sd">        Affine matrix.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+
+    <span class="n">nifti</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span>
+    <span class="n">affine</span> <span class="o">=</span> <span class="n">nifti</span><span class="o">.</span><span class="n">affine</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">nifti</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">dyns</span> <span class="o">=</span> <span class="n">nifti</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">voxsize</span> <span class="o">=</span> <span class="n">nifti</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;pixdim&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">TR</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">nifti</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;pixdim&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">TR</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dyns</span><span class="p">,</span> <span class="n">voxsize</span><span class="p">,</span> <span class="n">affine</span></div>
+
+
+<span class="n">Get_scaninfo</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">get_scaninfo</span><span class="p">,</span>
+                        <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">],</span>
+                        <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;TR&#39;</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">,</span> <span class="s1">&#39;dyns&#39;</span><span class="p">,</span> <span class="s1">&#39;voxsize&#39;</span><span class="p">,</span>
+                                      <span class="s1">&#39;affine&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="dyns_min_1"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.dyns_min_1">[docs]</a><span class="k">def</span> <span class="nf">dyns_min_1</span><span class="p">(</span><span class="n">dyns</span><span class="p">):</span>
+    <span class="n">dyns_1</span> <span class="o">=</span> <span class="n">dyns</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">dyns_1</span></div>
+
+
+<span class="n">Dyns_min_1</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">dyns_min_1</span><span class="p">,</span> <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dyns&#39;</span><span class="p">],</span>
+                      <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dyns_1&#39;</span><span class="p">])</span>
+
+<span class="c1"># ToDo: make concat_iterables work for arbitrary amount of iterables</span>
+<div class="viewcode-block" id="concat_iterables"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.concat_iterables">[docs]</a><span class="k">def</span> <span class="nf">concat_iterables</span><span class="p">(</span><span class="n">iterables</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Concatenates iterables (starting with subject).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    iterables : list</span>
+<span class="sd">        List of iterables to be concatenated into a path (e.g. after using</span>
+<span class="sd">        nipype Merge-node).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out_name : str</span>
+<span class="sd">        Concatenation of iterables</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+    <span class="k">return</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">iterables</span><span class="p">)</span></div>
+
+
+<span class="n">Concat_iterables</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">concat_iterables</span><span class="p">,</span>
+                            <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;iterables&#39;</span><span class="p">],</span>
+                            <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;concatenated_path&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="pickfirst"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.pickfirst">[docs]</a><span class="k">def</span> <span class="nf">pickfirst</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">files</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">files</span></div>
+
+<div class="viewcode-block" id="average_over_runs"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.average_over_runs">[docs]</a><span class="k">def</span> <span class="nf">average_over_runs</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts data in a nifti-file to percent signal change.</span>
+
+<span class="sd">    Takes a list of 4D fMRI nifti-files and averages them.</span>
+<span class="sd">    That is, the resulting file has the same dimensions as each</span>
+<span class="sd">    of the input files. average_over_runs assumes that all nifti</span>
+<span class="sd">    files to be averaged have identical dimensions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    in_files : list</span>
+<span class="sd">        Absolute paths to nifti-files.</span>
+<span class="sd">    func : string [&#39;mean&#39;, &#39;median&#39;] (default: &#39;mean&#39;)</span>
+<span class="sd">        the function used to calculate the &#39;average&#39;</span>
+<span class="sd">    output_filename : str</span>
+<span class="sd">        path to output filename</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out_file : str</span>
+<span class="sd">        Absolute path to average nifti-file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+    <span class="kn">import</span> <span class="nn">bottleneck</span> <span class="k">as</span> <span class="nn">bn</span>
+
+    <span class="n">template_data</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">in_files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="n">template_data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">affine</span> <span class="o">=</span> <span class="n">template_data</span><span class="o">.</span><span class="n">affine</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">template_data</span><span class="o">.</span><span class="n">header</span>
+    <span class="n">all_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">in_files</span><span class="p">)]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">in_files</span><span class="p">)):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">in_files</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">all_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">func</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
+        <span class="n">av_data</span> <span class="o">=</span> <span class="n">all_data</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">func</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
+        <span class="c1"># weird reshape operation which hopeully fixes an issue in which</span>
+        <span class="c1"># np.median hogs memory and lasts amazingly long</span>
+        <span class="n">all_data</span> <span class="o">=</span> <span class="n">all_data</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">in_files</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">av_data</span> <span class="o">=</span> <span class="n">bn</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">(</span><span class="n">all_data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">av_data</span> <span class="o">=</span> <span class="n">av_data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
+
+    <span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">av_data</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_filename</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">new_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">in_files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span>
+                       <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_av.nii.gz&#39;</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">new_name</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">output_filename</span><span class="p">)</span>
+    <span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">out_file</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">out_file</span></div>
+
+
+<span class="n">Average_over_runs</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">average_over_runs</span><span class="p">,</span>
+                             <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_files&#39;</span><span class="p">,</span> <span class="s1">&#39;func&#39;</span><span class="p">,</span>
+                                          <span class="s1">&#39;output_filename&#39;</span><span class="p">],</span>
+                             <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="pickle_to_json"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.pickle_to_json">[docs]</a><span class="k">def</span> <span class="nf">pickle_to_json</span><span class="p">(</span><span class="n">in_file</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">json</span>
+    <span class="kn">import</span> <span class="nn">jsonpickle</span>
+    <span class="kn">import</span> <span class="nn">pickle</span>
+    <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">in_file</span><span class="p">,</span> <span class="s1">&#39;rU&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">jsp</span> <span class="o">=</span> <span class="n">jsonpickle</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+
+    <span class="n">out_file</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">in_file</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.json&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">jsp</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">out_file</span></div>
+
+
+<span class="n">Pickle_to_json</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">pickle_to_json</span><span class="p">,</span>
+                          <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">],</span>
+                          <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="set_nifti_intercept_slope"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.set_nifti_intercept_slope">[docs]</a><span class="k">def</span> <span class="nf">set_nifti_intercept_slope</span><span class="p">(</span><span class="n">in_file</span><span class="p">,</span> <span class="n">intercept</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">slope</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">in_is_out</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the value-scaling intercept and slope in the nifti header.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    in_file : string</span>
+<span class="sd">        Absolute path to nifti-file.</span>
+<span class="sd">    intercept : float (default: 0), can be None for nan value</span>
+<span class="sd">        the intercept of the value scaling function</span>
+<span class="sd">    slope : float (default: 1), can be None for nan value</span>
+<span class="sd">        the slope of the value scaling function</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out_file : str</span>
+<span class="sd">        Absolute path to nifti-file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+
+    <span class="k">if</span> <span class="n">in_is_out</span><span class="p">:</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">in_file</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_si.nii.gz&#39;</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">set_slope_inter</span><span class="p">(</span><span class="n">slope</span><span class="o">=</span><span class="n">slope</span><span class="p">,</span> <span class="n">inter</span><span class="o">=</span><span class="n">intercept</span><span class="p">)</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">to_filename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">out_file</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">out_file</span></div>
+
+
+<span class="n">Set_nifti_intercept_slope</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">set_nifti_intercept_slope</span><span class="p">,</span>
+                                     <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="s1">&#39;intercept&#39;</span><span class="p">,</span>
+                                                  <span class="s1">&#39;slope&#39;</span><span class="p">,</span> <span class="s1">&#39;in_is_out&#39;</span><span class="p">],</span>
+                                     <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="split_4D_to_3D"><a class="viewcode-back" href="../../source/spynoza.utils.html#spynoza.utils.split_4D_to_3D">[docs]</a><span class="k">def</span> <span class="nf">split_4D_to_3D</span><span class="p">(</span><span class="n">in_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;split_4D_to_3D splits a single 4D file into a list of nifti files.</span>
+<span class="sd">    Because it splits the file at once, it&#39;s faster than fsl.ExtractROI</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    in_file : str</span>
+<span class="sd">        Absolute path to nifti-file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out_files : list</span>
+<span class="sd">        List of absolute paths to nifti-files.    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+    <span class="kn">import</span> <span class="nn">tempfile</span>
+
+    <span class="n">original_file</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span>
+    <span class="n">affine</span> <span class="o">=</span> <span class="n">original_file</span><span class="o">.</span><span class="n">affine</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">original_file</span><span class="o">.</span><span class="n">header</span>
+    <span class="n">dyns</span> <span class="o">=</span> <span class="n">original_file</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">original_file</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+    <span class="n">tempdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">()</span>
+    <span class="n">fn_base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">in_file</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">7</span><span class="p">]</span>  <span class="c1"># take off .nii.gz</span>
+
+    <span class="n">out_files</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dyns</span><span class="p">):</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">)</span>
+        <span class="n">opfn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempdir</span><span class="p">,</span> <span class="n">fn_base</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">.nii.gz&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+        <span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">opfn</span><span class="p">)</span>
+        <span class="n">out_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">opfn</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">out_files</span></div>
+
+
+<span class="n">Split_4D_to_3D</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">split_4D_to_3D</span><span class="p">,</span> <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">],</span>
+                          <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_files&#39;</span><span class="p">])</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.denoising.retroicor.workflows &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../../../index.html"/>
+        <link rel="up" title="Module code" href="../../../index.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>spynoza.denoising.retroicor.workflows</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for spynoza.denoising.retroicor.workflows</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">nipype.pipeline</span> <span class="k">as</span> <span class="nn">pe</span>
+<span class="kn">from</span> <span class="nn">.nodes.pnm</span> <span class="k">import</span> <span class="n">PreparePNM</span><span class="p">,</span> <span class="n">PNMtoEVs</span>
+<span class="kn">from</span> <span class="nn">.nodes.utils</span> <span class="k">import</span> <span class="p">(</span><span class="n">_distill_slice_times_from_gradients</span><span class="p">,</span>
+                          <span class="n">_preprocess_nii_files_to_pnm_evs_prefix</span><span class="p">,</span>
+                          <span class="n">_slice_times_to_txt_file</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">as</span> <span class="nn">niu</span>
+
+
+<div class="viewcode-block" id="create_retroicor_workflow"><a class="viewcode-back" href="../../../../source/spynoza.denoising.retroicor.workflows.html#spynoza.denoising.retroicor.workflows.create_retroicor_workflow">[docs]</a><span class="k">def</span> <span class="nf">create_retroicor_workflow</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;retroicor&#39;</span><span class="p">,</span> <span class="n">order_or_timing</span> <span class="o">=</span> <span class="s1">&#39;order&#39;</span><span class="p">):</span>
+    
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    </span>
+<span class="sd">    Creates RETROICOR regressors</span>
+<span class="sd">    </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    </span>
+<span class="sd">    Inputs::</span>
+<span class="sd">        inputnode.in_file - The .log file acquired together with EPI sequence</span>
+<span class="sd">    Outputs::</span>
+<span class="sd">        outputnode.regressor_files</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Define nodes:</span>
+    <span class="n">input_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_files&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;phys_files&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;nr_dummies&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;MB_factor&#39;</span><span class="p">,</span> 
+                                                    <span class="s1">&#39;tr&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;slice_direction&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;phys_sample_rate&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;slice_timing&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;slice_order&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;hr_rvt&#39;</span><span class="p">,</span>
+                                                    <span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputspec&#39;</span><span class="p">)</span>
+
+    <span class="c1"># the slice time preprocessing node before we go into popp (PreparePNM)</span>
+    <span class="n">slice_times_from_gradients</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="s1">&#39;phys_file&#39;</span><span class="p">,</span> <span class="s1">&#39;nr_dummies&#39;</span><span class="p">,</span> <span class="s1">&#39;MB_factor&#39;</span><span class="p">,</span> <span class="s1">&#39;sample_rate&#39;</span><span class="p">],</span> 
+                        <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="s1">&#39;fig_file&#39;</span><span class="p">],</span> 
+                        <span class="n">function</span><span class="o">=</span><span class="n">_distill_slice_times_from_gradients</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;slice_times_from_gradients&#39;</span><span class="p">,</span> <span class="n">iterfield</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span><span class="s1">&#39;phys_file&#39;</span><span class="p">])</span>
+    
+    <span class="n">slice_times_to_txt_file</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;slice_times&#39;</span><span class="p">],</span> 
+                        <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">],</span> 
+                        <span class="n">function</span><span class="o">=</span><span class="n">_slice_times_to_txt_file</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;slice_times_to_txt_file&#39;</span><span class="p">)</span>
+
+    <span class="n">pnm_prefixer</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">],</span> 
+                        <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_string&#39;</span><span class="p">],</span> 
+                        <span class="n">function</span><span class="o">=</span><span class="n">_preprocess_nii_files_to_pnm_evs_prefix</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pnm_prefixer&#39;</span><span class="p">,</span> <span class="n">iterfield</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">])</span>
+
+    <span class="n">prepare_pnm</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">PreparePNM</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;prepare_pnm&#39;</span><span class="p">,</span> <span class="n">iterfield</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">])</span>
+
+    <span class="n">pnm_evs</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">PNMtoEVs</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pnm_evs&#39;</span><span class="p">,</span> <span class="n">iterfield</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;functional_epi&#39;</span><span class="p">,</span> <span class="s1">&#39;cardiac&#39;</span><span class="p">,</span> <span class="s1">&#39;resp&#39;</span><span class="p">,</span> <span class="s1">&#39;hr&#39;</span><span class="p">,</span> <span class="s1">&#39;rvt&#39;</span><span class="p">,</span> <span class="s1">&#39;prefix&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Define output node</span>
+    <span class="n">output_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;new_phys&#39;</span><span class="p">,</span> <span class="s1">&#39;fig_file&#39;</span><span class="p">,</span> <span class="s1">&#39;evs&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputspec&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># workflow</span>
+    <span class="c1">########################################################################################</span>
+
+    <span class="n">retroicor_workflow</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    
+    <span class="c1"># align phys-log data to nifti </span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">,</span> <span class="n">slice_times_from_gradients</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;phys_files&#39;</span><span class="p">,</span> <span class="n">slice_times_from_gradients</span><span class="p">,</span> <span class="s1">&#39;phys_file&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;nr_dummies&#39;</span><span class="p">,</span> <span class="n">slice_times_from_gradients</span><span class="p">,</span> <span class="s1">&#39;nr_dummies&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;MB_factor&#39;</span><span class="p">,</span> <span class="n">slice_times_from_gradients</span><span class="p">,</span> <span class="s1">&#39;MB_factor&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;phys_sample_rate&#39;</span><span class="p">,</span> <span class="n">slice_times_from_gradients</span><span class="p">,</span> <span class="s1">&#39;sample_rate&#39;</span><span class="p">)</span>
+
+    <span class="c1"># conditional here, for the creation of a separate slice timing file if order_or_timing is &#39;timing&#39;</span>
+    <span class="c1"># order_or_timing can also be &#39;order&#39;</span>
+    <span class="k">if</span> <span class="n">order_or_timing</span> <span class="o">==</span> <span class="s1">&#39;timing&#39;</span><span class="p">:</span>
+        <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;slice_timing&#39;</span><span class="p">,</span> <span class="n">slice_times_to_txt_file</span><span class="p">,</span> <span class="s1">&#39;slice_times&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># prepare pnm:</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;phys_sample_rate&#39;</span><span class="p">,</span> <span class="n">prepare_pnm</span><span class="p">,</span> <span class="s1">&#39;sampling_rate&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;tr&#39;</span><span class="p">,</span> <span class="n">prepare_pnm</span><span class="p">,</span> <span class="s1">&#39;tr&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">slice_times_from_gradients</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">prepare_pnm</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;hr_rvt&#39;</span><span class="p">,</span> <span class="n">prepare_pnm</span><span class="p">,</span> <span class="s1">&#39;hr_rvt&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># pnm evs:</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">,</span> <span class="n">pnm_prefixer</span><span class="p">,</span> <span class="s1">&#39;filename&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">pnm_prefixer</span><span class="p">,</span> <span class="s1">&#39;out_string&#39;</span><span class="p">,</span> <span class="n">pnm_evs</span><span class="p">,</span> <span class="s1">&#39;prefix&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">,</span> <span class="n">pnm_evs</span><span class="p">,</span> <span class="s1">&#39;functional_epi&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;slice_direction&#39;</span><span class="p">,</span> <span class="n">pnm_evs</span><span class="p">,</span> <span class="s1">&#39;slice_dir&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;tr&#39;</span><span class="p">,</span> <span class="n">pnm_evs</span><span class="p">,</span> <span class="s1">&#39;tr&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">order_or_timing</span> <span class="o">==</span>   <span class="s1">&#39;timing&#39;</span><span class="p">:</span>
+        <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">slice_times_to_txt_file</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">pnm_evs</span><span class="p">,</span> <span class="s1">&#39;slice_timing&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">order_or_timing</span> <span class="o">==</span> <span class="s1">&#39;order&#39;</span><span class="p">:</span>
+        <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;slice_order&#39;</span><span class="p">,</span> <span class="n">pnm_evs</span><span class="p">,</span> <span class="s1">&#39;slice_order&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">prepare_pnm</span><span class="p">,</span> <span class="s1">&#39;card&#39;</span><span class="p">,</span> <span class="n">pnm_evs</span><span class="p">,</span> <span class="s1">&#39;cardiac&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">prepare_pnm</span><span class="p">,</span> <span class="s1">&#39;resp&#39;</span><span class="p">,</span> <span class="n">pnm_evs</span><span class="p">,</span> <span class="s1">&#39;resp&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">prepare_pnm</span><span class="p">,</span> <span class="s1">&#39;hr&#39;</span><span class="p">,</span> <span class="n">pnm_evs</span><span class="p">,</span> <span class="s1">&#39;hr&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">prepare_pnm</span><span class="p">,</span> <span class="s1">&#39;rvt&#39;</span><span class="p">,</span> <span class="n">pnm_evs</span><span class="p">,</span> <span class="s1">&#39;rvt&#39;</span><span class="p">)</span>
+
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">slice_times_from_gradients</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;new_phys&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">slice_times_from_gradients</span><span class="p">,</span> <span class="s1">&#39;fig_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;fig_file&#39;</span><span class="p">)</span>
+    <span class="n">retroicor_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">pnm_evs</span><span class="p">,</span> <span class="s1">&#39;evs&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;evs&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">retroicor_workflow</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

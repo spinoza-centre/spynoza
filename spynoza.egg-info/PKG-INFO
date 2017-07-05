@@ -1,0 +1,35 @@
+Metadata-Version: 1.1
+Name: spynoza
+Version: 0.0.1
+Summary: Python package for fMRI data processing
+Home-page: https://github.com/spinoza-centre
+Author: Spinoza centre
+Author-email: UNKNOWN
+License: MIT
+Description: # DEVELOP
+        
+        # spynoza
+        python package for fMRI data processing
+        
+        <<<<<<< HEAD
+        
+        ## prerequisites
+        Spynoza uses nipype to organize processing workflows. 
+        
+        
+         
+        =======
+        ## Prerequisites
+        Spynoza uses nipype to organize processing workflows.
+        
+Keywords: fMRI nipype preprocessing
+Platform: Linux
+Classifier: Development Status :: 1 - Planning
+Classifier: Intended Audience :: Science/Research
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Requires: nibabel
+Requires: nipype
+Requires: numpy
+Requires: scipy
+Requires: pandas

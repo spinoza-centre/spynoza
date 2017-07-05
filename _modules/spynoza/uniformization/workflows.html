@@ -1,0 +1,303 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.uniformization.workflows &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>spynoza.uniformization.workflows</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for spynoza.uniformization.workflows</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">nipype.pipeline</span> <span class="k">as</span> <span class="nn">pe</span>
+<span class="kn">import</span> <span class="nn">nipype.interfaces.io</span> <span class="k">as</span> <span class="nn">nio</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">Function</span><span class="p">,</span> <span class="n">IdentityInterface</span>
+<span class="kn">import</span> <span class="nn">nipype.interfaces.fsl</span> <span class="k">as</span> <span class="nn">fsl</span>
+<span class="kn">from</span> <span class="nn">.nodes</span> <span class="k">import</span> <span class="n">Uniformize</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">split_4D_to_3D</span>
+
+
+<div class="viewcode-block" id="create_non_uniformity_correct_4D_file"><a class="viewcode-back" href="../../../source/spynoza.uniformization.workflows.html#spynoza.uniformization.workflows.create_non_uniformity_correct_4D_file">[docs]</a><span class="k">def</span> <span class="nf">create_non_uniformity_correct_4D_file</span><span class="p">(</span><span class="n">auto_clip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clip_low</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+                                          <span class="n">clip_high</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">n_procs</span><span class="o">=</span><span class="mi">12</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;non_uniformity_correct_4D_file corrects functional files for nonuniformity on a timepoint by timepoint way.</span>
+<span class="sd">    Internally it implements a workflow to split the in_file, correct each separately and then merge them back together.</span>
+<span class="sd">    This is an ugly workaround as we have to find the output of the workflow&#39;s datasink somewhere, but it should work.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    in_file : str</span>
+<span class="sd">        Absolute path to nifti-file.</span>
+<span class="sd">    auto_clip : bool (default: False)</span>
+<span class="sd">        whether to let 3dUniformize decide on clipping boundaries</span>
+<span class="sd">    clip_low : float (default: 7),</span>
+<span class="sd">        lower clipping bound for 3dUniformize</span>
+<span class="sd">    clip_high : float (default: 200),</span>
+<span class="sd">        higher clipping bound for 3dUniformize</span>
+<span class="sd">    n_procs : int (default: 12),</span>
+<span class="sd">        the number of processes to run the internal workflow with</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out_file : non-uniformity corrected file</span>
+<span class="sd">        List of absolute paths to nifti-files.    &quot;&quot;&quot;</span>
+
+    <span class="c1"># nodes</span>
+    <span class="n">input_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;auto_clip&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;clip_low&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;clip_high&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sub_id&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputspec&#39;</span><span class="p">)</span>
+    <span class="n">split</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">Function</span><span class="p">(</span><span class="n">input_names</span><span class="o">=</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_files&#39;</span><span class="p">],</span>
+                             <span class="n">function</span><span class="o">=</span><span class="n">split_4D_to_3D</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+
+    <span class="n">uniformer</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span>
+        <span class="n">Uniformize</span><span class="p">(</span><span class="n">clip_high</span><span class="o">=</span><span class="n">clip_high</span><span class="p">,</span> <span class="n">clip_low</span><span class="o">=</span><span class="n">clip_low</span><span class="p">,</span> <span class="n">auto_clip</span><span class="o">=</span><span class="n">auto_clip</span><span class="p">,</span>
+                   <span class="n">outputtype</span><span class="o">=</span><span class="s1">&#39;NIFTI_GZ&#39;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;uniformer&#39;</span><span class="p">,</span>
+        <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">])</span>
+    <span class="n">merge</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">fsl</span><span class="o">.</span><span class="n">Merge</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="s1">&#39;t&#39;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;merge&#39;</span><span class="p">,</span>
+                       <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_files&#39;</span><span class="p">])</span>
+
+    <span class="n">datasink</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">nio</span><span class="o">.</span><span class="n">DataSink</span><span class="p">(</span><span class="n">infields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;topup&#39;</span><span class="p">],</span> <span class="n">container</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">),</span>
+                       <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sinker&#39;</span><span class="p">)</span>
+    <span class="n">datasink</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">parameterization</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># workflow</span>
+    <span class="n">nuc_wf</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;nuc&#39;</span><span class="p">)</span>
+    <span class="n">nuc_wf</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;sub_id&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;container&#39;</span><span class="p">)</span>
+    <span class="n">nuc_wf</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;base_directory&#39;</span><span class="p">)</span>
+    <span class="n">nuc_wf</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">nuc_wf</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">split</span><span class="p">,</span> <span class="s1">&#39;out_files&#39;</span><span class="p">,</span> <span class="n">uniformer</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">nuc_wf</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">uniformer</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">merge</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">)</span>
+    <span class="n">nuc_wf</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">merge</span><span class="p">,</span> <span class="s1">&#39;merged_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;uni&#39;</span><span class="p">)</span>
+
+    <span class="c1"># nuc_wf.run(&#39;MultiProc&#39;, plugin_args={&#39;n_procs&#39;: n_procs})</span>
+    <span class="c1"># out_file = glob.glob(os.path.join(td, &#39;uni&#39;, fn_base + &#39;_0000*.nii.gz&#39;))[0]</span>
+
+    <span class="k">return</span> <span class="n">nuc_wf</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

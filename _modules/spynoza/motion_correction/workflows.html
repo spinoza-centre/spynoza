@@ -1,0 +1,468 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.motion_correction.workflows &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>spynoza.motion_correction.workflows</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for spynoza.motion_correction.workflows</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">nipype.pipeline</span> <span class="k">as</span> <span class="nn">pe</span>
+<span class="kn">import</span> <span class="nn">nipype.interfaces.fsl</span> <span class="k">as</span> <span class="nn">fsl</span>
+<span class="kn">import</span> <span class="nn">nipype.interfaces.afni.preprocess</span> <span class="k">as</span> <span class="nn">afni</span>
+<span class="kn">import</span> <span class="nn">nipype.interfaces.io</span> <span class="k">as</span> <span class="nn">nio</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">Rename</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">IdentityInterface</span>
+<span class="kn">import</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">as</span> <span class="nn">niu</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">EPI_file_selector</span><span class="p">,</span> <span class="n">Set_postfix</span><span class="p">,</span> <span class="n">Remove_extension</span>
+
+
+<div class="viewcode-block" id="create_motion_correction_workflow"><a class="viewcode-back" href="../../../source/spynoza.motion_correction.workflows.html#spynoza.motion_correction.workflows.create_motion_correction_workflow">[docs]</a><span class="k">def</span> <span class="nf">create_motion_correction_workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;moco&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;AFNI&#39;</span><span class="p">,</span> <span class="n">extend_moco_params</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;uses sub-workflows to perform different registration steps.</span>
+<span class="sd">    Requires fsl and freesurfer tools</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : string</span>
+<span class="sd">        name of workflow</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; motion_correction_workflow = create_motion_correction_workflow(&#39;motion_correction_workflow&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; motion_correction_workflow.inputs.inputspec.output_directory = &#39;/data/project/raw/BIDS/sj_1/&#39;</span>
+<span class="sd">    &gt;&gt;&gt; motion_correction_workflow.inputs.inputspec.in_files = [&#39;sub-001.nii.gz&#39;,&#39;sub-002.nii.gz&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; motion_correction_workflow.inputs.inputspec.which_file_is_EPI_space = &#39;middle&#39;</span>
+
+<span class="sd">    Inputs::</span>
+<span class="sd">          inputspec.output_directory : directory in which to sink the result files</span>
+<span class="sd">          inputspec.in_files : list of functional files</span>
+<span class="sd">          inputspec.which_file_is_EPI_space : determines which file is the &#39;standard EPI space&#39;</span>
+<span class="sd">    Outputs::</span>
+<span class="sd">           outputspec.EPI_space_file : standard EPI space file, one timepoint</span>
+<span class="sd">           outputspec.motion_corrected_files : motion corrected files</span>
+<span class="sd">           outputspec.motion_correction_plots : motion correction plots</span>
+<span class="sd">           outputspec.motion_correction_parameters : motion correction parameters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">### NODES</span>
+    <span class="n">input_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_files&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> 
+                                                    <span class="s1">&#39;which_file_is_EPI_space&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;sub_id&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;tr&#39;</span><span class="p">]),</span> 
+                                            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputspec&#39;</span><span class="p">)</span>
+    <span class="n">output_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">([</span>
+                                                    <span class="s1">&#39;motion_corrected_files&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;EPI_space_file&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;mask_EPI_space_file&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;motion_correction_plots&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;motion_correction_parameters&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;extended_motion_correction_parameters&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;new_motion_correction_parameters&#39;</span><span class="p">])),</span> 
+                                            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputspec&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># Invariant nodes</span>
+    <span class="c1">########################################################################################</span>
+
+    <span class="n">EPI_file_selector_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">EPI_file_selector</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;EPI_file_selector_node&#39;</span><span class="p">)</span>
+    <span class="n">mean_bold</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">maths</span><span class="o">.</span><span class="n">MeanImage</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="s1">&#39;T&#39;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;mean_space&#39;</span><span class="p">)</span>
+    <span class="n">rename_mean_bold</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">Rename</span><span class="p">(</span><span class="n">format_string</span><span class="o">=</span><span class="s1">&#39;session_EPI_space&#39;</span><span class="p">,</span> <span class="n">keep_ext</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_mean_bold&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># Workflow</span>
+    <span class="c1">########################################################################################</span>
+
+    <span class="n">motion_correction_workflow</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;which_file_is_EPI_space&#39;</span><span class="p">,</span>
+                                       <span class="n">EPI_file_selector_node</span><span class="p">,</span> <span class="s1">&#39;which_file&#39;</span><span class="p">)</span>
+    <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">,</span>
+                                       <span class="n">EPI_file_selector_node</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># outputs via datasink</span>
+    <span class="c1">########################################################################################</span>
+    <span class="n">datasink</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">nio</span><span class="o">.</span><span class="n">DataSink</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sinker&#39;</span><span class="p">)</span>
+    <span class="n">datasink</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">parameterization</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># first link the workflow&#39;s output_directory into the datasink.</span>
+    <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span>
+                                       <span class="s1">&#39;base_directory&#39;</span><span class="p">)</span>
+    <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;sub_id&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span>
+                                       <span class="s1">&#39;container&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># FSL MCFlirt</span>
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># new approach, which should aid in the joint motion correction of</span>
+    <span class="c1"># multiple sessions together, by pre-registering each run.</span>
+    <span class="c1"># the strategy would be to, for each run, take the first TR</span>
+    <span class="c1"># and FLIRT-align (6dof) it to the EPI_space file.</span>
+    <span class="c1"># then we can use this as an --infile argument to mcflirt.</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;FSL&#39;</span><span class="p">:</span>
+
+        <span class="n">rename_motion_files</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">Rename</span><span class="p">(</span><span class="n">keep_ext</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                                         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_motion_files&#39;</span><span class="p">,</span>
+                                         <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="s1">&#39;format_string&#39;</span><span class="p">])</span>
+
+        <span class="n">remove_niigz_ext</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">Remove_extension</span><span class="p">,</span>
+                                      <span class="n">name</span><span class="o">=</span><span class="s1">&#39;remove_niigz_ext&#39;</span><span class="p">,</span>
+                                      <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">])</span>
+
+        <span class="n">motion_correct_EPI_space</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">MCFLIRT</span><span class="p">(</span>
+            <span class="n">cost</span><span class="o">=</span><span class="s1">&#39;normcorr&#39;</span><span class="p">,</span>
+            <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;sinc&#39;</span><span class="p">,</span>
+            <span class="n">mean_vol</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;motion_correct_EPI_space&#39;</span><span class="p">)</span>
+
+        <span class="n">motion_correct_all</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">MCFLIRT</span><span class="p">(</span><span class="n">save_mats</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                              <span class="n">save_plots</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                              <span class="n">cost</span><span class="o">=</span><span class="s1">&#39;normcorr&#39;</span><span class="p">,</span>
+                                                              <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;sinc&#39;</span><span class="p">,</span>
+                                                              <span class="n">stats_imgs</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                                        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;motion_correct_all&#39;</span><span class="p">,</span>
+                                        <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">])</span>
+
+        <span class="n">plot_motion</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span>
+            <span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">PlotMotionParams</span><span class="p">(</span><span class="n">in_source</span><span class="o">=</span><span class="s1">&#39;fsl&#39;</span><span class="p">),</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;plot_motion&#39;</span><span class="p">,</span>
+            <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">extend_moco_params</span><span class="p">:</span>
+            <span class="c1"># make extend_motion_pars node here</span>
+            <span class="c1"># extend_motion_pars = pe.MapNode(Function(input_names=[&#39;moco_par_file&#39;, &#39;tr&#39;], output_names=[&#39;new_out_file&#39;, &#39;ext_out_file&#39;],</span>
+            <span class="c1"># function=_extend_motion_parameters), name=&#39;extend_motion_pars&#39;, iterfield = [&#39;moco_par_file&#39;])</span>
+            <span class="k">pass</span>
+        
+        <span class="c1"># create reference:</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">EPI_file_selector_node</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">motion_correct_EPI_space</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_EPI_space</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">mean_bold</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">mean_bold</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;ref_file&#39;</span><span class="p">)</span>
+
+        <span class="c1"># motion correction across runs</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">,</span> <span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="c1">#motion_correction_workflow.connect(motion_correct_all, &#39;out_file&#39;, output_node, &#39;motion_corrected_files&#39;)</span>
+        <span class="c1"># motion_correction_workflow.connect(motion_correct_all, &#39;par_file&#39;, extend_motion_pars, &#39;moco_par_file&#39;)</span>
+        <span class="c1"># motion_correction_workflow.connect(input_node, &#39;tr&#39;, extend_motion_pars, &#39;tr&#39;)</span>
+        <span class="c1"># motion_correction_workflow.connect(extend_motion_pars, &#39;ext_out_file&#39;, output_node, &#39;extended_motion_correction_parameters&#39;)</span>
+        <span class="c1"># motion_correction_workflow.connect(extend_motion_pars, &#39;new_out_file&#39;, output_node, &#39;new_motion_correction_parameters&#39;)</span>
+
+        <span class="c1">########################################################################################</span>
+        <span class="c1"># Plot the estimated motion parameters</span>
+        <span class="c1">########################################################################################</span>
+
+        <span class="c1"># rename:</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">mean_bold</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">rename_mean_bold</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;par_file&#39;</span><span class="p">,</span> <span class="n">rename_motion_files</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;par_file&#39;</span><span class="p">,</span> <span class="n">remove_niigz_ext</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">remove_niigz_ext</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">rename_motion_files</span><span class="p">,</span> <span class="s1">&#39;format_string&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># plots:</span>
+        <span class="n">plot_motion</span><span class="o">.</span><span class="n">iterables</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;plot_type&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;rotations&#39;</span><span class="p">,</span> <span class="s1">&#39;translations&#39;</span><span class="p">])</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_motion_files</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">plot_motion</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">plot_motion</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;motion_correction_plots&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># output node:</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">mean_bold</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;EPI_space_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_motion_files</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;motion_correction_parameters&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;motion_corrected_files&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># datasink:</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_mean_bold</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;reg&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;mcf&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_motion_files</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;mcf.motion_pars&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">plot_motion</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;mcf.motion_plots&#39;</span><span class="p">)</span>
+        <span class="c1"># motion_correction_workflow.connect(extend_motion_pars, &#39;ext_out_file&#39;, datasink, &#39;mcf.ext_motion_pars&#39;)</span>
+        <span class="c1"># motion_correction_workflow.connect(extend_motion_pars, &#39;new_out_file&#39;, datasink, &#39;mcf.new_motion_pars&#39;)</span>
+        
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># AFNI 3DVolReg</span>
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># for speed, we use AFNI&#39;s 3DVolReg brute-force.</span>
+    <span class="c1"># this loses plotting of motion parameters but increases speed</span>
+    <span class="c1"># we hold on to the same setup, first moco the selected run</span>
+    <span class="c1"># and then moco everything to that image, but without the</span>
+    <span class="c1"># intermediate FLIRT step.</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;AFNI&#39;</span><span class="p">:</span>
+        <span class="n">motion_correct_EPI_space</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">afni</span><span class="o">.</span><span class="n">Volreg</span><span class="p">(</span><span class="n">outputtype</span><span class="o">=</span><span class="s1">&#39;NIFTI_GZ&#39;</span><span class="p">,</span>
+                                                                <span class="n">zpad</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                                                                <span class="n">args</span><span class="o">=</span><span class="s1">&#39; -cubic &#39;</span>  <span class="c1"># -twopass -Fourier</span>
+                                                                <span class="p">),</span> 
+                                            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;motion_correct_EPI_space&#39;</span><span class="p">)</span>
+
+        <span class="n">motion_correct_all</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">afni</span><span class="o">.</span><span class="n">Volreg</span><span class="p">(</span><span class="n">outputtype</span><span class="o">=</span><span class="s1">&#39;NIFTI_GZ&#39;</span><span class="p">,</span>
+                                                                <span class="n">zpad</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                                                                <span class="n">args</span><span class="o">=</span><span class="s1">&#39; -cubic &#39;</span>  <span class="c1"># -twopass</span>
+                                                                <span class="p">),</span> 
+                                        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;motion_correct_all&#39;</span><span class="p">,</span>
+                                        <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">])</span>
+
+        <span class="c1"># for renaming *_volreg.nii.gz to *_mcf.nii.gz</span>
+        <span class="n">set_postfix_mcf</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">Set_postfix</span><span class="p">,</span>
+                                     <span class="n">name</span><span class="o">=</span><span class="s1">&#39;set_postfix_mcf&#39;</span><span class="p">,</span> <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">])</span>
+        <span class="n">set_postfix_mcf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">postfix</span> <span class="o">=</span> <span class="s1">&#39;mcf&#39;</span>
+
+        <span class="n">rename_volreg</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">Rename</span><span class="p">(</span><span class="n">keep_ext</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> 
+                                    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_volreg&#39;</span><span class="p">,</span>
+                                    <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="s1">&#39;format_string&#39;</span><span class="p">])</span>
+
+        <span class="c1"># curate for moco between sessions</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">EPI_file_selector_node</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">motion_correct_EPI_space</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_EPI_space</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">mean_bold</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+        <span class="c1"># motion correction across runs</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">,</span> <span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">mean_bold</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;basefile&#39;</span><span class="p">)</span>
+        <span class="c1"># motion_correction_workflow.connect(mean_bold, &#39;out_file&#39;, motion_correct_all, &#39;rotparent&#39;)</span>
+        <span class="c1"># motion_correction_workflow.connect(mean_bold, &#39;out_file&#39;, motion_correct_all, &#39;gridparent&#39;)</span>
+
+        <span class="c1"># output node:</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">mean_bold</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;EPI_space_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;md1d_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;max_displacement_info&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;oned_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;motion_correction_parameter_info&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;oned_matrix_save&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;motion_correction_parameter_matrix&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">,</span> <span class="n">set_postfix_mcf</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">set_postfix_mcf</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">rename_volreg</span><span class="p">,</span> <span class="s1">&#39;format_string&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">rename_volreg</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_volreg</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;motion_corrected_files&#39;</span><span class="p">)</span>
+
+        <span class="c1"># datasink:</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">mean_bold</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">rename_mean_bold</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_mean_bold</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;reg&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_volreg</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;mcf&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;md1d_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;mcf.max_displacement_info&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;oned_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;mcf.parameter_info&#39;</span><span class="p">)</span>
+        <span class="n">motion_correction_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_correct_all</span><span class="p">,</span> <span class="s1">&#39;oned_matrix_save&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;mcf.motion_pars&#39;</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="n">motion_correction_workflow</span></div>
+
+
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

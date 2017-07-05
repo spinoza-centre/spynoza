@@ -1,0 +1,327 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Spynoza &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Spynoza</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/README_LINK.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="spynoza">
+<h1>Spynoza<a class="headerlink" href="#spynoza" title="Permalink to this headline">¶</a></h1>
+<p>Spynoza is a package for fMRI data (pre)processing developed by researchers affiliated with the <a class="reference external" href="https://www.spinozacentre.nl/">Spinoza Centre for
+Neuroimaging</a>, most prominently researchers from the <a class="reference external" href="http://wordpress.tobiasdonner.net/">Donner Lab</a>
+in Hamburg, the <a class="reference external" href="https://tknapen.github.io/">Knapen lab</a> (Free University Amsterdam), and the Scholte lab
+(University of Amsterdam).</p>
+<div class="section" id="status">
+<h2>Status<a class="headerlink" href="#status" title="Permalink to this headline">¶</a></h2>
+<a class="reference external image-reference" href="https://travis-ci.org/spinoza-centre/spynoza"><img alt="https://travis-ci.org/spinoza-centre/spynoza.svg?branch=develop" src="https://travis-ci.org/spinoza-centre/spynoza.svg?branch=develop" /></a>
+<a class="reference external image-reference" href="https://coveralls.io/github/spinoza-centre/spynoza?branch=develop"><img alt="https://coveralls.io/repos/github/spinoza-centre/spynoza/badge.svg?branch=develop" src="https://coveralls.io/repos/github/spinoza-centre/spynoza/badge.svg?branch=develop" /></a>
+</div>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>Spynoza uses Nipype to organize processing workflows, which in turns relies heavily on FSL and, for some
+workflows, Freesurfer and AFNI.</p>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>Spynoza is still (very much) in development, but if you want to try it out, you can install the master branch by:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install git+https://github.com/spinoza-centre/spynoza.git@master
+</pre></div>
+</div>
+</div>
+<div class="section" id="contributing-setup-and-git-workflow">
+<h2>Contributing: setup and git workflow<a class="headerlink" href="#contributing-setup-and-git-workflow" title="Permalink to this headline">¶</a></h2>
+<p>For contributors (within the Spinoza centre organization on Github), follow these guidelines to contribute to the repo.
+First, <cite>cd</cite> to a folder where you want the spynoza git to be setup.
+To clone the repo into that dir, run the following:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ git clone git@github.com:spinoza-center/spynoza.git`
+</pre></div>
+</div>
+<p>This cloned the master branch into the repo.</p>
+<p>Now we&#8217;ll want to create our own feature branch to start working on our
+contribution. We can branch off of master by running:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ git checkout -b my_feature
+</pre></div>
+</div>
+<p>By now, we created and switched to the new branch <cite>my_feature</cite>.
+When working on your feature, make sure you first switch to your feature branch to
+avoid changing the master branch accidentally.</p>
+<p>Then, work on your feature and once you&#8217;re done (and staged your changes) run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ git commit -am &quot;Your message&quot;
+</pre></div>
+</div>
+<p>When your feature is finished, and you&#8217;d like to share it with your collaborators,
+first push it to Github:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ git push -u origin my_feature
+</pre></div>
+</div>
+<p>Then, go to Github and propose a &#8220;pull request&#8221; (PR) by clicking on the
+&#8220;New pull request&#8221; button (next to the &#8220;Branch&#8221; button). Then, choose
+the master branch as &#8220;base&#8221; and your feature-branch as the &#8220;compare&#8221; branch,
+write a short description of your implemented feature and how it impacts the
+master branch, as indicated in the image below:</p>
+<img alt="imgs/PR_example.png" src="imgs/PR_example.png" />
+<p>Finally, click the green &#8220;Create pull request&#8221; button to submit the PR.
+One of the other Spynoza-members will review your PR and, if it seems sensible/doesn&#8217;t break anything,
+it will be accepted and merged into master! One way to check if your code doesn&#8217;t break anything is to
+run the <code class="docutils literal"><span class="pre">run_tests.sh</span></code> script, which triggers <code class="docutils literal"><span class="pre">py.test</span></code> to run all the tests in Spynoza. It would
+be even better if you write new tests accompanying your new feature, such that we can check whether
+future features impact/break your currect feature! Check the next section on how to write and run
+tests for Spynoza.</p>
+</div>
+<div class="section" id="writing-and-running-tests-for-spynoza">
+<h2>Writing and running tests for Spynoza<a class="headerlink" href="#writing-and-running-tests-for-spynoza" title="Permalink to this headline">¶</a></h2>
+<p>Spynoza uses the <code class="docutils literal"><span class="pre">py.test</span></code> testing framework for running all unit-tests included in the package.
+Currently, we also use <a class="reference external" href="https://travis-ci.org/">Travis-CI</a> for automatic testing (&#8220;continuous integration&#8221;)
+upon each push to master. If you want to run your tests locally, simply run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ bash run_tests.sh
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">run_tests.sh</span></code> script is located in the root-directory of the Spynoza repo. Running the tests
+locally assumes that you have installed the neuroimaging packages <code class="docutils literal"><span class="pre">FSL</span></code>, <code class="docutils literal"><span class="pre">AFNI</span></code>, and <code class="docutils literal"><span class="pre">Freesurfer</span></code>,
+and additionally the testing packages <code class="docutils literal"><span class="pre">py.test</span></code>, <code class="docutils literal"><span class="pre">pytest-cov</span></code>, and <code class="docutils literal"><span class="pre">coveralls</span></code>. These can be installed
+by:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install pytest pytest-cov coveralls
+</pre></div>
+</div>
+<p>In addition to the neuroimaging software and testing packages, make sure you have the regular dependencies
+for Spynoza installed (<code class="docutils literal"><span class="pre">scikit-learn</span></code>, <code class="docutils literal"><span class="pre">nibabel</span></code>, <code class="docutils literal"><span class="pre">nipype</span></code>, <code class="docutils literal"><span class="pre">scipy</span></code>, <code class="docutils literal"><span class="pre">numpy</span></code>, <code class="docutils literal"><span class="pre">pandas</span></code>).</p>
+<p>If you want to write your own tests for your new or existing features (which we encourage!), check out the
+<a class="reference external" href="https://docs.pytest.org/en/latest/">py.test website</a> and check out already existing test-modules in Spynoza
+(which can be recognized by the <code class="docutils literal"><span class="pre">test_*.py</span></code> format)!</p>
+</div>
+<div class="section" id="writing-documentation-for-spynoza">
+<h2>Writing documentation for Spynoza<a class="headerlink" href="#writing-documentation-for-spynoza" title="Permalink to this headline">¶</a></h2>
+<p>Currently, Spynoza uses Numpy-style docstrings (see <a class="reference external" href="http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_numpy.html">here</a>
+for an example), which can be converted to html-formatted documentation using <a class="reference external" href="http://www.sphinx-doc.org/en/stable/">sphinx</a>
+and subsequently served/deployed using Github-pages. Also, triple-quoted strings on top of your module are converted to
+html-based documentation, so it&#8217;s always a good idea to include some info about the module on the top of your file in
+triple-quoted strings!</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

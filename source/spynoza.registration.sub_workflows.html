@@ -1,0 +1,381 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.registration.sub_workflows package &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="spynoza.registration package" href="spynoza.registration.html"/>
+        <link rel="next" title="spynoza.registration.sub_workflows.T1_to_standard module" href="spynoza.registration.sub_workflows.T1_to_standard.html"/>
+        <link rel="prev" title="spynoza.registration package" href="spynoza.registration.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="spynoza.registration.html">spynoza.registration package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="spynoza.registration.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">spynoza.registration.sub_workflows package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="spynoza.registration.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="spynoza.html">&lt;no title&gt;</a> &raquo;</li>
+        
+          <li><a href="spynoza.registration.html">spynoza.registration package</a> &raquo;</li>
+        
+      <li>spynoza.registration.sub_workflows package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/source/spynoza.registration.sub_workflows.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-spynoza.registration.sub_workflows">
+<span id="spynoza-registration-sub-workflows-package"></span><h1>spynoza.registration.sub_workflows package<a class="headerlink" href="#module-spynoza.registration.sub_workflows" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="spynoza.registration.sub_workflows.create_concat_2_feat_workflow">
+<code class="descname">create_concat_2_feat_workflow</code><span class="sig-paren">(</span><em>name='concat_2_feat'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/registration/sub_workflows/concat_2_feat.html#create_concat_2_feat_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.registration.sub_workflows.create_concat_2_feat_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenates and inverts previously created fsl mat registration files.
+Requires fsl tools
+:param name: name of workflow
+:type name: string</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">concat_2_feat</span> <span class="o">=</span> <span class="n">create_concat_2_feat_workflow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">concat_2_feat</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">T1_standard_matrix_file</span> <span class="o">=</span> <span class="s1">&#39;highres2standard.mat&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">concat_2_feat</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">standard_T1_matrix_file</span> <span class="o">=</span> <span class="s1">&#39;standard2highres.mat&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">concat_2_feat</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">EPI_T1_matrix_file</span> <span class="o">=</span> <span class="s1">&#39;example_func2highres.mat&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">concat_2_feat</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">T1_EPI_matrix_file</span> <span class="o">=</span> <span class="s1">&#39;highres2example_func.mat&#39;</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Inputs::</dt>
+<dd>inputspec.T1_file : T1 anatomy file
+inputspec.reference_file : standard standard file
+inputspec.EPI_space_file : EPI standard file
+inputspec.T1_standard_matrix_file : SE
+inputspec.standard_T1_matrix_file : SE
+inputspec.EPI_T1_matrix_file : SE
+inputspec.T1_EPI_matrix_file : SE</dd>
+<dt>Outputs::</dt>
+<dd><dl class="first last docutils">
+<dt>outputspec.standard_EPI_matrix_file <span class="classifier-delimiter">:</span> <span class="classifier">registration file that maps standard image to</span></dt>
+<dd>EPI space</dd>
+<dt>outputspec.EPI_standard_matrix_file <span class="classifier-delimiter">:</span> <span class="classifier">registration file that maps EPI image to</span></dt>
+<dd>standard space</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.registration.sub_workflows.create_epi_to_T1_workflow">
+<code class="descname">create_epi_to_T1_workflow</code><span class="sig-paren">(</span><em>name='epi_to_T1'</em>, <em>use_FS=True</em>, <em>do_FAST=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/registration/sub_workflows/epi_to_T1.html#create_epi_to_T1_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.registration.sub_workflows.create_epi_to_T1_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers session&#8217;s EPI space to subject&#8217;s T1 space
+uses either FLIRT or, when a FS segmentation is present, BBRegister
+Requires fsl and freesurfer tools</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) &#8211; name of workflow</li>
+<li><strong>use_FS</strong> (<em>bool</em>) &#8211; whether to use freesurfer&#8217;s segmentation and BBRegister</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">epi_to_T1</span> <span class="o">=</span> <span class="n">create_epi_to_T1_workflow</span><span class="p">(</span><span class="s1">&#39;epi_to_T1&#39;</span><span class="p">,</span> <span class="n">use_FS</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">epi_to_T1</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">EPI_space_file</span> <span class="o">=</span> <span class="s1">&#39;example_Func.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">epi_to_T1</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">T1_file</span> <span class="o">=</span> <span class="s1">&#39;T1.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">epi_to_T1</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">freesurfer_subject_ID</span> <span class="o">=</span> <span class="s1">&#39;sub_01&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">epi_to_T1</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">freesurfer_subject_dir</span> <span class="o">=</span> <span class="s1">&#39;$SUBJECTS_DIR&#39;</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Inputs::</dt>
+<dd>inputspec.T1_file : T1 anatomy file
+inputspec.EPI_space_file : EPI session file
+inputspec.freesurfer_subject_ID : FS subject ID
+inputspec.freesurfer_subject_dir : $SUBJECTS_DIR</dd>
+<dt>Outputs::</dt>
+<dd>outputspec.EPI_T1_register_file : BBRegister registration file that maps EPI space to T1
+outputspec.EPI_T1_matrix_file : FLIRT registration file that maps EPI space to T1
+outputspec.T1_EPI_matrix_file : FLIRT registration file that maps T1 space to EPI</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.registration.sub_workflows.create_T1_to_standard_workflow">
+<code class="descname">create_T1_to_standard_workflow</code><span class="sig-paren">(</span><em>name='T1_to_standard'</em>, <em>use_FS=True</em>, <em>do_fnirt=False</em>, <em>use_AFNI_ss=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/registration/sub_workflows/T1_to_standard.html#create_T1_to_standard_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.registration.sub_workflows.create_T1_to_standard_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers subject&#8217;s T1 to standard space using FLIRT and FNIRT.
+Requires fsl tools
+:param name: name of workflow
+:type name: string
+:param use_FS: whether to use freesurfer&#8217;s T1
+:type use_FS: bool</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">T1_to_standard</span> <span class="o">=</span> <span class="n">create_T1_to_standard_workflow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T1_to_standard</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">T1_file</span> <span class="o">=</span> <span class="s1">&#39;T1.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T1_to_standard</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">standard_file</span> <span class="o">=</span> <span class="s1">&#39;standard.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T1_to_standard</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">freesurfer_subject_ID</span> <span class="o">=</span> <span class="s1">&#39;sub_01&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T1_to_standard</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">freesurfer_subject_dir</span> <span class="o">=</span> <span class="s1">&#39;$SUBJECTS_DIR&#39;</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Inputs::</dt>
+<dd>inputspec.T1_file : T1 anatomy file
+inputspec.standard_file : MNI? standard file
+inputspec.freesurfer_subject_ID : FS subject ID
+inputspec.freesurfer_subject_dir : $SUBJECTS_DIR</dd>
+<dt>Outputs::</dt>
+<dd>outputspec.T1_MNI_file : T1 converted to standard
+outputspec.out_matrix_file : mat file specifying how to convert T1 to standard
+outputspec.out_inv_matrix_file : mat file specifying how to convert standard to T1
+outputspec.warp_field_file : FNIRT warp field
+outputspec.warp_fieldcoeff_file : FNIRT warp coeff field
+outputspec.warped_file : FNIRT warped T1
+outputspec.out_intensitymap_file : FNIRT intensity map</dd>
+</dl>
+</dd></dl>
+
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.registration.sub_workflows.T1_to_standard.html">spynoza.registration.sub_workflows.T1_to_standard module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.registration.sub_workflows.concat_2_feat.html">spynoza.registration.sub_workflows.concat_2_feat module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.registration.sub_workflows.epi_to_T1.html">spynoza.registration.sub_workflows.epi_to_T1 module</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="spynoza.registration.sub_workflows.T1_to_standard.html" class="btn btn-neutral float-right" title="spynoza.registration.sub_workflows.T1_to_standard module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="spynoza.registration.html" class="btn btn-neutral" title="spynoza.registration package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,436 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.utils module &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="&lt;no title&gt;" href="spynoza.html"/>
+        <link rel="prev" title="spynoza.unwarping.topup.workflows module" href="spynoza.unwarping.topup.workflows.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="spynoza.html">&lt;no title&gt;</a> &raquo;</li>
+        
+      <li>spynoza.utils module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/source/spynoza.utils.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-spynoza.utils">
+<span id="spynoza-utils-module"></span><h1>spynoza.utils module<a class="headerlink" href="#module-spynoza.utils" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="spynoza.utils.average_over_runs">
+<code class="descname">average_over_runs</code><span class="sig-paren">(</span><em>in_files</em>, <em>func='mean'</em>, <em>output_filename=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#average_over_runs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.average_over_runs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts data in a nifti-file to percent signal change.</p>
+<p>Takes a list of 4D fMRI nifti-files and averages them.
+That is, the resulting file has the same dimensions as each
+of the input files. average_over_runs assumes that all nifti
+files to be averaged have identical dimensions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>in_files</strong> (<em>list</em>) &#8211; Absolute paths to nifti-files.</li>
+<li><strong>func</strong> (<em>string</em><em> [</em><em>'mean'</em><em>, </em><em>'median'</em><em>] </em><em>(</em><em>default: 'mean'</em><em>)</em>) &#8211; the function used to calculate the &#8216;average&#8217;</li>
+<li><strong>output_filename</strong> (<em>str</em>) &#8211; path to output filename</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>out_file</strong> &#8211; Absolute path to average nifti-file.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.concat_iterables">
+<code class="descname">concat_iterables</code><span class="sig-paren">(</span><em>iterables</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#concat_iterables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.concat_iterables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenates iterables (starting with subject).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>iterables</strong> (<em>list</em>) &#8211; List of iterables to be concatenated into a path (e.g. after using
+nipype Merge-node).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>out_name</strong> &#8211; Concatenation of iterables</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.dyns_min_1">
+<code class="descname">dyns_min_1</code><span class="sig-paren">(</span><em>dyns</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#dyns_min_1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.dyns_min_1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.epi_file_selector">
+<code class="descname">epi_file_selector</code><span class="sig-paren">(</span><em>which_file</em>, <em>in_files</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#epi_file_selector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.epi_file_selector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects which EPI file will be the standard EPI space.
+Choices are: &#8216;middle&#8217;, &#8216;last&#8217;, &#8216;first&#8217;, or any integer in the list</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.extract_task">
+<code class="descname">extract_task</code><span class="sig-paren">(</span><em>in_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#extract_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.extract_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.get_scaninfo">
+<code class="descname">get_scaninfo</code><span class="sig-paren">(</span><em>in_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#get_scaninfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.get_scaninfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts info from nifti file.</p>
+<p>Extracts affine, shape (x, y, z, t), dynamics (t), voxel-size and TR from
+a given nifti-file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>in_file</strong> (<em>nifti-file</em><em> (</em><em>nii.gz</em><em> or </em><em>nii</em><em>)</em>) &#8211; Nifti file to extract info from.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>TR</strong> (<em>float</em>) &#8211; Temporal resolution of functional scan</li>
+<li><strong>shape</strong> (<em>tuple</em>) &#8211; Dimensions of scan (x, y, z, time)</li>
+<li><strong>dyns</strong> (<em>int</em>) &#8211; Number of dynamics (time)</li>
+<li><strong>voxsize</strong> (<em>tuple</em>) &#8211; Size of voxels (x, y, z = slice thickness)</li>
+<li><strong>affine</strong> (<em>np.ndarray</em>) &#8211; Affine matrix.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.join_datasink_base">
+<code class="descname">join_datasink_base</code><span class="sig-paren">(</span><em>base</em>, <em>ext</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#join_datasink_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.join_datasink_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.pick_last">
+<code class="descname">pick_last</code><span class="sig-paren">(</span><em>in_files</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#pick_last"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.pick_last" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.pickfirst">
+<code class="descname">pickfirst</code><span class="sig-paren">(</span><em>files</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#pickfirst"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.pickfirst" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.pickle_to_json">
+<code class="descname">pickle_to_json</code><span class="sig-paren">(</span><em>in_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#pickle_to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.pickle_to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.remove_extension">
+<code class="descname">remove_extension</code><span class="sig-paren">(</span><em>in_file</em>, <em>extension='.nii.gz'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#remove_extension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.remove_extension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.set_nifti_intercept_slope">
+<code class="descname">set_nifti_intercept_slope</code><span class="sig-paren">(</span><em>in_file</em>, <em>intercept=0</em>, <em>slope=1</em>, <em>in_is_out=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#set_nifti_intercept_slope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.set_nifti_intercept_slope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the value-scaling intercept and slope in the nifti header.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>in_file</strong> (<em>string</em>) &#8211; Absolute path to nifti-file.</li>
+<li><strong>intercept</strong> (<em>float</em><em> (</em><em>default: 0</em><em>)</em><em>, </em><em>can be None for nan value</em>) &#8211; the intercept of the value scaling function</li>
+<li><strong>slope</strong> (<em>float</em><em> (</em><em>default: 1</em><em>)</em><em>, </em><em>can be None for nan value</em>) &#8211; the slope of the value scaling function</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>out_file</strong> &#8211; Absolute path to nifti-file.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.set_parameters_in_nodes">
+<code class="descname">set_parameters_in_nodes</code><span class="sig-paren">(</span><em>workflow</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#set_parameters_in_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.set_parameters_in_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets parameters in nodes of a workflow.</p>
+<p>This function sets parameters of nodes in a workflow. It takes a variable amount of
+keyword-arguments, which should take the form of <a href="#id1"><span class="problematic" id="id2">`</span></a>&#8216;node_name&#8217;={&#8216;parameter&#8217;: value_to_set}.
+A cool feature of this function is that it checks whether the node (node_name) is contained
+in a sub-workflow (or sub-sub-workflow, etc.) using a recursive call to itself.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>workflow</strong> (<em>a Nipype workflow object</em>) &#8211; The workflow in which the nodes need to be altered.</li>
+<li><strong>**kwargs</strong> (<em>key-word arguments</em>) &#8211; A variable amount of keyword-arguments (dicts) which take the form of
+&#8216;node_name&#8217;: {&#8216;parameter&#8217;: value_to_set}.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.set_postfix">
+<code class="descname">set_postfix</code><span class="sig-paren">(</span><em>in_file</em>, <em>postfix</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#set_postfix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.set_postfix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a postfix identifier for a specific filename.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="spynoza.utils.split_4D_to_3D">
+<code class="descname">split_4D_to_3D</code><span class="sig-paren">(</span><em>in_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/spynoza/utils.html#split_4D_to_3D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#spynoza.utils.split_4D_to_3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>split_4D_to_3D splits a single 4D file into a list of nifti files.
+Because it splits the file at once, it&#8217;s faster than fsl.ExtractROI</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>in_file</strong> (<em>str</em>) &#8211; Absolute path to nifti-file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>out_files</strong> &#8211; List of absolute paths to nifti-files.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="spynoza.unwarping.topup.workflows.html" class="btn btn-neutral" title="spynoza.unwarping.topup.workflows module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

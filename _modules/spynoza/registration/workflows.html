@@ -1,0 +1,467 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.registration.workflows &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>spynoza.registration.workflows</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for spynoza.registration.workflows</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+<span class="kn">import</span> <span class="nn">nipype.pipeline</span> <span class="k">as</span> <span class="nn">pe</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">IdentityInterface</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">Rename</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.io</span> <span class="k">import</span> <span class="n">DataSink</span>
+
+<span class="kn">from</span> <span class="nn">.sub_workflows</span> <span class="k">import</span> <span class="p">(</span><span class="n">create_concat_2_feat_workflow</span><span class="p">,</span>
+                            <span class="n">create_epi_to_T1_workflow</span><span class="p">,</span>
+                            <span class="n">create_T1_to_standard_workflow</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="create_registration_workflow"><a class="viewcode-back" href="../../../source/spynoza.registration.workflows.html#spynoza.registration.workflows.create_registration_workflow">[docs]</a><span class="k">def</span> <span class="nf">create_registration_workflow</span><span class="p">(</span><span class="n">analysis_info</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;reg&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;uses sub-workflows to perform different registration steps.</span>
+<span class="sd">    Requires fsl and freesurfer tools</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : string</span>
+<span class="sd">        name of workflow</span>
+<span class="sd">    analysis_info : dict</span>
+<span class="sd">        contains session information needed for workflow, such as</span>
+<span class="sd">        whether to use FreeSurfer or FLIRT etc.</span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; registration_workflow = create_registration_workflow(name = &#39;registration_workflow&#39;, analysis_info = {&#39;use_FS&#39;:True})</span>
+<span class="sd">    &gt;&gt;&gt; registration_workflow.inputs.inputspec.output_directory = &#39;/data/project/raw/BIDS/sj_1/&#39;</span>
+<span class="sd">    &gt;&gt;&gt; registration_workflow.inputs.inputspec.EPI_space_file = &#39;example_func.nii.gz&#39;</span>
+<span class="sd">    &gt;&gt;&gt; registration_workflow.inputs.inputspec.T1_file = &#39;T1.nii.gz&#39; # if using freesurfer, this file will be created instead of used.</span>
+<span class="sd">    &gt;&gt;&gt; registration_workflow.inputs.inputspec.freesurfer_subject_ID = &#39;sub_01&#39;</span>
+<span class="sd">    &gt;&gt;&gt; registration_workflow.inputs.inputspec.freesurfer_subject_dir = &#39;$SUBJECTS_DIR&#39;</span>
+<span class="sd">    &gt;&gt;&gt; registration_workflow.inputs.inputspec.reference_file = &#39;/usr/local/fsl/data/standard/standard152_T1_2mm_brain.nii.gz&#39;</span>
+
+<span class="sd">    Inputs::</span>
+<span class="sd">          inputspec.output_directory : directory in which to sink the result files</span>
+<span class="sd">          inputspec.T1_file : T1 anatomy file</span>
+<span class="sd">          inputspec.EPI_space_file : EPI session file</span>
+<span class="sd">          inputspec.freesurfer_subject_ID : FS subject ID</span>
+<span class="sd">          inputspec.freesurfer_subject_dir : $SUBJECTS_DIR</span>
+<span class="sd">    Outputs::</span>
+<span class="sd">           outputspec.out_reg_file : BBRegister registration file that maps EPI space to T1</span>
+<span class="sd">           outputspec.out_matrix_file : FLIRT registration file that maps EPI space to T1</span>
+<span class="sd">           outputspec.out_inv_matrix_file : FLIRT registration file that maps T1 space to EPI</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">### NODES</span>
+    <span class="n">input_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;EPI_space_file&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;freesurfer_subject_ID&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;freesurfer_subject_dir&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;T1_file&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;standard_file&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;sub_id&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputspec&#39;</span><span class="p">)</span>
+
+    <span class="c1">### Workflow to be returned</span>
+    <span class="n">registration_workflow</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="c1">### sub-workflows</span>
+    <span class="n">epi_2_T1</span> <span class="o">=</span> <span class="n">create_epi_to_T1_workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;epi&#39;</span><span class="p">,</span>
+                                         <span class="n">use_FS</span><span class="o">=</span><span class="n">analysis_info</span><span class="p">[</span><span class="s1">&#39;use_FS&#39;</span><span class="p">],</span>
+                                         <span class="n">do_FAST</span><span class="o">=</span><span class="n">analysis_info</span><span class="p">[</span><span class="s1">&#39;do_FAST&#39;</span><span class="p">])</span>
+    <span class="n">T1_to_standard</span> <span class="o">=</span> <span class="n">create_T1_to_standard_workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;T1_to_standard&#39;</span><span class="p">,</span>
+                                                    <span class="n">use_FS</span><span class="o">=</span><span class="n">analysis_info</span><span class="p">[</span>
+                                                        <span class="s1">&#39;use_FS&#39;</span><span class="p">],</span>
+                                                    <span class="n">do_fnirt</span><span class="o">=</span><span class="n">analysis_info</span><span class="p">[</span>
+                                                        <span class="s1">&#39;do_fnirt&#39;</span><span class="p">],</span>
+                                                    <span class="n">use_AFNI_ss</span><span class="o">=</span><span class="n">analysis_info</span><span class="p">[</span><span class="s1">&#39;use_AFNI_ss&#39;</span><span class="p">])</span>
+    <span class="n">concat_2_feat</span> <span class="o">=</span> <span class="n">create_concat_2_feat_workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;concat_2_feat&#39;</span><span class="p">)</span>
+
+    <span class="n">output_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;EPI_T1_matrix_file&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;T1_EPI_matrix_file&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;EPI_T1_register_file&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;T1_standard_matrix_file&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;standard_T1_matrix_file&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;EPI_T1_matrix_file&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;T1_EPI_matrix_file&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;T1_file&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;standard_file&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;EPI_space_file&#39;</span>
+                                                    <span class="p">)),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputspec&#39;</span><span class="p">)</span>
+
+    <span class="c1">###########################################################################</span>
+    <span class="c1"># EPI to T1</span>
+    <span class="c1">###########################################################################</span>
+
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([(</span><span class="n">input_node</span><span class="p">,</span> <span class="n">epi_2_T1</span><span class="p">,</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;EPI_space_file&#39;</span><span class="p">,</span> <span class="s1">&#39;inputspec.EPI_space_file&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="s1">&#39;inputspec.output_directory&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;freesurfer_subject_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;inputspec.freesurfer_subject_ID&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;freesurfer_subject_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;inputspec.freesurfer_subject_dir&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;T1_file&#39;</span><span class="p">,</span> <span class="s1">&#39;inputspec.T1_file&#39;</span><span class="p">)</span>
+    <span class="p">])])</span>
+
+    <span class="c1">###########################################################################</span>
+    <span class="c1"># T1 to standard</span>
+    <span class="c1">###########################################################################</span>
+
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([(</span><span class="n">input_node</span><span class="p">,</span> <span class="n">T1_to_standard</span><span class="p">,</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;freesurfer_subject_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;inputspec.freesurfer_subject_ID&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;freesurfer_subject_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;inputspec.freesurfer_subject_dir&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;T1_file&#39;</span><span class="p">,</span> <span class="s1">&#39;inputspec.T1_file&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;standard_file&#39;</span><span class="p">,</span> <span class="s1">&#39;inputspec.standard_file&#39;</span><span class="p">)</span>
+    <span class="p">])])</span>
+
+    <span class="c1">###########################################################################</span>
+    <span class="c1"># concatenation of all matrices</span>
+    <span class="c1">###########################################################################</span>
+
+    <span class="c1"># then, the inputs from the previous sub-workflows</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([(</span><span class="n">epi_2_T1</span><span class="p">,</span> <span class="n">concat_2_feat</span><span class="p">,</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;outputspec.EPI_T1_matrix_file&#39;</span><span class="p">,</span> <span class="s1">&#39;inputspec.EPI_T1_matrix_file&#39;</span><span class="p">),</span>
+    <span class="p">])])</span>
+
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([(</span><span class="n">T1_to_standard</span><span class="p">,</span> <span class="n">concat_2_feat</span><span class="p">,</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;outputspec.T1_standard_matrix_file&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;inputspec.T1_standard_matrix_file&#39;</span><span class="p">),</span>
+    <span class="p">])])</span>
+
+    <span class="c1">###########################################################################</span>
+    <span class="c1"># Rename nodes, for the datasink</span>
+    <span class="c1">###########################################################################</span>
+
+    <span class="k">if</span> <span class="n">analysis_info</span><span class="p">[</span><span class="s1">&#39;use_FS&#39;</span><span class="p">]:</span>
+        <span class="n">rename_register</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+            <span class="n">Rename</span><span class="p">(</span><span class="n">format_string</span><span class="o">=</span><span class="s1">&#39;register.dat&#39;</span><span class="p">,</span> <span class="n">keep_ext</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_register&#39;</span><span class="p">)</span>
+
+        <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">epi_2_T1</span><span class="p">,</span>
+                                      <span class="s1">&#39;outputspec.EPI_T1_register_file&#39;</span><span class="p">,</span>
+                                      <span class="n">rename_register</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="n">rename_example_func</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">Rename</span><span class="p">(</span><span class="n">format_string</span><span class="o">=</span><span class="s1">&#39;example_func&#39;</span><span class="p">,</span> <span class="n">keep_ext</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_example_func&#39;</span><span class="p">)</span>
+
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;EPI_space_file&#39;</span><span class="p">,</span>
+                                  <span class="n">rename_example_func</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="n">rename_highres</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">Rename</span><span class="p">(</span><span class="n">format_string</span><span class="o">=</span><span class="s1">&#39;highres&#39;</span><span class="p">,</span> <span class="n">keep_ext</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                             <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_highres&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">T1_to_standard</span><span class="p">,</span> <span class="s1">&#39;outputspec.T1_file&#39;</span><span class="p">,</span>
+                                  <span class="n">rename_highres</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="n">rename_standard</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">Rename</span><span class="p">(</span><span class="n">format_string</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">,</span> <span class="n">keep_ext</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_standard&#39;</span><span class="p">)</span>
+
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;standard_file&#39;</span><span class="p">,</span> <span class="n">rename_standard</span><span class="p">,</span>
+                                  <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="n">rename_example_func2standard</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">Rename</span><span class="p">(</span><span class="n">format_string</span><span class="o">=</span><span class="s1">&#39;example_func2standard.mat&#39;</span><span class="p">,</span> <span class="n">keep_ext</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_example_func2standard&#39;</span><span class="p">)</span>
+
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">concat_2_feat</span><span class="p">,</span>
+                                  <span class="s1">&#39;outputspec.EPI_standard_matrix_file&#39;</span><span class="p">,</span>
+                                  <span class="n">rename_example_func2standard</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="n">rename_example_func2highres</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">Rename</span><span class="p">(</span><span class="n">format_string</span><span class="o">=</span><span class="s1">&#39;example_func2highres.mat&#39;</span><span class="p">,</span> <span class="n">keep_ext</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_example_func2highres&#39;</span><span class="p">)</span>
+
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">epi_2_T1</span><span class="p">,</span> <span class="s1">&#39;outputspec.EPI_T1_matrix_file&#39;</span><span class="p">,</span>
+                                  <span class="n">rename_example_func2highres</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="n">rename_highres2standard</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">Rename</span><span class="p">(</span><span class="n">format_string</span><span class="o">=</span><span class="s1">&#39;highres2standard.mat&#39;</span><span class="p">,</span> <span class="n">keep_ext</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_highres2standard&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">T1_to_standard</span><span class="p">,</span>
+                                  <span class="s1">&#39;outputspec.T1_standard_matrix_file&#39;</span><span class="p">,</span>
+                                  <span class="n">rename_highres2standard</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="n">rename_standard2example_func</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">Rename</span><span class="p">(</span><span class="n">format_string</span><span class="o">=</span><span class="s1">&#39;standard2example_func.mat&#39;</span><span class="p">,</span> <span class="n">keep_ext</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_standard2example_func&#39;</span><span class="p">)</span>
+
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">concat_2_feat</span><span class="p">,</span>
+                                  <span class="s1">&#39;outputspec.standard_EPI_matrix_file&#39;</span><span class="p">,</span>
+                                  <span class="n">rename_standard2example_func</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="n">rename_highres2example_func</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">Rename</span><span class="p">(</span><span class="n">format_string</span><span class="o">=</span><span class="s1">&#39;highres2example_func.mat&#39;</span><span class="p">,</span> <span class="n">keep_ext</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_highres2example_func&#39;</span><span class="p">)</span>
+
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">epi_2_T1</span><span class="p">,</span> <span class="s1">&#39;outputspec.T1_EPI_matrix_file&#39;</span><span class="p">,</span>
+                                  <span class="n">rename_highres2example_func</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="n">rename_standard2highres</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">Rename</span><span class="p">(</span><span class="n">format_string</span><span class="o">=</span><span class="s1">&#39;standard2highres.mat&#39;</span><span class="p">,</span> <span class="n">keep_ext</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rename_standard2highres&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">T1_to_standard</span><span class="p">,</span>
+                                  <span class="s1">&#39;outputspec.standard_T1_matrix_file&#39;</span><span class="p">,</span>
+                                  <span class="n">rename_standard2highres</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="c1"># outputs via datasink</span>
+    <span class="n">datasink</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">DataSink</span><span class="p">(</span><span class="n">infields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;reg&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sinker&#39;</span><span class="p">)</span>
+    <span class="n">datasink</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">parameterization</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span>
+                                  <span class="s1">&#39;base_directory&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;sub_id&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;container&#39;</span><span class="p">)</span>
+
+    <span class="c1"># NEW SETUP WITH RENAME (WITHOUT MERGER)</span>
+    <span class="k">if</span> <span class="n">analysis_info</span><span class="p">[</span><span class="s1">&#39;use_FS&#39;</span><span class="p">]:</span>
+        <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_register</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span>
+                                      <span class="s1">&#39;reg.@dat&#39;</span><span class="p">)</span>
+
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_example_func</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span>
+                                  <span class="s1">&#39;reg.@example_func&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_standard</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span>
+                                  <span class="s1">&#39;reg.@standard&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_highres</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span>
+                                  <span class="s1">&#39;reg.@highres&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_example_func2highres</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span>
+                                  <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;reg.@example_func2highres&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_highres2example_func</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span>
+                                  <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;reg.@highres2example_func&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_highres2standard</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span>
+                                  <span class="s1">&#39;reg.@highres2standard&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_standard2highres</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span>
+                                  <span class="s1">&#39;reg.@standard2highres&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_standard2example_func</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span>
+                                  <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;reg.@standard2example_func&#39;</span><span class="p">)</span>
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_example_func2standard</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span>
+                                  <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;reg.@example_func2standard&#39;</span><span class="p">)</span>
+
+    <span class="n">registration_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">rename_highres</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span>
+                                  <span class="s1">&#39;T1_file&#39;</span><span class="p">)</span>
+
+    <span class="c1"># put the nifti and mat files, renamed above, in the reg/feat directory.</span>
+    <span class="c1"># don&#39;t yet know what&#39;s wrong with this merge to datasink</span>
+    <span class="c1"># registration_workflow.connect(merge_for_reg_N, &#39;out&#39;, datasink, &#39;reg&#39;)</span>
+
+    <span class="k">return</span> <span class="n">registration_workflow</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.denoising.retroicor.nodes.pnm &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../../../../index.html"/>
+        <link rel="up" title="Module code" href="../../../../index.html"/> 
+
+  
+  <script src="../../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>spynoza.denoising.retroicor.nodes.pnm</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for spynoza.denoising.retroicor.nodes.pnm</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.fsl.base</span> <span class="k">import</span> <span class="n">FSLCommand</span><span class="p">,</span> <span class="n">FSLCommandInputSpec</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="k">import</span> <span class="p">(</span><span class="n">TraitedSpec</span><span class="p">,</span> <span class="n">File</span><span class="p">,</span> <span class="n">traits</span><span class="p">,</span> <span class="n">InputMultiPath</span><span class="p">,</span>
+                                    <span class="n">isdefined</span><span class="p">,</span> <span class="n">OutputMultiPath</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PreparePNMInput"><a class="viewcode-back" href="../../../../../source/spynoza.denoising.retroicor.nodes.pnm.html#spynoza.denoising.retroicor.nodes.pnm.PreparePNMInput">[docs]</a><span class="k">class</span> <span class="nc">PreparePNMInput</span><span class="p">(</span><span class="n">FSLCommandInputSpec</span><span class="p">):</span>
+    <span class="n">in_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s2">&quot;-i </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;physiological recordings&quot;</span><span class="p">)</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;phys_recording&#39;</span><span class="p">,</span> <span class="n">genfile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">position</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s2">&quot;-o </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> 
+                  <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;prefix for output files&quot;</span><span class="p">,</span> <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">resp_index</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--resp=</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cardiac_index</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--cardiac=</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">trigger_index</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--trigger=</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    
+    <span class="n">smoothresp</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--smoothresp=</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">smoothcard</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--smoothcard=</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">496</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-s </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">)</span>
+    <span class="n">tr</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--tr=</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">hr_rvt</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--heartrate --rvt&#39;</span><span class="p">,)</span></div>
+    
+<div class="viewcode-block" id="PreparePNMOutput"><a class="viewcode-back" href="../../../../../source/spynoza.denoising.retroicor.nodes.pnm.html#spynoza.denoising.retroicor.nodes.pnm.PreparePNMOutput">[docs]</a><span class="k">class</span> <span class="nc">PreparePNMOutput</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Time triggers&quot;</span><span class="p">)</span>
+    <span class="n">card</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Cardiac regressor&quot;</span><span class="p">)</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Respiratory regressor&quot;</span><span class="p">)</span>
+    <span class="n">hr</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Heartrate regressor&quot;</span><span class="p">)</span>
+    <span class="n">rvt</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;RVT regressor&quot;</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="PreparePNM"><a class="viewcode-back" href="../../../../../source/spynoza.denoising.retroicor.nodes.pnm.html#spynoza.denoising.retroicor.nodes.pnm.PreparePNM">[docs]</a><span class="k">class</span> <span class="nc">PreparePNM</span><span class="p">(</span><span class="n">FSLCommand</span><span class="p">):</span>
+    <span class="n">_cmd</span> <span class="o">=</span> <span class="s2">&quot;popp&quot;</span>
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">PreparePNMInput</span>
+    <span class="n">output_spec</span> <span class="o">=</span> <span class="n">PreparePNMOutput</span>
+    <span class="n">_suffix</span> <span class="o">=</span> <span class="s2">&quot;_popp&quot;</span>
+    <span class="k">def</span> <span class="nf">_list_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_spec</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;resp&#39;</span><span class="p">,</span> <span class="s1">&#39;card&#39;</span><span class="p">,</span> <span class="s1">&#39;hr&#39;</span><span class="p">,</span> <span class="s1">&#39;rvt&#39;</span><span class="p">]:</span>        
+            <span class="n">outputs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">prefix</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">.txt&#39;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">outputs</span></div>
+    
+<div class="viewcode-block" id="PNMtoEVsInput"><a class="viewcode-back" href="../../../../../source/spynoza.denoising.retroicor.nodes.pnm.html#spynoza.denoising.retroicor.nodes.pnm.PNMtoEVsInput">[docs]</a><span class="k">class</span> <span class="nc">PNMtoEVsInput</span><span class="p">(</span><span class="n">FSLCommandInputSpec</span><span class="p">):</span>
+
+    <span class="n">functional_epi</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s2">&quot;-i </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;input image filename (of 4D functional/EPI data)&quot;</span><span class="p">)</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="s1">&#39;pnm_regressors_&#39;</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s2">&quot;-o </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;output filename (for confound/EV matrix)&quot;</span><span class="p">,</span> <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tr</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">argstr</span><span class="o">=</span><span class="s2">&quot;--tr=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;TR value in seconds&quot;</span><span class="p">)</span> 
+    <span class="n">cardiac</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-c </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                   <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;input filename for cardiac values (1 or 2 columns: time [phase])&#39;</span><span class="p">)</span>
+    <span class="n">resp</span> <span class="o">=</span>  <span class="n">File</span><span class="p">(</span><span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-r </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                   <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;input filename for respiratory phase values (1 or 2 columns: time [phase])&#39;</span><span class="p">)</span>
+    <span class="n">hr</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--heartrate=</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;heartrate regressor&#39;</span><span class="p">)</span>
+    <span class="n">rvt</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--rvt=</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;rvt regressor&#39;</span><span class="p">)</span>
+    <span class="n">order_cardiac</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--oc=</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;order of basic cardiac regressors (number of Fourier pairs) - default=4&#39;</span><span class="p">)</span>
+    <span class="n">order_resp</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--or=</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span>
+                               <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;order of basic respiratory regressors (number of Fourier pairs) - default=4&#39;</span><span class="p">,</span> 
+                                            <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,)</span>    
+    <span class="n">order_cardiac_interact</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--multc=</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span>
+                                           <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;order of basic cardiac regressors (number of Fourier pairs) - default=2&#39;</span><span class="p">)</span>
+    <span class="n">order_resp_interact</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--multr=</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span>
+                                        <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;order of basic respiratory regressors (number of Fourier pairs) - default=2&#39;</span><span class="p">)</span>    
+    <span class="n">slice_dir</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--slicedir=</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                            <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;specify slice direction (x/y/z) - default is z&#39;</span><span class="p">)</span>
+    <span class="n">slice_order</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;up&#39;</span><span class="p">,</span> <span class="s1">&#39;down&#39;</span><span class="p">,</span> <span class="s1">&#39;interleaved_up&#39;</span><span class="p">,</span> <span class="s1">&#39;interleaved_down&#39;</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--sliceorder=</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                            <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;specify slice ordering (up/down/interleaved_up/interleaved_down)&#39;</span><span class="p">)</span> 
+    <span class="n">slice_timing</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--slicetiming=</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                            <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;specify slice timing via an external file&#39;</span><span class="p">)</span> 
+    <span class="n">csf_mask</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--csfmask=</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                            <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;filename of csf mask image (and generate csf regressor)&#39;</span><span class="p">)</span> 
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;switch on diagnostic messages&#39;</span><span class="p">,</span>
+                          <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-v&#39;</span><span class="p">)</span>     </div>
+    
+<div class="viewcode-block" id="PNMtoEVsOutput"><a class="viewcode-back" href="../../../../../source/spynoza.denoising.retroicor.nodes.pnm.html#spynoza.denoising.retroicor.nodes.pnm.PNMtoEVsOutput">[docs]</a><span class="k">class</span> <span class="nc">PNMtoEVsOutput</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+    <span class="n">evs</span> <span class="o">=</span> <span class="n">OutputMultiPath</span><span class="p">(</span><span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Set of nifti-files containing physiological&#39;</span>
+                                    <span class="s1">&#39;regressors&#39;</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="PNMtoEVs"><a class="viewcode-back" href="../../../../../source/spynoza.denoising.retroicor.nodes.pnm.html#spynoza.denoising.retroicor.nodes.pnm.PNMtoEVs">[docs]</a><span class="k">class</span> <span class="nc">PNMtoEVs</span><span class="p">(</span><span class="n">FSLCommand</span><span class="p">):</span>
+
+    <span class="n">_cmd</span> <span class="o">=</span> <span class="s2">&quot;pnm_evs&quot;</span>
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">PNMtoEVsInput</span>
+    <span class="n">output_spec</span> <span class="o">=</span> <span class="n">PNMtoEVsOutput</span>
+
+    <span class="k">def</span> <span class="nf">_list_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_spec</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        
+        <span class="n">n_evs</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">order_cardiac</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">order_resp</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> \
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">order_cardiac_interact</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">order_resp_interact</span><span class="p">)</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">+</span> \
+                <span class="mi">2</span>
+        
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;evs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_evs</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            
+            <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;evs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">prefix</span> <span class="o">+</span> <span class="s1">&#39;ev</span><span class="si">%03d</span><span class="s1">.nii.gz&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">))</span>
+         
+        <span class="k">return</span> <span class="n">outputs</span></div>
+
+
+
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

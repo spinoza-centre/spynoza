@@ -1,0 +1,547 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.examples.UKE_preprocessing_workflow &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>spynoza.examples.UKE_preprocessing_workflow</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for spynoza.examples.UKE_preprocessing_workflow</h1><div class="highlight"><pre>
+<div class="viewcode-block" id="create_preprocessing_workflow"><a class="viewcode-back" href="../../../source/spynoza.examples.UKE_preprocessing_workflow.html#spynoza.examples.UKE_preprocessing_workflow.create_preprocessing_workflow">[docs]</a><span></span><span class="k">def</span> <span class="nf">create_preprocessing_workflow</span><span class="p">(</span><span class="n">analysis_parameters</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;yesno_3T&#39;</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+    <span class="kn">import</span> <span class="nn">nipype.pipeline</span> <span class="k">as</span> <span class="nn">pe</span>
+    <span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="k">import</span> <span class="n">fsl</span>
+    <span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">Function</span><span class="p">,</span> <span class="n">Merge</span><span class="p">,</span> <span class="n">IdentityInterface</span>
+    <span class="kn">from</span> <span class="nn">nipype.interfaces.io</span> <span class="k">import</span> <span class="n">SelectFiles</span><span class="p">,</span> <span class="n">DataSink</span>
+
+    <span class="c1"># Importing of custom nodes from spynoza packages; assumes that spynoza is installed:</span>
+    <span class="c1"># pip install git+https://github.com/spinoza-centre/spynoza.git@develop</span>
+    <span class="kn">from</span> <span class="nn">spynoza.utils</span> <span class="k">import</span> <span class="n">get_scaninfo</span><span class="p">,</span> <span class="n">pickfirst</span><span class="p">,</span> <span class="n">average_over_runs</span><span class="p">,</span> <span class="n">set_nifti_intercept_slope</span>
+    <span class="kn">from</span> <span class="nn">spynoza.uniformization.workflows</span> <span class="k">import</span> <span class="n">create_non_uniformity_correct_4D_file</span>
+    <span class="kn">from</span> <span class="nn">spynoza.unwarping.b0.workflows</span> <span class="k">import</span> <span class="n">create_B0_workflow</span>
+    <span class="kn">from</span> <span class="nn">spynoza.motion_correction.workflows</span> <span class="k">import</span> <span class="n">create_motion_correction_workflow</span>
+    <span class="kn">from</span> <span class="nn">spynoza.registration.workflows</span> <span class="k">import</span> <span class="n">create_registration_workflow</span>
+    <span class="kn">from</span> <span class="nn">spynoza.filtering.nodes</span> <span class="k">import</span> <span class="n">sgfilter</span>
+    <span class="kn">from</span> <span class="nn">spynoza.conversion.nodes</span> <span class="k">import</span> <span class="n">psc</span>
+    <span class="kn">from</span> <span class="nn">spynoza.denoising.retroicor.workflows</span> <span class="k">import</span> <span class="n">create_retroicor_workflow</span>
+    <span class="kn">from</span> <span class="nn">spynoza.masking.workflows</span> <span class="k">import</span> <span class="n">create_masks_from_surface_workflow</span>
+    <span class="kn">from</span> <span class="nn">spynoza.glm.nodes</span> <span class="k">import</span> <span class="n">fit_nuisances</span>
+    
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># nodes</span>
+    <span class="c1">########################################################################################</span>
+
+    <span class="n">input_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span>
+                <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;raw_directory&#39;</span><span class="p">,</span> 
+                    <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> 
+                    <span class="s1">&#39;FS_ID&#39;</span><span class="p">,</span> 
+                    <span class="s1">&#39;FS_subject_dir&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;task&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;sub_id&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;ses_id&#39;</span><span class="p">,</span> 
+                    <span class="s1">&#39;topup_conf_file&#39;</span><span class="p">,</span> 
+                    <span class="s1">&#39;which_file_is_EPI_space&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;standard_file&#39;</span><span class="p">,</span> 
+                    <span class="s1">&#39;psc_func&#39;</span><span class="p">,</span> 
+                    <span class="s1">&#39;av_func&#39;</span><span class="p">,</span> 
+                    <span class="s1">&#39;MB_factor&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;tr&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;slice_direction&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;phys_sample_rate&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;slice_timing&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;slice_order&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;nr_dummies&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;hr_rvt&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;wfs&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;epi_factor&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;acceleration&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;te_diff&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;echo_time&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;phase_encoding_direction&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;bd_design_matrix_file&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;sg_filter_window_length&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;sg_filter_order&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputspec&#39;</span><span class="p">)</span>
+
+    <span class="c1"># i/o node</span>
+    <span class="n">datasource_templates</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{sub_id}</span><span class="s1">/</span><span class="si">{ses_id}</span><span class="s1">/func/*</span><span class="si">{task}</span><span class="s1">*_bold.nii.gz&#39;</span><span class="p">,</span>
+                                <span class="n">magnitude</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{sub_id}</span><span class="s1">/</span><span class="si">{ses_id}</span><span class="s1">/fmap/*magnitude.nii.gz&#39;</span><span class="p">,</span>
+                                <span class="n">phasediff</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{sub_id}</span><span class="s1">/</span><span class="si">{ses_id}</span><span class="s1">/fmap/*phasediff.nii.gz&#39;</span><span class="p">,</span>
+                                <span class="n">physio</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{sub_id}</span><span class="s1">/</span><span class="si">{ses_id}</span><span class="s1">/func/*</span><span class="si">{task}</span><span class="s1">*physio.*&#39;</span><span class="p">,</span>
+                                <span class="n">events</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{sub_id}</span><span class="s1">/</span><span class="si">{ses_id}</span><span class="s1">/func/*</span><span class="si">{task}</span><span class="s1">*_events.pickle&#39;</span><span class="p">,</span>
+                                <span class="n">eye</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{sub_id}</span><span class="s1">/</span><span class="si">{ses_id}</span><span class="s1">/func/*</span><span class="si">{task}</span><span class="s1">*_eyedata.edf&#39;</span><span class="p">)</span>
+    <span class="n">datasource</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">SelectFiles</span><span class="p">(</span><span class="n">datasource_templates</span><span class="p">,</span> <span class="n">sort_filelist</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">raise_on_empty</span> <span class="o">=</span> <span class="kc">False</span><span class="p">),</span> 
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;datasource&#39;</span><span class="p">)</span>
+
+    <span class="n">output_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">([</span>
+            <span class="s1">&#39;temporal_filtered_files&#39;</span><span class="p">,</span> 
+            <span class="s1">&#39;percent_signal_change_files&#39;</span><span class="p">])),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputspec&#39;</span><span class="p">)</span>
+
+    <span class="c1"># nodes for setting the slope/intercept of incoming niftis to (1, 0)</span>
+    <span class="c1"># this is apparently necessary for the B0 map files</span>
+    <span class="n">int_slope_B0_magnitude</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">Function</span><span class="p">(</span><span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">],</span> <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">],</span> <span class="n">function</span><span class="o">=</span><span class="n">set_nifti_intercept_slope</span><span class="p">),</span>
+                      <span class="n">name</span><span class="o">=</span><span class="s1">&#39;int_slope_B0_magnitude&#39;</span><span class="p">)</span>
+    <span class="n">int_slope_B0_phasediff</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">Function</span><span class="p">(</span><span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">],</span> <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">],</span> <span class="n">function</span><span class="o">=</span><span class="n">set_nifti_intercept_slope</span><span class="p">),</span>
+                      <span class="n">name</span><span class="o">=</span><span class="s1">&#39;int_slope_B0_phasediff&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># reorient nodes</span>
+    <span class="c1"># reorient_epi = pe.MapNode(interface=fsl.Reorient2Std(), name=&#39;reorient_epi&#39;, iterfield=[&#39;in_file&#39;])</span>
+    <span class="c1"># reorient_topup = pe.MapNode(interface=fsl.Reorient2Std(), name=&#39;reorient_topup&#39;, iterfield=[&#39;in_file&#39;])</span>
+    <span class="c1"># reorient_B0_magnitude = pe.Node(interface=fsl.Reorient2Std(), name=&#39;reorient_B0_magnitude&#39;)</span>
+    <span class="c1"># reorient_B0_phasediff = pe.Node(interface=fsl.Reorient2Std(), name=&#39;reorient_B0_phasediff&#39;)</span>
+
+    <span class="c1"># bet_epi = pe.MapNode(interface=</span>
+    <span class="c1">#     fsl.BET(frac=analysis_parameters[&#39;bet_f_value&#39;], vertical_gradient = analysis_parameters[&#39;bet_g_value&#39;],</span>
+    <span class="c1">#             functional=True, mask = True), name=&#39;bet_epi&#39;, iterfield=[&#39;in_file&#39;])</span>
+    
+    <span class="n">datasink</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">DataSink</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sinker&#39;</span><span class="p">)</span>
+    <span class="n">datasink</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">parameterization</span> <span class="o">=</span> <span class="kc">False</span>
+    
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># workflow</span>
+    <span class="c1">########################################################################################</span>
+    
+    <span class="c1"># the actual top-level workflow</span>
+    <span class="n">preprocessing_workflow</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    
+    <span class="c1"># data source </span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;raw_directory&#39;</span><span class="p">,</span> <span class="n">datasource</span><span class="p">,</span> <span class="s1">&#39;base_directory&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;sub_id&#39;</span><span class="p">,</span> <span class="n">datasource</span><span class="p">,</span> <span class="s1">&#39;sub_id&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;ses_id&#39;</span><span class="p">,</span> <span class="n">datasource</span><span class="p">,</span> <span class="s1">&#39;ses_id&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;task&#39;</span><span class="p">,</span> <span class="n">datasource</span><span class="p">,</span> <span class="s1">&#39;task&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># and data sink</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;base_directory&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># copy raw data to output folder:</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">datasource</span><span class="p">,</span> <span class="s1">&#39;func&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;raw&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># BET (we don&#39;t do this, because we expect the raw data in the bids folder to be betted</span>
+    <span class="c1"># already for anonymization purposes)</span>
+    <span class="c1"># preprocessing_workflow.connect(datasource, &#39;func&#39;, bet_epi, &#39;in_file&#39;)</span>
+    
+    <span class="c1"># non-uniformity correction</span>
+    <span class="c1"># preprocessing_workflow.connect(bet_epi, &#39;out_file&#39;, nuc, &#39;in_file&#39;)</span>
+    <span class="c1"># preprocessing_workflow.connect(datasource, &#39;func&#39;, nuc, &#39;in_file&#39;)</span>
+    
+    <span class="c1">#B0 field correction:</span>
+    <span class="k">if</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s1">&#39;B0_or_topup&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;B0&#39;</span><span class="p">:</span>
+        
+        <span class="c1"># set slope/intercept to unity for B0 map</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">datasource</span><span class="p">,</span> <span class="s1">&#39;magnitude&#39;</span><span class="p">,</span> <span class="n">int_slope_B0_magnitude</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">datasource</span><span class="p">,</span> <span class="s1">&#39;phasediff&#39;</span><span class="p">,</span> <span class="n">int_slope_B0_phasediff</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+        
+        <span class="c1">#B0 field correction:</span>
+        <span class="n">B0_wf</span> <span class="o">=</span> <span class="n">create_B0_workflow</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;B0&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">datasource</span><span class="p">,</span> <span class="s1">&#39;func&#39;</span><span class="p">,</span> <span class="n">B0_wf</span><span class="p">,</span> <span class="s1">&#39;inputspec.in_files&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">int_slope_B0_magnitude</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">B0_wf</span><span class="p">,</span> <span class="s1">&#39;inputspec.fieldmap_mag&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">int_slope_B0_phasediff</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">B0_wf</span><span class="p">,</span> <span class="s1">&#39;inputspec.fieldmap_pha&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;wfs&#39;</span><span class="p">,</span> <span class="n">B0_wf</span><span class="p">,</span> <span class="s1">&#39;inputspec.wfs&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;epi_factor&#39;</span><span class="p">,</span> <span class="n">B0_wf</span><span class="p">,</span> <span class="s1">&#39;inputspec.epi_factor&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;acceleration&#39;</span><span class="p">,</span> <span class="n">B0_wf</span><span class="p">,</span> <span class="s1">&#39;inputspec.acceleration&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;te_diff&#39;</span><span class="p">,</span> <span class="n">B0_wf</span><span class="p">,</span> <span class="s1">&#39;inputspec.te_diff&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;phase_encoding_direction&#39;</span><span class="p">,</span> <span class="n">B0_wf</span><span class="p">,</span> <span class="s1">&#39;inputspec.phase_encoding_direction&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">B0_wf</span><span class="p">,</span> <span class="s1">&#39;outputspec.field_coefs&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;B0.fieldcoef&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">B0_wf</span><span class="p">,</span> <span class="s1">&#39;outputspec.out_files&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;B0&#39;</span><span class="p">)</span>
+        
+    <span class="c1"># motion correction</span>
+    <span class="n">motion_proc</span> <span class="o">=</span> <span class="n">create_motion_correction_workflow</span><span class="p">(</span><span class="s1">&#39;moco&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">analysis_parameters</span><span class="p">[</span><span class="s1">&#39;moco_method&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s1">&#39;B0_or_topup&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;B0&#39;</span><span class="p">:</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">B0_wf</span><span class="p">,</span> <span class="s1">&#39;outputspec.out_files&#39;</span><span class="p">,</span> <span class="n">motion_proc</span><span class="p">,</span> <span class="s1">&#39;inputspec.in_files&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s1">&#39;B0_or_topup&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;neither&#39;</span><span class="p">:</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">bet_epi</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">motion_proc</span><span class="p">,</span> <span class="s1">&#39;inputspec.in_files&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;tr&#39;</span><span class="p">,</span> <span class="n">motion_proc</span><span class="p">,</span> <span class="s1">&#39;inputspec.tr&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">motion_proc</span><span class="p">,</span> <span class="s1">&#39;inputspec.output_directory&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;which_file_is_EPI_space&#39;</span><span class="p">,</span> <span class="n">motion_proc</span><span class="p">,</span> <span class="s1">&#39;inputspec.which_file_is_EPI_space&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># registration</span>
+    <span class="n">reg</span> <span class="o">=</span> <span class="n">create_registration_workflow</span><span class="p">(</span><span class="n">analysis_parameters</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;reg&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">reg</span><span class="p">,</span> <span class="s1">&#39;inputspec.output_directory&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_proc</span><span class="p">,</span> <span class="s1">&#39;outputspec.EPI_space_file&#39;</span><span class="p">,</span> <span class="n">reg</span><span class="p">,</span> <span class="s1">&#39;inputspec.EPI_space_file&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;FS_ID&#39;</span><span class="p">,</span> <span class="n">reg</span><span class="p">,</span> <span class="s1">&#39;inputspec.freesurfer_subject_ID&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;FS_subject_dir&#39;</span><span class="p">,</span> <span class="n">reg</span><span class="p">,</span> <span class="s1">&#39;inputspec.freesurfer_subject_dir&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;standard_file&#39;</span><span class="p">,</span> <span class="n">reg</span><span class="p">,</span> <span class="s1">&#39;inputspec.standard_file&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># temporal filtering</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;sg_filter_window_length&#39;</span><span class="p">,</span> <span class="n">sgfilter</span><span class="p">,</span> <span class="s1">&#39;window_length&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;sg_filter_order&#39;</span><span class="p">,</span> <span class="n">sgfilter</span><span class="p">,</span> <span class="s1">&#39;polyorder&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">motion_proc</span><span class="p">,</span> <span class="s1">&#39;outputspec.motion_corrected_files&#39;</span><span class="p">,</span> <span class="n">sgfilter</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sgfilter</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;tf&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># node for percent signal change</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;psc_func&#39;</span><span class="p">,</span> <span class="n">psc</span><span class="p">,</span> <span class="s1">&#39;func&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sgfilter</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">psc</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">psc</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;psc&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># retroicor functionality</span>
+    <span class="k">if</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s1">&#39;perform_physio&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">retr</span> <span class="o">=</span> <span class="n">create_retroicor_workflow</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;retroicor&#39;</span><span class="p">,</span> <span class="n">order_or_timing</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s1">&#39;retroicor_order_or_timing&#39;</span><span class="p">])</span>
+        
+        <span class="c1"># # retroicor can take the crudest form of epi file, so that it proceeds quickly</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">datasource</span><span class="p">,</span> <span class="s1">&#39;func&#39;</span><span class="p">,</span> <span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;inputspec.in_files&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">datasource</span><span class="p">,</span> <span class="s1">&#39;physio&#39;</span><span class="p">,</span> <span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;inputspec.phys_files&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;nr_dummies&#39;</span><span class="p">,</span> <span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;inputspec.nr_dummies&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;MB_factor&#39;</span><span class="p">,</span> <span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;inputspec.MB_factor&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;tr&#39;</span><span class="p">,</span> <span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;inputspec.tr&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;slice_direction&#39;</span><span class="p">,</span> <span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;inputspec.slice_direction&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;slice_timing&#39;</span><span class="p">,</span> <span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;inputspec.slice_timing&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;slice_order&#39;</span><span class="p">,</span> <span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;inputspec.slice_order&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;phys_sample_rate&#39;</span><span class="p">,</span> <span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;inputspec.phys_sample_rate&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;hr_rvt&#39;</span><span class="p">,</span> <span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;inputspec.hr_rvt&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># fit nuisances from retroicor</span>
+        <span class="c1"># preprocessing_workflow.connect(retr, &#39;outputspec.evs&#39;, fit_nuis, &#39;slice_regressor_list&#39;)</span>
+        <span class="c1"># preprocessing_workflow.connect(motion_proc, &#39;outputspec.extended_motion_correction_parameters&#39;, fit_nuis, &#39;vol_regressors&#39;)</span>
+        <span class="c1"># preprocessing_workflow.connect(psc, &#39;out_file&#39;, fit_nuis, &#39;in_file&#39;)</span>
+        
+        <span class="c1"># preprocessing_workflow.connect(fit_nuis, &#39;res_file&#39;, av_r, &#39;in_files&#39;)</span>
+        
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;outputspec.new_phys&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;phys.log&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;outputspec.fig_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;phys.figs&#39;</span><span class="p">)</span>
+        <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">retr</span><span class="p">,</span> <span class="s1">&#39;outputspec.evs&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;phys.evs&#39;</span><span class="p">)</span>
+        <span class="c1"># preprocessing_workflow.connect(fit_nuis, &#39;res_file&#39;, datasink, &#39;phys.res&#39;)</span>
+        <span class="c1"># preprocessing_workflow.connect(fit_nuis, &#39;rsq_file&#39;, datasink, &#39;phys.rsq&#39;)</span>
+        <span class="c1"># preprocessing_workflow.connect(fit_nuis, &#39;beta_file&#39;, datasink, &#39;phys.betas&#39;)</span>
+        
+        <span class="c1"># preprocessing_workflow.connect(av_r, &#39;out_file&#39;, datasink, &#39;av_r&#39;)</span>
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1"># ########################################################################################</span>
+    <span class="c1"># # masking stuff if doing mri analysis</span>
+    <span class="c1"># ########################################################################################</span>
+    <span class="c1">#</span>
+    <span class="c1">#     all_mask_opds = [&#39;dc&#39;] + analysis_parameters[u&#39;avg_subject_RS_label_folders&#39;]</span>
+    <span class="c1">#     all_mask_lds = [&#39;&#39;] + analysis_parameters[u&#39;avg_subject_RS_label_folders&#39;]</span>
+    <span class="c1">#</span>
+    <span class="c1">#     # loop across different folders to mask</span>
+    <span class="c1">#     # untested as yet.</span>
+    <span class="c1">#     masking_list = []</span>
+    <span class="c1">#     dilate_list = []</span>
+    <span class="c1">#     for opd, label_directory in zip(all_mask_opds,all_mask_lds):</span>
+    <span class="c1">#         dilate_list.append(</span>
+    <span class="c1">#             pe.MapNode(interface=fsl.maths.DilateImage(</span>
+    <span class="c1">#                 operation = &#39;mean&#39;, kernel_shape = &#39;sphere&#39;, kernel_size = analysis_parameters[&#39;dilate_kernel_size&#39;]),</span>
+    <span class="c1">#                 name=&#39;dilate_&#39;+label_directory, iterfield=[&#39;in_file&#39;]))</span>
+    <span class="c1">#</span>
+    <span class="c1">#         masking_list.append(create_masks_from_surface_workflow(name = &#39;masks_from_surface_&#39;+label_directory))</span>
+    <span class="c1">#</span>
+    <span class="c1">#         masking_list[-1].inputs.inputspec.label_directory = label_directory</span>
+    <span class="c1">#         masking_list[-1].inputs.inputspec.fill_thresh = 0.005</span>
+    <span class="c1">#         masking_list[-1].inputs.inputspec.re = &#39;*.label&#39;</span>
+    <span class="c1">#</span>
+    <span class="c1">#         preprocessing_workflow.connect(motion_proc, &#39;outputspec.EPI_space_file&#39;, masking_list[-1], &#39;inputspec.EPI_space_file&#39;)</span>
+    <span class="c1">#         preprocessing_workflow.connect(input_node, &#39;output_directory&#39;, masking_list[-1], &#39;inputspec.output_directory&#39;)</span>
+    <span class="c1">#         preprocessing_workflow.connect(input_node, &#39;FS_subject_dir&#39;, masking_list[-1], &#39;inputspec.freesurfer_subject_dir&#39;)</span>
+    <span class="c1">#         preprocessing_workflow.connect(input_node, &#39;FS_ID&#39;, masking_list[-1], &#39;inputspec.freesurfer_subject_ID&#39;)</span>
+    <span class="c1">#         preprocessing_workflow.connect(reg, &#39;rename_register.out_file&#39;, masking_list[-1], &#39;inputspec.reg_file&#39;)</span>
+    <span class="c1">#</span>
+    <span class="c1">#         preprocessing_workflow.connect(masking_list[-1], &#39;outputspec.masks&#39;, dilate_list[-1], &#39;in_file&#39;)</span>
+    <span class="c1">#         preprocessing_workflow.connect(dilate_list[-1], &#39;out_file&#39;, datasink, &#39;masks.&#39;+opd)</span>
+    <span class="c1">#</span>
+    <span class="c1">#     # # surface-based label import in to EPI space, but now for RS labels</span>
+    <span class="c1">#     # these should have been imported to the subject&#39;s FS folder,</span>
+    <span class="c1">#     # see scripts/annot_conversion.sh</span>
+    <span class="c1">#     RS_masks_from_surface = create_masks_from_surface_workflow(name = &#39;RS_masks_from_surface&#39;)</span>
+    <span class="c1">#     RS_masks_from_surface.inputs.inputspec.label_directory = analysis_parameters[&#39;avg_subject_label_folder&#39;]</span>
+    <span class="c1">#     RS_masks_from_surface.inputs.inputspec.fill_thresh = 0.005</span>
+    <span class="c1">#     RS_masks_from_surface.inputs.inputspec.re = &#39;*.label&#39;</span>
+    <span class="c1">#</span>
+    <span class="c1">#     preprocessing_workflow.connect(motion_proc, &#39;outputspec.EPI_space_file&#39;, RS_masks_from_surface, &#39;inputspec.EPI_space_file&#39;)</span>
+    <span class="c1">#     preprocessing_workflow.connect(input_node, &#39;output_directory&#39;, RS_masks_from_surface, &#39;inputspec.output_directory&#39;)</span>
+    <span class="c1">#     preprocessing_workflow.connect(input_node, &#39;FS_subject_dir&#39;, RS_masks_from_surface, &#39;inputspec.freesurfer_subject_dir&#39;)</span>
+    <span class="c1">#     preprocessing_workflow.connect(input_node, &#39;FS_ID&#39;, RS_masks_from_surface, &#39;inputspec.freesurfer_subject_ID&#39;)</span>
+    <span class="c1">#     preprocessing_workflow.connect(reg, &#39;rename_register.out_file&#39;, RS_masks_from_surface, &#39;inputspec.reg_file&#39;)</span>
+    <span class="c1">#</span>
+    <span class="c1">#     preprocessing_workflow.connect(RS_masks_from_surface, &#39;outputspec.masks&#39;, RS_dilate_cortex, &#39;in_file&#39;)</span>
+    <span class="c1">#     preprocessing_workflow.connect(RS_dilate_cortex, &#39;out_file&#39;, datasink, &#39;masks.&#39;+analysis_parameters[&#39;avg_subject_label_folder&#39;])</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># wrapping up, sending data to datasink </span>
+    <span class="c1">########################################################################################</span>
+
+        <span class="c1"># preprocessing_workflow.connect(bet_epi, &#39;out_file&#39;, datasink, &#39;bet.epi&#39;)</span>
+        <span class="c1"># preprocessing_workflow.connect(bet_epi, &#39;mask_file&#39;, datasink, &#39;bet.epimask&#39;)</span>
+        <span class="c1"># preprocessing_workflow.connect(bet_topup, &#39;out_file&#39;, datasink, &#39;bet.topup&#39;)</span>
+        <span class="c1"># preprocessing_workflow.connect(bet_topup, &#39;mask_file&#39;, datasink, &#39;bet.topupmask&#39;)</span>
+
+        <span class="c1"># preprocessing_workflow.connect(nuc, &#39;out_file&#39;, datasink, &#39;nuc&#39;)</span>
+        <span class="c1"># preprocessing_workflow.connect(sgfilter, &#39;out_file&#39;, datasink, &#39;tf&#39;)</span>
+        <span class="c1"># preprocessing_workflow.connect(psc, &#39;out_file&#39;, datasink, &#39;psc&#39;)</span>
+        <span class="c1"># preprocessing_workflow.connect(datasource, &#39;physio&#39;, datasink, &#39;phys&#39;)</span>
+        
+    <span class="k">return</span> <span class="n">preprocessing_workflow</span></div>
+
+
+<div class="viewcode-block" id="configure_workflow"><a class="viewcode-back" href="../../../source/spynoza.examples.UKE_preprocessing_workflow.html#spynoza.examples.UKE_preprocessing_workflow.configure_workflow">[docs]</a><span class="k">def</span> <span class="nf">configure_workflow</span><span class="p">(</span><span class="n">preprocessing_workflow</span><span class="p">,</span> <span class="n">analysis_parameters</span><span class="p">,</span> <span class="n">acquisition_parameters</span><span class="p">):</span>
+    
+    <span class="kn">import</span> <span class="nn">os</span>
+    
+    <span class="c1"># standard output variables</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">sub_id</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s2">&quot;sub_id&quot;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">ses_id</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s2">&quot;ses_id&quot;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">raw_directory</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s2">&quot;raw_data_dir&quot;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">output_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">analysis_parameters</span><span class="p">[</span><span class="s2">&quot;opd&quot;</span><span class="p">],</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">],</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s2">&quot;sub_id&quot;</span><span class="p">],</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s2">&quot;ses_id&quot;</span><span class="p">])</span>
+    
+    <span class="c1"># FreeSurfer:</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">FS_subject_dir</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s2">&quot;FS_subject_dir&quot;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">FS_ID</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s2">&quot;sub_FS_id&quot;</span><span class="p">]</span>
+    
+    <span class="c1"># Unwarping:</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">phase_encoding_direction</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;PhaseEncodingDirection&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">te_diff</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;EchoTime2&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;EchoTime1&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">acceleration</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;SenseFactor&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">epi_factor</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;EpiFactor&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">wfs</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;WaterFatShift&#39;</span><span class="p">]</span>
+        
+    <span class="c1"># Motion correction:</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">which_file_is_EPI_space</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s1">&#39;which_file_is_EPI_space&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Registration:</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">standard_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;FSL_DIR&#39;</span><span class="p">],</span> <span class="s1">&#39;data/standard/MNI152_T1_1mm_brain.nii.gz&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Percent signal change:</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">psc_func</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s1">&#39;psc_func&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Temporal filtering setting</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">sg_filter_window_length</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s1">&#39;sg_filter_window_length&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">sg_filter_order</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s1">&#39;sg_filter_order&#39;</span><span class="p">]</span>
+
+    <span class="c1"># RETROICOR:</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">MB_factor</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;MultiBandFactor&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">nr_dummies</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;NumberDummyScans&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">tr</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;RepetitionTime&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">slice_direction</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;SliceEncodingDirection&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">phys_sample_rate</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;PhysiologySampleRate&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">slice_timing</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;SliceTiming&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">slice_order</span> <span class="o">=</span> <span class="n">acquisition_parameters</span><span class="p">[</span><span class="s1">&#39;SliceOrder&#39;</span><span class="p">]</span>
+    <span class="n">preprocessing_workflow</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">hr_rvt</span> <span class="o">=</span> <span class="n">analysis_parameters</span><span class="p">[</span><span class="s1">&#39;hr_rvt&#39;</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">preprocessing_workflow</span></div>
+
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

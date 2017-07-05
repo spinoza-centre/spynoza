@@ -1,0 +1,475 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nipype.interfaces.afni.base &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../../../index.html"/>
+        <link rel="up" title="Module code" href="../../../index.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>nipype.interfaces.afni.base</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for nipype.interfaces.afni.base</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-</span>
+<span class="c1"># vi: set ft=python sts=4 ts=4 sw=4 et:</span>
+<span class="sd">&quot;&quot;&quot;Provide interface to AFNI commands.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">object</span><span class="p">,</span> <span class="nb">str</span>
+<span class="kn">from</span> <span class="nn">future.utils</span> <span class="k">import</span> <span class="n">raise_from</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="k">import</span> <span class="n">platform</span>
+
+<span class="kn">from</span> <span class="nn">...</span> <span class="k">import</span> <span class="n">logging</span>
+<span class="kn">from</span> <span class="nn">...utils.filemanip</span> <span class="k">import</span> <span class="n">split_filename</span>
+<span class="kn">from</span> <span class="nn">..base</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">CommandLine</span><span class="p">,</span> <span class="n">traits</span><span class="p">,</span> <span class="n">CommandLineInputSpec</span><span class="p">,</span> <span class="n">isdefined</span><span class="p">,</span> <span class="n">File</span><span class="p">,</span> <span class="n">TraitedSpec</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">...external.due</span> <span class="k">import</span> <span class="n">BibTeX</span>
+
+<span class="c1"># Use nipype&#39;s logging system</span>
+<span class="n">IFLOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;interface&#39;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Info</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Handle afni output type and version information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__outputtype</span> <span class="o">=</span> <span class="s1">&#39;AFNI&#39;</span>
+    <span class="n">ftypes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;NIFTI&#39;</span><span class="p">:</span> <span class="s1">&#39;.nii&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;AFNI&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;NIFTI_GZ&#39;</span><span class="p">:</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">}</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">version</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;Check for afni version on system</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        version : str</span>
+<span class="sd">           Version number as string or None if AFNI not found</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">clout</span> <span class="o">=</span> <span class="n">CommandLine</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="s1">&#39;afni_vcheck&#39;</span><span class="p">,</span>
+                                <span class="n">terminal_output</span><span class="o">=</span><span class="s1">&#39;allatonce&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+            <span class="c1"># Try to parse the version number</span>
+            <span class="n">currv</span> <span class="o">=</span> <span class="n">clout</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="c1"># If afni_vcheck is not present, return None</span>
+            <span class="n">IFLOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;afni_vcheck executable not found.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># If AFNI is outdated, afni_vcheck throws error.</span>
+            <span class="c1"># Show new version, but parse current anyways.</span>
+            <span class="n">currv</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">nextv</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">IFLOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s1">&#39;AFNI is outdated, detected version </span><span class="si">%s</span><span class="s1"> and </span><span class="si">%s</span><span class="s1"> is available.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">currv</span><span class="p">,</span> <span class="n">nextv</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">currv</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;AFNI_&#39;</span><span class="p">):</span>
+            <span class="n">currv</span> <span class="o">=</span> <span class="n">currv</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span>
+
+        <span class="n">v</span> <span class="o">=</span> <span class="n">currv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">currv</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">outputtype_to_ext</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">outputtype</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the file extension for the given output type.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        outputtype : {&#39;NIFTI&#39;, &#39;NIFTI_GZ&#39;, &#39;AFNI&#39;}</span>
+<span class="sd">            String specifying the output type.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        extension : str</span>
+<span class="sd">            The file extension for the output type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">ftypes</span><span class="p">[</span><span class="n">outputtype</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Invalid AFNIOUTPUTTYPE: &#39;</span><span class="p">,</span> <span class="n">outputtype</span>
+            <span class="n">raise_from</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">(</span><span class="n">msg</span><span class="p">),</span> <span class="n">e</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">outputtype</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;AFNI has no environment variables,</span>
+<span class="sd">        Output filetypes get set in command line calls</span>
+<span class="sd">        Nipype uses AFNI as default</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># warn((&#39;AFNI has no environment variable that sets filetype &#39;</span>
+        <span class="c1">#      &#39;Nipype uses NIFTI_GZ as default&#39;))</span>
+        <span class="k">return</span> <span class="s1">&#39;AFNI&#39;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">standard_image</span><span class="p">(</span><span class="n">img_name</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Grab an image from the standard location.</span>
+
+<span class="sd">        Could be made more fancy to allow for more relocatability&#39;&#39;&#39;</span>
+        <span class="n">clout</span> <span class="o">=</span> <span class="n">CommandLine</span><span class="p">(</span><span class="s1">&#39;which afni&#39;</span><span class="p">,</span>
+                            <span class="n">terminal_output</span><span class="o">=</span><span class="s1">&#39;allatonce&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">clout</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">returncode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="n">clout</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">stdout</span>
+        <span class="n">basedir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">out</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">AFNICommandBase</span><span class="p">(</span><span class="n">CommandLine</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A base class to fix a linking problem in OSX and afni.</span>
+<span class="sd">    See http://afni.nimh.nih.gov/afni/community/board/read.php?1,145346,145347#msg-145347</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;darwin&#39;</span><span class="p">:</span>
+            <span class="n">runtime</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;DYLD_FALLBACK_LIBRARY_PATH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;/usr/local/afni/&#39;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">AFNICommandBase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_run_interface</span><span class="p">(</span><span class="n">runtime</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">AFNICommandInputSpec</span><span class="p">(</span><span class="n">CommandLineInputSpec</span><span class="p">):</span>
+    <span class="n">outputtype</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;AFNI&#39;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">Info</span><span class="o">.</span><span class="n">ftypes</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                             <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;AFNI output filetype&#39;</span><span class="p">)</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">name_template</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_afni&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;output image file name&#39;</span><span class="p">,</span>
+                    <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-prefix </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">name_source</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;in_file&quot;</span><span class="p">])</span>
+
+
+<span class="k">class</span> <span class="nc">AFNICommandOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;output file&#39;</span><span class="p">,</span>
+                    <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">AFNICommand</span><span class="p">(</span><span class="n">AFNICommandBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Shared options for several AFNI commands &quot;&quot;&quot;</span>
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">AFNICommandInputSpec</span>
+    <span class="n">_outputtype</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">references_</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;entry&#39;</span><span class="p">:</span> <span class="n">BibTeX</span><span class="p">(</span><span class="s1">&#39;@article{Cox1996,&#39;</span>
+                                    <span class="s1">&#39;author={R.W. Cox},&#39;</span>
+                                    <span class="s1">&#39;title={AFNI: software for analysis and &#39;</span>
+                                    <span class="s1">&#39;visualization of functional magnetic &#39;</span>
+                                    <span class="s1">&#39;resonance neuroimages},&#39;</span>
+                                    <span class="s1">&#39;journal={Computers and Biomedical research},&#39;</span>
+                                    <span class="s1">&#39;volume=</span><span class="si">{29}</span><span class="s1">,&#39;</span>
+                                    <span class="s1">&#39;number=</span><span class="si">{3}</span><span class="s1">,&#39;</span>
+                                    <span class="s1">&#39;pages={162-173},&#39;</span>
+                                    <span class="s1">&#39;year=</span><span class="si">{1996}</span><span class="s1">,&#39;</span>
+                                    <span class="s1">&#39;}&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;implementation&#39;</span><span class="p">],</span>
+                    <span class="p">},</span>
+                   <span class="p">{</span><span class="s1">&#39;entry&#39;</span><span class="p">:</span> <span class="n">BibTeX</span><span class="p">(</span><span class="s1">&#39;@article{CoxHyde1997,&#39;</span>
+                                    <span class="s1">&#39;author={R.W. Cox and J.S. Hyde},&#39;</span>
+                                    <span class="s1">&#39;title={Software tools for analysis and &#39;</span>
+                                    <span class="s1">&#39;visualization of fMRI data},&#39;</span>
+                                    <span class="s1">&#39;journal={NMR in Biomedicine},&#39;</span>
+                                    <span class="s1">&#39;volume=</span><span class="si">{10}</span><span class="s1">,&#39;</span>
+                                    <span class="s1">&#39;number=</span><span class="si">{45}</span><span class="s1">,&#39;</span>
+                                    <span class="s1">&#39;pages={171-178},&#39;</span>
+                                    <span class="s1">&#39;year=</span><span class="si">{1997}</span><span class="s1">,&#39;</span>
+                                    <span class="s1">&#39;}&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;implementation&#39;</span><span class="p">],</span>
+                    <span class="p">}]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">inputs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AFNICommand</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">on_trait_change</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_update</span><span class="p">,</span> <span class="s1">&#39;outputtype&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outputtype</span> <span class="o">=</span> <span class="n">Info</span><span class="o">.</span><span class="n">outputtype</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">isdefined</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">outputtype</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">outputtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputtype</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output_update</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
+        <span class="c1"># Update num threads estimate from OMP_NUM_THREADS env var</span>
+        <span class="c1"># Default to 1 if not set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;OMP_NUM_THREADS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">AFNICommand</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_run_interface</span><span class="p">(</span><span class="n">runtime</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_output_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; i think? updates class private attribute based on instance input</span>
+<span class="sd">         in fsl also updates ENVIRON variable....not valid in afni</span>
+<span class="sd">         as it uses no environment variables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outputtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">outputtype</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">set_default_output_type</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">outputtype</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the default output type for AFNI classes.</span>
+
+<span class="sd">        This method is used to set the default output type for all afni</span>
+<span class="sd">        subclasses.  However, setting this will not update the output</span>
+<span class="sd">        type for any existing instances.  For these, assign the</span>
+<span class="sd">        &lt;instance&gt;.inputs.outputtype.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">outputtype</span> <span class="ow">in</span> <span class="n">Info</span><span class="o">.</span><span class="n">ftypes</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_outputtype</span> <span class="o">=</span> <span class="n">outputtype</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;Invalid AFNI outputtype: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">outputtype</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_overload_extension</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">path</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">split_filename</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">base</span> <span class="o">+</span> <span class="n">Info</span><span class="o">.</span><span class="n">outputtype_to_ext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">outputtype</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_list_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">AFNICommand</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_list_outputs</span><span class="p">()</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">name_source</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">out_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">traits</span><span class="p">(</span><span class="o">**</span><span class="n">metadata</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">out_names</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">out_names</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">outputs</span><span class="p">[</span><span class="n">name</span><span class="p">]:</span>
+                    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">split_filename</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                        <span class="n">outputs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;+orig.BRIK&quot;</span>
+        <span class="k">return</span> <span class="n">outputs</span>
+
+
+<span class="k">def</span> <span class="nf">no_afni</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Checks if AFNI is available &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">Info</span><span class="o">.</span><span class="n">version</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

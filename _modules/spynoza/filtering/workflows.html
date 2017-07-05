@@ -1,0 +1,466 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.filtering.workflows &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>spynoza.filtering.workflows</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for spynoza.filtering.workflows</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">nipype.workflows.fmri.fsl.preprocess</span> <span class="k">import</span> <span class="n">create_susan_smooth</span>
+<span class="kn">import</span> <span class="nn">nipype.pipeline</span> <span class="k">as</span> <span class="nn">pe</span>
+<span class="kn">import</span> <span class="nn">nipype.interfaces.fsl</span> <span class="k">as</span> <span class="nn">fsl</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.io</span> <span class="k">import</span> <span class="n">DataSink</span>
+<span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">IdentityInterface</span><span class="p">,</span> <span class="n">Merge</span><span class="p">,</span> <span class="n">Select</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Most of this code has been generously provided by nipype:</span>
+<span class="sd">http://nipype.readthedocs.io/en/latest/interfaces/generated/nipype.workflows.fmri.fsl.preprocess.html</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="getthreshop"><a class="viewcode-back" href="../../../source/spynoza.filtering.workflows.html#spynoza.filtering.workflows.getthreshop">[docs]</a><span class="k">def</span> <span class="nf">getthreshop</span><span class="p">(</span><span class="n">thresh</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;-thr </span><span class="si">%.10f</span><span class="s1"> -Tmin -bin&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">thresh</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="pickfirst"><a class="viewcode-back" href="../../../source/spynoza.filtering.workflows.html#spynoza.filtering.workflows.pickfirst">[docs]</a><span class="k">def</span> <span class="nf">pickfirst</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">files</span></div>
+
+
+<div class="viewcode-block" id="getbtthresh"><a class="viewcode-back" href="../../../source/spynoza.filtering.workflows.html#spynoza.filtering.workflows.getbtthresh">[docs]</a><span class="k">def</span> <span class="nf">getbtthresh</span><span class="p">(</span><span class="n">medianvals</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="mf">0.75</span> <span class="o">*</span> <span class="n">val</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">medianvals</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="chooseindex"><a class="viewcode-back" href="../../../source/spynoza.filtering.workflows.html#spynoza.filtering.workflows.chooseindex">[docs]</a><span class="k">def</span> <span class="nf">chooseindex</span><span class="p">(</span><span class="n">fwhm</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">fwhm</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="getmeanscale"><a class="viewcode-back" href="../../../source/spynoza.filtering.workflows.html#spynoza.filtering.workflows.getmeanscale">[docs]</a><span class="k">def</span> <span class="nf">getmeanscale</span><span class="p">(</span><span class="n">medianvals</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;-mul </span><span class="si">%.10f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">10000.</span> <span class="o">/</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">medianvals</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="getusans"><a class="viewcode-back" href="../../../source/spynoza.filtering.workflows.html#spynoza.filtering.workflows.getusans">[docs]</a><span class="k">def</span> <span class="nf">getusans</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[[</span><span class="nb">tuple</span><span class="p">([</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">0.75</span> <span class="o">*</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]])]</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span></div>
+
+<span class="n">tolist</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="create_extended_susan_workflow"><a class="viewcode-back" href="../../../source/spynoza.filtering.workflows.html#spynoza.filtering.workflows.create_extended_susan_workflow">[docs]</a><span class="k">def</span> <span class="nf">create_extended_susan_workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;extended_susan&#39;</span><span class="p">,</span> <span class="n">separate_masks</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+    <span class="n">input_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;fwhm&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;EPI_session_space&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;sub_id&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputspec&#39;</span><span class="p">)</span>
+
+    <span class="n">output_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;smoothed_files&#39;</span><span class="p">,</span>
+                                                              <span class="s1">&#39;mask&#39;</span><span class="p">,</span>
+                                                              <span class="s1">&#39;mean&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputspec&#39;</span><span class="p">)</span>
+
+    <span class="n">datasink</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">DataSink</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sinker&#39;</span><span class="p">)</span>
+    <span class="n">datasink</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">parameterization</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># first link the workflow&#39;s output_directory into the datasink.</span>
+
+    <span class="n">esw</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;base_directory&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;sub_id&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;container&#39;</span><span class="p">)</span>
+
+    <span class="n">meanfuncmask</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">BET</span><span class="p">(</span><span class="n">mask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                             <span class="n">no_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                             <span class="n">frac</span><span class="o">=</span><span class="mf">0.3</span><span class="p">),</span>
+                           <span class="n">name</span><span class="o">=</span><span class="s1">&#39;meanfuncmask&#39;</span><span class="p">)</span>
+
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;EPI_session_space&#39;</span><span class="p">,</span> <span class="n">meanfuncmask</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mask the functional runs with the extracted mask</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">maskfunc</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">ImageMaths</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_bet&#39;</span><span class="p">,</span>
+                                                   <span class="n">op_string</span><span class="o">=</span><span class="s1">&#39;-mas&#39;</span><span class="p">),</span>
+                          <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">],</span>
+                          <span class="n">name</span><span class="o">=</span><span class="s1">&#39;maskfunc&#39;</span><span class="p">)</span>
+
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="n">maskfunc</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">meanfuncmask</span><span class="p">,</span> <span class="s1">&#39;mask_file&#39;</span><span class="p">,</span> <span class="n">maskfunc</span><span class="p">,</span> <span class="s1">&#39;in_file2&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine the 2nd and 98th percentile intensities of each functional run</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">getthresh</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">ImageStats</span><span class="p">(</span><span class="n">op_string</span><span class="o">=</span><span class="s1">&#39;-p 2 -p 98&#39;</span><span class="p">),</span>
+                           <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">],</span>
+                           <span class="n">name</span><span class="o">=</span><span class="s1">&#39;getthreshold&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">maskfunc</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">getthresh</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Threshold the first run of the functional data at 10% of the 98th percentile</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">threshold</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">ImageMaths</span><span class="p">(</span><span class="n">out_data_type</span><span class="o">=</span><span class="s1">&#39;char&#39;</span><span class="p">,</span>
+                                                    <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_thresh&#39;</span><span class="p">),</span>
+                           <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="s1">&#39;op_string&#39;</span><span class="p">],</span>
+                           <span class="n">name</span><span class="o">=</span><span class="s1">&#39;threshold&#39;</span><span class="p">)</span>
+
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">maskfunc</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Define a function to get 10% of the intensity</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">getthresh</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;out_stat&#39;</span><span class="p">,</span> <span class="n">getthreshop</span><span class="p">),</span> <span class="n">threshold</span><span class="p">,</span> <span class="s1">&#39;op_string&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine the median value of the functional runs using the mask</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">medianval</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">ImageStats</span><span class="p">(</span><span class="n">op_string</span><span class="o">=</span><span class="s1">&#39;-k </span><span class="si">%s</span><span class="s1"> -p 50&#39;</span><span class="p">),</span>
+                           <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="s1">&#39;mask_file&#39;</span><span class="p">],</span>
+                           <span class="n">name</span><span class="o">=</span><span class="s1">&#39;medianval&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="n">medianval</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">medianval</span><span class="p">,</span> <span class="s1">&#39;mask_file&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dilate the mask</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dilatemask</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">ImageMaths</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_dil&#39;</span><span class="p">,</span>
+                                                     <span class="n">op_string</span><span class="o">=</span><span class="s1">&#39;-dilF&#39;</span><span class="p">),</span>
+                            <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">],</span>
+                            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;dilatemask&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">dilatemask</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">dilatemask</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;mask&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mask the motion corrected functional runs with the dilated mask</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">maskfunc2</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">ImageMaths</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_mask&#39;</span><span class="p">,</span>
+                                                    <span class="n">op_string</span><span class="o">=</span><span class="s1">&#39;-mas&#39;</span><span class="p">),</span>
+                           <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="s1">&#39;in_file2&#39;</span><span class="p">],</span>
+                           <span class="n">name</span><span class="o">=</span><span class="s1">&#39;maskfunc2&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="n">maskfunc2</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">dilatemask</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">maskfunc2</span><span class="p">,</span> <span class="s1">&#39;in_file2&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Smooth each run using SUSAN with the brightness threshold set to 75%</span>
+<span class="sd">    of the median value for each run and a mask constituting the mean</span>
+<span class="sd">    functional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">smooth</span> <span class="o">=</span> <span class="n">create_susan_smooth</span><span class="p">(</span><span class="n">separate_masks</span><span class="o">=</span><span class="n">separate_masks</span><span class="p">)</span>
+
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;fwhm&#39;</span><span class="p">,</span> <span class="n">smooth</span><span class="p">,</span> <span class="s1">&#39;inputnode.fwhm&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">maskfunc2</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">smooth</span><span class="p">,</span> <span class="s1">&#39;inputnode.in_files&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">dilatemask</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">smooth</span><span class="p">,</span> <span class="s1">&#39;inputnode.mask_file&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mask the smoothed data with the dilated mask</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">maskfunc3</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">ImageMaths</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_mask&#39;</span><span class="p">,</span>
+                                                    <span class="n">op_string</span><span class="o">=</span><span class="s1">&#39;-mas&#39;</span><span class="p">),</span>
+                           <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="s1">&#39;in_file2&#39;</span><span class="p">],</span>
+                           <span class="n">name</span><span class="o">=</span><span class="s1">&#39;maskfunc3&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">smooth</span><span class="p">,</span> <span class="s1">&#39;outputnode.smoothed_files&#39;</span><span class="p">,</span> <span class="n">maskfunc3</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">dilatemask</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">maskfunc3</span><span class="p">,</span> <span class="s1">&#39;in_file2&#39;</span><span class="p">)</span>
+
+    <span class="n">concatnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">Merge</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+                         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;concat&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">maskfunc2</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">tolist</span><span class="p">),</span> <span class="n">concatnode</span><span class="p">,</span> <span class="s1">&#39;in1&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">maskfunc3</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">tolist</span><span class="p">),</span> <span class="n">concatnode</span><span class="p">,</span> <span class="s1">&#39;in2&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The following nodes select smooth or unsmoothed data depending on the</span>
+<span class="sd">    fwhm. This is because SUSAN defaults to smoothing the data with about the</span>
+<span class="sd">    voxel size of the input data if the fwhm parameter is less than 1/3 of the</span>
+<span class="sd">    voxel size.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">selectnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">Select</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;select&#39;</span><span class="p">)</span>
+
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">concatnode</span><span class="p">,</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span> <span class="n">selectnode</span><span class="p">,</span> <span class="s1">&#39;inlist&#39;</span><span class="p">)</span>
+
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;fwhm&#39;</span><span class="p">,</span> <span class="n">chooseindex</span><span class="p">),</span> <span class="n">selectnode</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">selectnode</span><span class="p">,</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;smoothed_files&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Scale the median value of the run is set to 10000</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">meanscale</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">MapNode</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">ImageMaths</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_gms&#39;</span><span class="p">),</span>
+                           <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span> <span class="s1">&#39;op_string&#39;</span><span class="p">],</span>
+                           <span class="n">name</span><span class="o">=</span><span class="s1">&#39;meanscale&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">selectnode</span><span class="p">,</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span> <span class="n">meanscale</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Define a function to get the scaling factor for intensity normalization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">medianval</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;out_stat&#39;</span><span class="p">,</span> <span class="n">getmeanscale</span><span class="p">),</span> <span class="n">meanscale</span><span class="p">,</span> <span class="s1">&#39;op_string&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a mean functional image from the first run</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">meanfunc3</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">interface</span><span class="o">=</span><span class="n">fsl</span><span class="o">.</span><span class="n">ImageMaths</span><span class="p">(</span><span class="n">op_string</span><span class="o">=</span><span class="s1">&#39;-Tmean&#39;</span><span class="p">,</span>
+                                                 <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_mean&#39;</span><span class="p">),</span>
+                        <span class="n">iterfield</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_file&#39;</span><span class="p">],</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;meanfunc3&#39;</span><span class="p">)</span>
+
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">meanscale</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">pickfirst</span><span class="p">),</span> <span class="n">meanfunc3</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">meanfunc3</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Datasink</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">meanscale</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;filtering&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">selectnode</span><span class="p">,</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;filtering.@smoothed&#39;</span><span class="p">)</span>
+    <span class="n">esw</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">dilatemask</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">datasink</span><span class="p">,</span> <span class="s1">&#39;filtering.@mask&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">esw</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+    <span class="n">test_data_path</span> <span class="o">=</span> <span class="s1">&#39;/media/lukas/data/Software/Spynoza/spynoza/spynoza/data/test_data&#39;</span>
+    <span class="n">smooth_wf</span> <span class="o">=</span> <span class="n">create_extended_susan_workflow</span><span class="p">(</span><span class="n">separate_masks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">smooth_wf</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">=</span> <span class="s1">&#39;/tmp/spynoza/workingdir&#39;</span>
+    <span class="n">smooth_wf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">in_file</span> <span class="o">=</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">test_data_path</span><span class="p">,</span> <span class="s1">&#39;sub-0020_gstroop_cut.nii.gz&#39;</span><span class="p">)]</span>
+    <span class="n">smooth_wf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">EPI_session_space</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">test_data_path</span><span class="p">,</span> <span class="s1">&#39;sub-0020_gstroop_meanbold.nii.gz&#39;</span><span class="p">)</span>
+    <span class="n">smooth_wf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">output_directory</span> <span class="o">=</span> <span class="s1">&#39;/tmp/spynoza&#39;</span>
+    <span class="n">smooth_wf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">sub_id</span> <span class="o">=</span> <span class="s1">&#39;sub-0020&#39;</span>
+    <span class="n">smooth_wf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">inputspec</span><span class="o">.</span><span class="n">fwhm</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">smooth_wf</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

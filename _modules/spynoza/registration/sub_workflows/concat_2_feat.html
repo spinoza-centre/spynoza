@@ -1,0 +1,301 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>spynoza.registration.sub_workflows.concat_2_feat &mdash; Spynoza 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../../search.html"/>
+    <link rel="top" title="Spynoza 0.1 documentation" href="../../../../index.html"/>
+        <link rel="up" title="Module code" href="../../../index.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> Spynoza
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.conversion.html">spynoza.conversion package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.denoising.html">spynoza.denoising package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.examples.html">spynoza.examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.filtering.html">spynoza.filtering package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.glm.html">spynoza.glm package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.ica_fix.html">spynoza.ica_fix package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.masking.html">spynoza.masking package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.meta_workflows.html">spynoza.meta_workflows package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.motion_correction.html">spynoza.motion_correction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.registration.html">spynoza.registration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.uniformization.html">spynoza.uniformization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.unwarping.html">spynoza.unwarping package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/spynoza.utils.html">spynoza.utils module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Spynoza</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>spynoza.registration.sub_workflows.concat_2_feat</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for spynoza.registration.sub_workflows.concat_2_feat</h1><div class="highlight"><pre>
+<div class="viewcode-block" id="create_concat_2_feat_workflow"><a class="viewcode-back" href="../../../../source/spynoza.registration.sub_workflows.concat_2_feat.html#spynoza.registration.sub_workflows.create_concat_2_feat_workflow">[docs]</a><span></span><span class="k">def</span> <span class="nf">create_concat_2_feat_workflow</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;concat_2_feat&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Concatenates and inverts previously created fsl mat registration files.</span>
+<span class="sd">    Requires fsl tools</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : string</span>
+<span class="sd">        name of workflow</span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; concat_2_feat = create_concat_2_feat_workflow()</span>
+<span class="sd">    &gt;&gt;&gt; concat_2_feat.inputs.inputspec.T1_standard_matrix_file = &#39;highres2standard.mat&#39;</span>
+<span class="sd">    &gt;&gt;&gt; concat_2_feat.inputs.inputspec.standard_T1_matrix_file = &#39;standard2highres.mat&#39;</span>
+<span class="sd">    &gt;&gt;&gt; concat_2_feat.inputs.inputspec.EPI_T1_matrix_file = &#39;example_func2highres.mat&#39;</span>
+<span class="sd">    &gt;&gt;&gt; concat_2_feat.inputs.inputspec.T1_EPI_matrix_file = &#39;highres2example_func.mat&#39;</span>
+
+<span class="sd">    Inputs::</span>
+<span class="sd">          inputspec.T1_file : T1 anatomy file</span>
+<span class="sd">          inputspec.reference_file : standard standard file</span>
+<span class="sd">          inputspec.EPI_space_file : EPI standard file</span>
+<span class="sd">          inputspec.T1_standard_matrix_file : SE</span>
+<span class="sd">          inputspec.standard_T1_matrix_file : SE</span>
+<span class="sd">          inputspec.EPI_T1_matrix_file : SE</span>
+<span class="sd">          inputspec.T1_EPI_matrix_file : SE</span>
+<span class="sd">    Outputs::</span>
+<span class="sd">           outputspec.standard_EPI_matrix_file : registration file that maps standard image to</span>
+<span class="sd">                                 EPI space</span>
+<span class="sd">           outputspec.EPI_standard_matrix_file : registration file that maps EPI image to</span>
+<span class="sd">                                 standard space</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+    <span class="kn">import</span> <span class="nn">nipype.pipeline</span> <span class="k">as</span> <span class="nn">pe</span>
+    <span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="k">import</span> <span class="n">fsl</span>
+    <span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="k">import</span> <span class="n">freesurfer</span>
+    <span class="kn">from</span> <span class="nn">nipype.interfaces.utility</span> <span class="k">import</span> <span class="n">Function</span><span class="p">,</span> <span class="n">IdentityInterface</span>
+    <span class="kn">import</span> <span class="nn">nipype.interfaces.io</span> <span class="k">as</span> <span class="nn">nio</span>
+    <span class="c1">### NODES</span>
+    <span class="n">input_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span>
+    <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;T1_standard_matrix_file&#39;</span><span class="p">,</span> <span class="s1">&#39;EPI_T1_matrix_file&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputspec&#39;</span><span class="p">)</span>
+
+    <span class="n">output_node</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;EPI_standard_matrix_file&#39;</span><span class="p">,</span><span class="s1">&#39;standard_EPI_matrix_file&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputspec&#39;</span><span class="p">)</span>
+
+    <span class="n">concat_2_feat_workflow</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># first link the workflow&#39;s output_directory into the datasink.</span>
+    <span class="c1"># concat_2_feat_workflow.connect(input_node, &#39;output_directory&#39;, datasink, &#39;base_directory&#39;)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># concat step, from EPI to T1 to standard</span>
+    <span class="c1">########################################################################################</span>
+    <span class="n">concat_N</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">fsl</span><span class="o">.</span><span class="n">ConvertXFM</span><span class="p">(</span><span class="n">concat_xfm</span> <span class="o">=</span> <span class="kc">True</span><span class="p">),</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;concat_N&#39;</span><span class="p">)</span>
+    <span class="n">concat_2_feat_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;EPI_T1_matrix_file&#39;</span><span class="p">,</span> <span class="n">concat_N</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">concat_2_feat_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">input_node</span><span class="p">,</span> <span class="s1">&#39;T1_standard_matrix_file&#39;</span><span class="p">,</span> <span class="n">concat_N</span><span class="p">,</span> <span class="s1">&#39;in_file2&#39;</span><span class="p">)</span>
+    <span class="n">concat_2_feat_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">concat_N</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;EPI_standard_matrix_file&#39;</span><span class="p">)</span>
+
+    <span class="c1">########################################################################################</span>
+    <span class="c1"># invert step, to go from standard to T1 to EPI</span>
+    <span class="c1">########################################################################################</span>
+    <span class="n">invert_N</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">fsl</span><span class="o">.</span><span class="n">ConvertXFM</span><span class="p">(</span><span class="n">invert_xfm</span> <span class="o">=</span> <span class="kc">True</span><span class="p">),</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;invert_N&#39;</span><span class="p">)</span>
+    <span class="n">concat_2_feat_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">concat_N</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">invert_N</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)</span>
+    <span class="n">concat_2_feat_workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">invert_N</span><span class="p">,</span> <span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="n">output_node</span><span class="p">,</span> <span class="s1">&#39;standard_EPI_matrix_file&#39;</span><span class="p">)</span>
+
+
+
+
+    <span class="k">return</span> <span class="n">concat_2_feat_workflow</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lukas Snoek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
