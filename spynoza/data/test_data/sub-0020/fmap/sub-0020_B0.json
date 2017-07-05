@@ -1,0 +1,10 @@
+{
+	"Manufacturer": "Philips",
+	"ManufacturersModelName": "N/A",
+	"ProtocolName": "WIPB0SENSE4.2",
+	"ImageType": ["ORIGINAL"],
+	"EchoTime": 0.00302,
+	"RepetitionTime": 0.010801,
+	"ConversionSoftware": "dcm2niix",
+	"ConversionSoftwareVersion": "v1.0.20170207"
+}

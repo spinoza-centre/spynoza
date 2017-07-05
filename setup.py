@@ -4,14 +4,16 @@ import spynoza
 VERSION = spynoza.__version__
 
 def readme():
-    with open('README.md') as f:
+    with open('README.rst') as f:
         return f.read()
 
 install_requires = [
     'nibabel',
     'nipype',
     'numpy',
-    'scipy'
+    'scipy',
+    'pandas',
+    'jsonpickle'
 ]
 
 setup(
@@ -23,7 +25,7 @@ setup(
     classifiers=[
         'Development Status :: 1 - Planning',
         'Intended Audience :: Science/Research',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Scientific/Engineering :: Bio-Informatics'],
     keywords="fMRI nipype preprocessing",
     url='https://github.com/spinoza-centre',

@@ -1,0 +1,10 @@
+{
+	"Manufacturer": "Philips",
+	"ManufacturersModelName": "N/A",
+	"ProtocolName": "WIPdwi_acq-32b1000SENSE4.2",
+	"ImageType": ["ORIGINAL"],
+	"EchoTime": 0.08599,
+	"RepetitionTime": 7.3868,
+	"ConversionSoftware": "dcm2niix",
+	"ConversionSoftwareVersion": "v1.0.20170207"
+}

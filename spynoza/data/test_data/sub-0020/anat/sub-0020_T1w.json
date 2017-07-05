@@ -1,0 +1,10 @@
+{
+	"Manufacturer": "Philips",
+	"ManufacturersModelName": "N/A",
+	"ProtocolName": "WIPT1anat_acq-6m_T1wSENSE4.2",
+	"ImageType": ["ORIGINAL"],
+	"EchoTime": 0.00377,
+	"RepetitionTime": 0.00821,
+	"ConversionSoftware": "dcm2niix",
+	"ConversionSoftwareVersion": "v1.0.20170207"
+}

@@ -1,0 +1,1 @@
+mri_em_register -rusage /media/lukas/data/Software/Spynoza/spynoza/spynoza/data/test_data/fs/sub-0020/touch/rusage.mri_em_register.skull.dat -skull nu.mgz /usr/local/freesurfer/average/RB_all_withskull_2016-05-10.vc700.gca transforms/talairach_with_skull.lta
