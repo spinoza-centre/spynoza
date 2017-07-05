@@ -1,5 +1,5 @@
-spynoza.masking package
-=======================
+spynoza\.masking package
+========================
 
 .. automodule:: spynoza.masking
     :members:

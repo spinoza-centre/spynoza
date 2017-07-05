@@ -1,5 +1,5 @@
-spynoza.meta_workflows package
-==============================
+spynoza\.meta\_workflows package
+================================
 
 .. automodule:: spynoza.meta_workflows
     :members:

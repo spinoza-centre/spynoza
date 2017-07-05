@@ -1,5 +1,5 @@
-spynoza.motion_correction package
-=================================
+spynoza\.motion\_correction package
+===================================
 
 .. automodule:: spynoza.motion_correction
     :members:

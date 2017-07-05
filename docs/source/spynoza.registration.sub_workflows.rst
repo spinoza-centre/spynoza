@@ -1,5 +1,5 @@
-spynoza.registration.sub_workflows package
-==========================================
+spynoza\.registration\.sub\_workflows package
+=============================================
 
 .. automodule:: spynoza.registration.sub_workflows
     :members:

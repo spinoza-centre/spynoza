@@ -1,7 +1,7 @@
-spynoza.retroicor.nodes.utils module
+spynoza\.filtering\.workflows module
 ====================================
 
-.. automodule:: spynoza.retroicor.nodes.utils
+.. automodule:: spynoza.filtering.workflows
     :members:
     :undoc-members:
     :show-inheritance:

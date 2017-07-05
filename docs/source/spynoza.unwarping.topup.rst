@@ -1,5 +1,5 @@
-spynoza.unwarping.topup package
-===============================
+spynoza\.unwarping\.topup package
+=================================
 
 .. automodule:: spynoza.unwarping.topup
     :members:

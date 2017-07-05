@@ -1,7 +1,7 @@
-spynoza.ica_fix.nodes.fix module
+spynoza\.denoising\.nodes module
 ================================
 
-.. automodule:: spynoza.ica_fix.nodes.fix
+.. automodule:: spynoza.denoising.nodes
     :members:
     :undoc-members:
     :show-inheritance:

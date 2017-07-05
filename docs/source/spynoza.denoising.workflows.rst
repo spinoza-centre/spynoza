@@ -1,7 +1,7 @@
-spynoza\.unwarping\.b0\.nodes module
+spynoza\.denoising\.workflows module
 ====================================
 
-.. automodule:: spynoza.unwarping.b0.nodes
+.. automodule:: spynoza.denoising.workflows
     :members:
     :undoc-members:
     :show-inheritance:

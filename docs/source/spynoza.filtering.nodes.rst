@@ -1,5 +1,5 @@
-spynoza.filtering.nodes module
-==============================
+spynoza\.filtering\.nodes module
+================================
 
 .. automodule:: spynoza.filtering.nodes
     :members:

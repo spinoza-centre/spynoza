@@ -1,10 +1,17 @@
-spynoza.unwarping.b0 package
-============================
+spynoza\.unwarping\.b0 package
+==============================
 
 .. automodule:: spynoza.unwarping.b0
     :members:
     :undoc-members:
     :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+
+    spynoza.unwarping.b0.test_b0_workflow
 
 Submodules
 ----------

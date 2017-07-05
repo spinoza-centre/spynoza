@@ -1,7 +1,7 @@
-spynoza\.motion\_correction\.workflows module
+spynoza\.denoising\.compcor\.workflows module
 =============================================
 
-.. automodule:: spynoza.motion_correction.workflows
+.. automodule:: spynoza.denoising.compcor.workflows
     :members:
     :undoc-members:
     :show-inheritance:

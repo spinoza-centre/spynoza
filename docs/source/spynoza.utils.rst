@@ -1,5 +1,5 @@
-spynoza.utils module
-====================
+spynoza\.utils module
+=====================
 
 .. automodule:: spynoza.utils
     :members:

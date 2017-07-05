@@ -1,5 +1,5 @@
-spynoza.ica_fix.workflows module
-================================
+spynoza\.ica\_fix\.workflows module
+===================================
 
 .. automodule:: spynoza.ica_fix.workflows
     :members:

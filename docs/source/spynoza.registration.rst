@@ -1,5 +1,5 @@
-spynoza.registration package
-============================
+spynoza\.registration package
+=============================
 
 .. automodule:: spynoza.registration
     :members:

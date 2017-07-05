@@ -1,5 +1,5 @@
-spynoza.ica_fix.nodes.aroma module
-==================================
+spynoza\.ica\_fix\.nodes\.aroma module
+======================================
 
 .. automodule:: spynoza.ica_fix.nodes.aroma
     :members:

@@ -1,5 +1,5 @@
-spynoza.filtering package
-=========================
+spynoza\.filtering package
+==========================
 
 .. automodule:: spynoza.filtering
     :members:
@@ -12,4 +12,5 @@ Submodules
 .. toctree::
 
    spynoza.filtering.nodes
+   spynoza.filtering.workflows
 

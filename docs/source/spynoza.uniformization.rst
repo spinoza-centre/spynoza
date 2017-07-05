@@ -1,5 +1,5 @@
-spynoza.uniformization package
-==============================
+spynoza\.uniformization package
+===============================
 
 .. automodule:: spynoza.uniformization
     :members:

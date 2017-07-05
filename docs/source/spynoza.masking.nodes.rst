@@ -1,5 +1,5 @@
-spynoza.masking.nodes module
-============================
+spynoza\.masking\.nodes module
+==============================
 
 .. automodule:: spynoza.masking.nodes
     :members:

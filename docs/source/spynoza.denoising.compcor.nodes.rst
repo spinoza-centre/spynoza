@@ -1,7 +1,7 @@
-spynoza\.uniformization\.workflows module
+spynoza\.denoising\.compcor\.nodes module
 =========================================
 
-.. automodule:: spynoza.uniformization.workflows
+.. automodule:: spynoza.denoising.compcor.nodes
     :members:
     :undoc-members:
     :show-inheritance:

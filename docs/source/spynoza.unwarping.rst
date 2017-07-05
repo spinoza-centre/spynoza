@@ -1,5 +1,5 @@
-spynoza.unwarping package
-=========================
+spynoza\.unwarping package
+==========================
 
 .. automodule:: spynoza.unwarping
     :members:

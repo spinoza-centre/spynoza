@@ -1,5 +1,5 @@
-spynoza.unwarping.topup.workflows module
-========================================
+spynoza\.unwarping\.topup\.workflows module
+===========================================
 
 .. automodule:: spynoza.unwarping.topup.workflows
     :members:

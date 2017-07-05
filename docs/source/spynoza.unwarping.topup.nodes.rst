@@ -1,5 +1,5 @@
-spynoza.unwarping.topup.nodes module
-====================================
+spynoza\.unwarping\.topup\.nodes module
+=======================================
 
 .. automodule:: spynoza.unwarping.topup.nodes
     :members:

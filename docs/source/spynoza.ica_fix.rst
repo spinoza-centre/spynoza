@@ -1,5 +1,5 @@
-spynoza.ica_fix package
-=======================
+spynoza\.ica\_fix package
+=========================
 
 .. automodule:: spynoza.ica_fix
     :members:

@@ -1,5 +1,5 @@
-spynoza.masking.workflows module
-================================
+spynoza\.masking\.workflows module
+==================================
 
 .. automodule:: spynoza.masking.workflows
     :members:

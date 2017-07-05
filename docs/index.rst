@@ -7,14 +7,7 @@
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-
-   README_LINK
+   :caption: Documentation:
+   
    source/spynoza
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

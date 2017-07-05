@@ -1,5 +1,5 @@
-spynoza.glm package
-===================
+spynoza\.glm package
+====================
 
 .. automodule:: spynoza.glm
     :members:

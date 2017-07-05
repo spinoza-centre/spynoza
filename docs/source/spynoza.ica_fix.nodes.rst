@@ -1,5 +1,5 @@
-spynoza.ica_fix.nodes package
-=============================
+spynoza\.ica\_fix\.nodes package
+================================
 
 .. automodule:: spynoza.ica_fix.nodes
     :members:
@@ -12,6 +12,5 @@ Submodules
 .. toctree::
 
    spynoza.ica_fix.nodes.aroma
-   spynoza.ica_fix.nodes.fix
    spynoza.ica_fix.nodes.melodic4fix
 

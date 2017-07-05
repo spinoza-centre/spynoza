@@ -1,13 +1,8 @@
-.. automodule:: spynoza
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-Subpackages
------------
-
 .. toctree::
 
+    spynoza.conversion
+    spynoza.denoising
+    spynoza.examples
     spynoza.filtering
     spynoza.glm
     spynoza.ica_fix
@@ -15,14 +10,7 @@ Subpackages
     spynoza.meta_workflows
     spynoza.motion_correction
     spynoza.registration
-    spynoza.retroicor
     spynoza.uniformization
     spynoza.unwarping
-
-Submodules
-----------
-
-.. toctree::
-
-   spynoza.utils
+    spynoza.utils
 

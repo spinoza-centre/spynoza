@@ -1,7 +1,7 @@
-spynoza\.ica\_fix\.nodes\.melodic4fix module
+spynoza\.examples\.UKE\_preprocessing module
 ============================================
 
-.. automodule:: spynoza.ica_fix.nodes.melodic4fix
+.. automodule:: spynoza.examples.UKE_preprocessing
     :members:
     :undoc-members:
     :show-inheritance:

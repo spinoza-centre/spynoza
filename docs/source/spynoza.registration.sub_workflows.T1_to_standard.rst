@@ -1,5 +1,5 @@
-spynoza.registration.sub_workflows.T1_to_standard module
-========================================================
+spynoza\.registration\.sub\_workflows\.T1\_to\_standard module
+==============================================================
 
 .. automodule:: spynoza.registration.sub_workflows.T1_to_standard
     :members:

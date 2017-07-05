@@ -1,5 +1,5 @@
-spynoza.uniformization.nodes module
-===================================
+spynoza\.uniformization\.nodes module
+=====================================
 
 .. automodule:: spynoza.uniformization.nodes
     :members:
