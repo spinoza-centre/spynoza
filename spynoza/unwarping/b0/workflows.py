@@ -4,7 +4,6 @@ from nipype.interfaces.utility import IdentityInterface
 from .nodes import (Prepare_phasediff, Radials_per_second, Dilate_mask,
                     Compute_echo_spacing, Make_output_filename)
 
-    
 def create_B0_workflow(name ='b0_unwarping'):
     """ Does B0 field unwarping
     
@@ -44,9 +43,6 @@ def create_B0_workflow(name ='b0_unwarping'):
                                                              'acceleration',
                                                              'te_diff',
                                                              'phase_encoding_direction']))
-
-    # Why is this hardcoded?
-    input_node.inputs.phase_encoding_direction = 'y'
     unwarp_workflow = pe.Workflow(name=name)
     
     # Normalize phase difference of the fieldmap phase to be [-pi, pi)
@@ -95,31 +91,31 @@ def create_B0_workflow(name ='b0_unwarping'):
     
     # Connect
     unwarp_workflow.connect([
-                    (input_node,             out_file, [('in_files', 'in_file')]),
-                    (input_node,            norm_pha, [('fieldmap_pha', 'in_file')]),
-                    (input_node,            mask_mag, [('fieldmap_mag', 'in_file')]),
-                    (mask_mag,             mask_mag_dil, [('mask_file', 'in_file')]),
-                    (input_node,            prelude, [('fieldmap_mag', 'magnitude_file')]),
-                    (norm_pha,             prelude, [('out_file', 'phase_file')]),
-                    (mask_mag_dil,         prelude, [('out_file', 'mask_file')]),
-                    (prelude,              radials_per_second, [('unwrapped_phase_file', 'in_file')]),
-                    (input_node,            radials_per_second, [('te_diff', 'asym')]),
-                    (mask_mag,             registration, [('out_file', 'in_file')]),
-                    (input_node,            registration, [('in_files', 'reference')]),
-                    (radials_per_second,   applyxfm, [('out_file', 'in_file')]),
-                    (registration,         applyxfm, [('out_matrix_file', 'in_matrix_file')]),
-                    (input_node,            applyxfm, [('in_files', 'reference')]),
-                    (input_node,            echo_spacing, [('wfs', 'wfs')]),
-                    (input_node,            echo_spacing, [('epi_factor', 'epi_factor')]),
-                    (input_node,            echo_spacing, [('acceleration', 'acceleration')]),
-                    (input_node,            fugue, [('in_files', 'in_file')]),
-                    (out_file,             fugue, [('out_file', 'unwarped_file')]),
-                    (applyxfm,             fugue, [('out_file', 'fmap_in_file')]),
-                    (echo_spacing,         fugue, [('echo_spacing', 'dwell_time')]),
-                    (input_node,            fugue, [('te_diff', 'asym_se_time')]),
-                    (input_node,            fugue, [('phase_encoding_direction', 'unwarp_direction')]),
-                    (fugue,                outputnode, [('unwarped_file', 'out_files')]),
-                    (applyxfm,             outputnode, [('out_file', 'field_coefs')])
+                    (input_node,              out_file, [('in_files', 'in_file')]),
+                    (input_node,              norm_pha, [('fieldmap_pha', 'in_file')]),
+                    (input_node,              mask_mag, [('fieldmap_mag', 'in_file')]),
+                    (mask_mag,                mask_mag_dil, [('mask_file', 'in_file')]),
+                    (input_node,              prelude, [('fieldmap_mag', 'magnitude_file')]),
+                    (norm_pha,                prelude, [('out_file', 'phase_file')]),
+                    (mask_mag_dil,            prelude, [('out_file', 'mask_file')]),
+                    (prelude,                 radials_per_second, [('unwrapped_phase_file', 'in_file')]),
+                    (input_node,              radials_per_second, [('te_diff', 'asym')]),
+                    (mask_mag,                registration, [('out_file', 'in_file')]),
+                    (input_node,              registration, [('in_files', 'reference')]),
+                    (radials_per_second,      applyxfm, [('out_file', 'in_file')]),
+                    (registration,            applyxfm, [('out_matrix_file', 'in_matrix_file')]),
+                    (input_node,              applyxfm, [('in_files', 'reference')]),
+                    (input_node,              echo_spacing, [('wfs', 'wfs')]),
+                    (input_node,              echo_spacing, [('epi_factor', 'epi_factor')]),
+                    (input_node,              echo_spacing, [('acceleration', 'acceleration')]),
+                    (input_node,              fugue, [('in_files', 'in_file')]),
+                    (out_file,                fugue, [('out_file', 'unwarped_file')]),
+                    (applyxfm,                fugue, [('out_file', 'fmap_in_file')]),
+                    (echo_spacing,            fugue, [('echo_spacing', 'dwell_time')]),
+                    (input_node,              fugue, [('te_diff', 'asym_se_time')]),
+                    (input_node,              fugue, [('phase_encoding_direction', 'unwarp_direction')]),
+                    (fugue,                   outputnode, [('unwarped_file', 'out_files')]),
+                    (applyxfm,                outputnode, [('out_file', 'field_coefs')])
                     ])
     
     return unwarp_workflow
