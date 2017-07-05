@@ -2,6 +2,7 @@
 # with a Nipype node.
 
 from __future__ import division, print_function, absolute_import
+import nipype.pipeline as pe
 from nipype.interfaces.utility import Function
 
 
@@ -66,8 +67,13 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length=120, tr=None):
     nib.save(img, out_file)
     return out_file
 
-
 Savgol_filter = Function(function=savgol_filter,
                          input_names=['in_file', 'polyorder', 'deriv',
                                       'window_length', 'tr'],
                          output_names=['out_file'])
+                         
+sgfilter = pe.MapNode(interface=Function(input_names=['in_file', 'window_length', 'polyorder'],
+                                output_names=['out_file'],
+                                function=savgol_filter),
+                                name='sgfilter',
+                                iterfield=['in_file'])
