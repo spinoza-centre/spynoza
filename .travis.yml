@@ -5,9 +5,8 @@ python:
 
 branches:
   only:
-    #- master
-    - develop
-
+    - master
+    
 cache:
   directories:
     - /usr/local/freesurfer
