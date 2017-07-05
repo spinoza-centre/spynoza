@@ -1,2 +1,1 @@
-from . import nodes
-from . import workflows
+from spynoza.glm.custom import nodes, workflows
