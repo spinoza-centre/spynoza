@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import pytest
 from ... import test_data_path
 from ..nodes import Savgol_filter
