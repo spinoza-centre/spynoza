@@ -7,8 +7,11 @@ import nipype
 from nipype import config, logging
 import nibabel as nib
 import argparse
+from IPython import embed as shell
 
-from UKE_preprocessing_workflow import configure_workflow, create_preprocessing_workflow
+from UKE_preprocessing_workflow import create_preprocessing_workflow
+
+# python UKE_preprocessing.py yesno /home/raw_data/UvA/Donner_lab/2017_eLife/1_fMRI_yesno_visual/ 01 01 /home/shared/UvA/spynoza_tryout/ --sub-FS-id AV_120414
 
 def get_acquisition_parameters(analysis_parameters):
     # acquisition_parameters:
@@ -18,15 +21,14 @@ def get_acquisition_parameters(analysis_parameters):
         with open(os.path.join(analysis_parameters["raw_data_dir"], parameters)) as f:
             json_s = f.read()
             acquisition_parameters.update(json.loads(json_s))
+    analysis_parameters['EchoTimeDiff'] = acquisition_parameters['EchoTime2'] - acquisition_parameters['EchoTime1']
     return acquisition_parameters
-    
-def run(analysis_parameters, acquisition_parameters):
-    # the actual workflow
-    preprocessing_workflow = create_preprocessing_workflow(analysis_parameters, name=analysis_parameters['task'])
-    preprocessing_workflow = configure_workflow(preprocessing_workflow, analysis_parameters, acquisition_parameters)
 
-    # write out the graph and run
-    preprocessing_workflow.write_graph(os.path.join(analysis_parameters["opd"], analysis_parameters["task"])+'.pdf', format='pdf', graph2use='colored')
+def run(analysis_parameters, acquisition_parameters):
+    preprocessing_workflow = create_preprocessing_workflow(analysis_parameters.update(acquisition_parameters),
+                                                             name=analysis_parameters['task'])
+    preprocessing_workflow.write_graph(os.path.join(analysis_parameters["opd"], analysis_parameters["task"])+'.pdf',
+                                                             format='pdf', graph2use='colored')
     preprocessing_workflow.run('MultiProc', plugin_args={'n_procs': 24})
 
 parser = argparse.ArgumentParser()
@@ -67,10 +69,11 @@ analysis_parameters['sub_FS_id'] = args.sub_id if args.sub_FS_id is None else ar
 analysis_parameters['raw_data_dir'] = analysis_parameters['bids_folder']
 analysis_parameters['sub_id'] = 'sub-{}'.format(analysis_parameters['sub_id'])
 analysis_parameters['ses_id'] = 'ses-{}'.format(analysis_parameters['ses_id'])
+analysis_parameters['output_directory'] = os.path.join(analysis_parameters["opd"], analysis_parameters["task"], analysis_parameters["sub_id"], analysis_parameters["ses_id"])
+analysis_parameters['standard_file'] = os.path.join(os.environ['FSL_DIR'], 'data/standard/MNI152_T1_1mm_brain.nii.gz')
 acquisition_parameters = get_acquisition_parameters(analysis_parameters)
 
 if not args.dry_run:
-    
     # create working directory
     try:
         os.makedirs(op.join(analysis_parameters["opd"], analysis_parameters["task"], analysis_parameters["sub_id"], analysis_parameters["ses_id"], 'log'))
@@ -78,21 +81,15 @@ if not args.dry_run:
         pass
     
     # logging:
-    config.update_config({  'logging': {
-                                        'log_directory': op.join(analysis_parameters["opd"], analysis_parameters["task"], analysis_parameters["sub_id"], analysis_parameters["ses_id"], 'log'),
+    config.update_config({  'logging': {'log_directory': op.join(analysis_parameters["opd"], analysis_parameters["task"], analysis_parameters["sub_id"], analysis_parameters["ses_id"], 'log'),
                                         'log_to_file': True,
                                         'workflow_level': 'INFO',
-                                        'interface_level': 'DEBUG'
-                                      },
-                            'execution': {
-                                        'stop_on_first_crash': True
-                                        }
-                        })
+                                        'interface_level': 'DEBUG'},
+                            'execution': {'stop_on_first_crash': True} })
     logging.update_logging(config)
     
     # run!
     run(analysis_parameters, acquisition_parameters)
-
 else:
     print(analysis_parameters)
     print(acquisition_parameters)
