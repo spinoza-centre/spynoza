@@ -9,8 +9,8 @@ def set_postfix(in_file, postfix):
     return op.basename(in_file).replace('.nii.gz', '_%s' % postfix)
 
 Set_postfix = Function(function=set_postfix,
-                        input_names=['in_file', 'postfix'],
-                        output_names=['out_file'])
+                       input_names=['in_file', 'postfix'],
+                       output_names=['out_file'])
 
 
 def remove_extension(in_file, extension='.nii.gz'):
