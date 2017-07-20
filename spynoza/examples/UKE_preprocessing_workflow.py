@@ -18,11 +18,11 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
     from spynoza.denoising.retroicor.workflows import create_retroicor_workflow
     from spynoza.masking.workflows import create_masks_from_surface_workflow
     from spynoza.glm.nodes import fit_nuisances
-    
+
     ########################################################################################
     # nodes
     ########################################################################################
-    
+
     input_node = pe.Node(IdentityInterface(
                 fields=[
                     'task',                         # main
@@ -35,13 +35,13 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
                     'RepetitionTime',               # motion correction
                     'which_file_is_EPI_space',      # motion correction
                     'standard_file',                # registration
-                    'topup_conf_file',              # unwarping 
-                    'EchoTimeDiff',                 # unwarping 
-                    'EpiFactor',                    # unwarping 
-                    'SenseFactor',                  # unwarping 
-                    'WaterFatShift',                # unwarping 
-                    'PhaseEncodingDirection',       # unwarping 
-                    'EchoSpacing'                   # unwarping 
+                    'topup_conf_file',              # unwarping
+                    'EchoTimeDiff',                 # unwarping
+                    'EpiFactor',                    # unwarping
+                    'SenseFactor',                  # unwarping
+                    'WaterFatShift',                # unwarping
+                    'PhaseEncodingDirection',       # unwarping
+                    'EchoSpacing'                   # unwarping
                     'psc_func',                     # percent signal change
                     'sg_filter_window_length',      # temporal filtering
                     'sg_filter_order',              # temporal filtering
@@ -52,26 +52,28 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
                     'NumberDummyScans',             # retroicor
                     'MultiBandFactor',              # retroicor
                     'hr_rvt',                       # retroicor
-                    'av_func',                      # extra 
+                    'av_func',                      # extra
                     'EchoTime',                     # extra
                     'bd_design_matrix_file',        # extra
                     ]), name='inputspec')
-                    
+
+    print analysis_params
     for param in analysis_params:
          exec('input_node.inputs.{} = analysis_params[param]'.format(param))
-    
+
     # i/o node
     datasource_templates = dict(func='{sub_id}/{ses_id}/func/*{task}*_bold.nii.gz',
                                 magnitude='{sub_id}/{ses_id}/fmap/*magnitude.nii.gz',
                                 phasediff='{sub_id}/{ses_id}/fmap/*phasediff.nii.gz',
-                                physio='{sub_id}/{ses_id}/func/*{task}*physio.*',
-                                events='{sub_id}/{ses_id}/func/*{task}*_events.pickle',
-                                eye='{sub_id}/{ses_id}/func/*{task}*_eyedata.edf')
-    datasource = pe.Node(SelectFiles(datasource_templates, sort_filelist=True, raise_on_empty=False), 
+                                #physio='{sub_id}/{ses_id}/func/*{task}*physio.*',
+                                #events='{sub_id}/{ses_id}/func/*{task}*_events.pickle',
+                                #eye='{sub_id}/{ses_id}/func/*{task}*_eyedata.edf'
+                                )
+    datasource = pe.Node(SelectFiles(datasource_templates, sort_filelist=True, raise_on_empty=False),
         name = 'datasource')
 
     output_node = pe.Node(IdentityInterface(fields=([
-            'temporal_filtered_files', 
+            'temporal_filtered_files',
             'percent_signal_change_files'])), name='outputspec')
 
     # nodes for setting the slope/intercept of incoming niftis to (1, 0)
@@ -80,28 +82,28 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
                       name='int_slope_B0_magnitude')
     int_slope_B0_phasediff = pe.Node(Function(input_names=['in_file'], output_names=['out_file'], function=set_nifti_intercept_slope),
                       name='int_slope_B0_phasediff')
-    
+
     # reorient nodes
-    # reorient_epi = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_epi', iterfield=['in_file'])
-    # reorient_topup = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_topup', iterfield=['in_file'])
-    # reorient_B0_magnitude = pe.Node(interface=fsl.Reorient2Std(), name='reorient_B0_magnitude')
-    # reorient_B0_phasediff = pe.Node(interface=fsl.Reorient2Std(), name='reorient_B0_phasediff')
+    reorient_epi = pe.MapNode(interface=fsl.Reorient2Std(), name='reorient_epi', iterfield=['in_file'])
+    reorient_B0_magnitude = pe.Node(interface=fsl.Reorient2Std(), name='reorient_B0_magnitude')
+    reorient_B0_phasediff = pe.Node(interface=fsl.Reorient2Std(), name='reorient_B0_phasediff')
 
     # bet_epi = pe.MapNode(interface=
     #     fsl.BET(frac=analysis_parameters['bet_f_value'], vertical_gradient = analysis_parameters['bet_g_value'],
     #             functional=True, mask = True), name='bet_epi', iterfield=['in_file'])
-    
+
     datasink = pe.Node(DataSink(), name='sinker')
     datasink.inputs.parameterization = False
-    
+
     ########################################################################################
     # workflow
     ########################################################################################
-    
+
     # the actual top-level workflow
     preprocessing_workflow = pe.Workflow(name=name)
-    
-    # data source 
+    preprocessing_workflow.base_dir = op.join(analysis_params['output_directory'], 'temp/')
+
+    # data source
     preprocessing_workflow.connect(input_node, 'raw_data_dir', datasource, 'base_directory')
     preprocessing_workflow.connect(input_node, 'sub_id', datasource, 'sub_id')
     preprocessing_workflow.connect(input_node, 'ses_id', datasource, 'ses_id')
@@ -109,9 +111,6 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
 
     # and data sink
     preprocessing_workflow.connect(input_node, 'output_directory', datasink, 'base_directory')
-
-    # copy raw data to output folder:
-    preprocessing_workflow.connect(datasource, 'func', datasink, 'raw')
 
     # BET (we don't do this, because we expect the raw data in the bids folder to be betted
     # already for anonymization purposes)
@@ -121,26 +120,36 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
     # preprocessing_workflow.connect(bet_epi, 'out_file', nuc, 'in_file')
     # preprocessing_workflow.connect(datasource, 'func', nuc, 'in_file')
 
+    # reorient images
+    preprocessing_workflow.connect(datasource, 'func', reorient_epi, 'in_file')
+    preprocessing_workflow.connect(datasource, 'magnitude', reorient_B0_magnitude, 'in_file')
+    preprocessing_workflow.connect(datasource, 'phasediff', reorient_B0_phasediff, 'in_file')
+    preprocessing_workflow.connect(reorient_epi, 'out_file', datasink, 'reorient')
+
     #B0 field correction:
     if analysis_params['B0_or_topup'] == 'B0':
 
         # set slope/intercept to unity for B0 map
-        preprocessing_workflow.connect(datasource, 'magnitude', int_slope_B0_magnitude, 'in_file')
-        preprocessing_workflow.connect(datasource, 'phasediff', int_slope_B0_phasediff, 'in_file')
+        preprocessing_workflow.connect(reorient_B0_magnitude, 'out_file', int_slope_B0_magnitude, 'in_file')
+        preprocessing_workflow.connect(reorient_B0_phasediff, 'out_file', int_slope_B0_phasediff, 'in_file')
 
         #B0 field correction:
-        B0_wf = create_B0_workflow(name = 'B0')
-        preprocessing_workflow.connect(datasource, 'func', B0_wf, 'inputspec.in_files')
+        if 'EchoSpacing' in analysis_params:
+            B0_wf = create_B0_workflow(name='B0', compute_echo_spacing=False)
+            preprocessing_workflow.connect(input_node, 'EchoSpacing', B0_wf, 'inputspec.echo_spacing')
+        else:
+            B0_wf = create_B0_workflow(name='B0', compute_echo_spacing=True)
+            preprocessing_workflow.connect(input_node, 'WaterFatShift', B0_wf, 'inputspec.wfs')
+            preprocessing_workflow.connect(input_node, 'EpiFactor', B0_wf, 'inputspec.epi_factor')
+            preprocessing_workflow.connect(input_node, 'SenseFactor', B0_wf, 'inputspec.acceleration')
+        preprocessing_workflow.connect(reorient_epi, 'out_file', B0_wf, 'inputspec.in_files')
         preprocessing_workflow.connect(int_slope_B0_magnitude, 'out_file', B0_wf, 'inputspec.fieldmap_mag')
         preprocessing_workflow.connect(int_slope_B0_phasediff, 'out_file', B0_wf, 'inputspec.fieldmap_pha')
-        preprocessing_workflow.connect(input_node, 'WaterFatShift', B0_wf, 'inputspec.wfs')
-        preprocessing_workflow.connect(input_node, 'EpiFactor', B0_wf, 'inputspec.epi_factor')
-        preprocessing_workflow.connect(input_node, 'SenseFactor', B0_wf, 'inputspec.acceleration')
         preprocessing_workflow.connect(input_node, 'EchoTimeDiff', B0_wf, 'inputspec.te_diff')
         preprocessing_workflow.connect(input_node, 'PhaseEncodingDirection', B0_wf, 'inputspec.phase_encoding_direction')
         preprocessing_workflow.connect(B0_wf, 'outputspec.field_coefs', datasink, 'B0.fieldcoef')
         preprocessing_workflow.connect(B0_wf, 'outputspec.out_files', datasink, 'B0')
-        
+
     # motion correction
     motion_proc = create_motion_correction_workflow('moco', method=analysis_params['moco_method'])
     if analysis_params['B0_or_topup'] == 'B0':
@@ -169,7 +178,7 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
     preprocessing_workflow.connect(input_node, 'psc_func', psc, 'func')
     preprocessing_workflow.connect(sgfilter, 'out_file', psc, 'in_file')
     preprocessing_workflow.connect(psc, 'out_file', datasink, 'psc')
-    
+
     # # retroicor functionality
     # if analysis_params['perform_physio'] == 1:
     #     retr = create_retroicor_workflow(name = 'retroicor', order_or_timing = analysis_params['retroicor_order_or_timing'])
@@ -253,7 +262,7 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
     #     preprocessing_workflow.connect(RS_dilate_cortex, 'out_file', datasink, 'masks.'+analysis_parameters['avg_subject_label_folder'])
 
     ########################################################################################
-    # wrapping up, sending data to datasink 
+    # wrapping up, sending data to datasink
     ########################################################################################
 
         # preprocessing_workflow.connect(bet_epi, 'out_file', datasink, 'bet.epi')
@@ -265,5 +274,5 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
         # preprocessing_workflow.connect(sgfilter, 'out_file', datasink, 'tf')
         # preprocessing_workflow.connect(psc, 'out_file', datasink, 'psc')
         # preprocessing_workflow.connect(datasource, 'physio', datasink, 'phys')
-        
+
     return preprocessing_workflow
