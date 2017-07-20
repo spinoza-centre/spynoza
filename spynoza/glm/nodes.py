@@ -1,132 +1,87 @@
-from __future__ import division, print_function
 from nipype.interfaces.utility import Function
 
 
-def fit_nuisances(in_file, slice_regressor_list=[], vol_regressors='',
-                  num_components=8, method='PCA'):
-    """Performs a per-slice GLM on nifti-file in_file,
-    with per-slice regressors from slice_regressor_list of nifti files,
-    and per-TR regressors from vol_regressors text file.
-    Assumes slices to be the last spatial dimension of nifti files,
-    and time to be the last.
+def events_file_to_bunch(in_file, single_trial=False, sort_by_onset=False,
+                         exclude=None):
+    import pandas as pd
+    from nipype.interfaces.base import Bunch
 
-    Parameters
-    ----------
-    in_file : str
-        Absolute path to nifti-file.
-    slice_regressor_list : list
-        list of absolute paths to per-slice regressor nifti files
-    vol_regressor_list : str
-        absolute path to per-TR regressor text file
+    events = pd.read_csv(in_file, sep=str('\t'))
+    
+    if exclude is not None:  # not tested
+        events.drop(exclude, axis=1, inplace=True)
 
-    Returns
-    -------
-    res_file : str
-        Absolute path to nifti-file containing residuals after regression.
-    rsq_file : str
-        Absolute path to nifti-file containing rsq of regression.
-    beta_file : str
-        Absolute path to nifti-file containing betas from regression.
+    if single_trial:
 
-    """
+        if sort_by_onset:
+            events = events.sort_values(by='onset')
 
-    import nibabel as nib
-    import numpy as np
-    import numpy.linalg as LA
-    import os
-    from sklearn import decomposition
-
-    func_nii = nib.load(in_file)
-    dims = func_nii.shape
-    affine = func_nii.affine
-
-    # import data and convert nans to numbers
-    func_data = np.nan_to_num(func_nii.get_data())
-
-    all_slice_reg = np.zeros(
-        (len(slice_regressor_list) + 1, dims[-2], dims[-1]))
-    # intercept
-    all_slice_reg[0, :, :] = 1
-    # fill the regressor array from files
-    for i in range(len(slice_regressor_list)):
-        all_slice_reg[i + 1] = nib.load(
-            slice_regressor_list[i]).get_data().squeeze()
-
-    if vol_regressors != '':
-        all_TR_reg = np.loadtxt(vol_regressors)
-        if all_TR_reg.shape[-1] != all_slice_reg.shape[
-            -1]:  # check for the right format
-            all_TR_reg = all_TR_reg.T
-
-    # data containers
-    residual_data = np.zeros_like(func_data)
-    rsq_data = np.zeros(list(dims[:-1]))
-    if num_components == 0:
-        if vol_regressors != '':
-            beta_data = np.zeros(list(dims[:-1]) + [
-                1 + len(slice_regressor_list) + all_TR_reg.shape[0]])
-        else:
-            beta_data = np.zeros(
-                list(dims[:-1]) + [1 + len(slice_regressor_list)])
+        conditions = [[e] for e in events['trial_type'].tolist()] 
+        onsets = [[e] for e in events['onset'].tolist()]
+        durations = [[e] for e in events['duration'].tolist()]
+        amplitudes = [[e] for e in events['weight'].tolist()]
     else:
-        beta_data = np.zeros(list(dims[:-1]) + [num_components])
+        conditions = sorted(events['trial_type'].unique())
+        onsets = [events['onset'][events['trial_type'] == tt].tolist() for tt in conditions]
+        durations = [events['duration'][events['trial_type'] == tt].tolist() for tt in conditions]
+        amplitudes = [events['weight'][events['trial_type'] == tt].tolist() for tt in conditions]
 
-    # loop over slices
-    for x in range(dims[-2]):
-        slice_data = func_data[:, :, x, :].reshape((-1, dims[-1]))
-        all_regressors = all_slice_reg[:, x, :]
-        if vol_regressors != '':
-            all_regressors = np.vstack((all_regressors, all_TR_reg))
-        all_regressors = np.nan_to_num(all_regressors)
+    bunch = Bunch(conditions=conditions,
+                  onsets=onsets,
+                  durations=durations,
+                  amplitudes=amplitudes)
+    return bunch
 
-        if num_components != 0:
-            if method == 'PCA':
-                pca = decomposition.PCA(n_components=num_components,
-                                        whiten=True)
-                all_regressors = pca.fit_transform(all_regressors.T).T
-            elif method == 'ICA':
-                ica = decomposition.FastICA(n_components=num_components,
-                                            whiten=True)
-                all_regressors = ica.fit_transform(all_regressors.T).T
-
-        # fit
-        betas, residuals_sum, rank, sse = LA.lstsq(all_regressors.T,
-                                                   slice_data.T)
-
-        # predicted data, rsq and residuals
-        prediction = np.dot(betas.T, all_regressors)
-        rsq = 1.0 - np.sum((prediction - slice_data) ** 2, axis=-1) / np.sum(
-            slice_data.squeeze() ** 2, axis=-1)
-        residuals = slice_data - prediction
-
-        # reshape and save
-        residual_data[:, :, x, :] = residuals.reshape(
-            (dims[0], dims[1], dims[-1]))
-        rsq_data[:, :, x] = rsq.reshape((dims[0], dims[1]))
-        beta_data[:, :, x, :] = betas.T.reshape(
-            (dims[0], dims[1], all_regressors.shape[0]))
-
-        print("slice %d finished nuisance GLM for %s" % (x, in_file))
-
-    # save files
-    residual_img = nib.Nifti1Image(np.nan_to_num(residual_data), affine)
-    res_file = os.path.abspath(in_file[:-7]) + '_res.nii.gz'
-    nib.save(residual_img, res_file)
-
-    rsq_img = nib.Nifti1Image(np.nan_to_num(rsq_data), affine)
-    rsq_file = os.path.abspath(in_file)[:-7] + '_rsq.nii.gz'
-    nib.save(rsq_img, rsq_file)
-
-    beta_img = nib.Nifti1Image(np.nan_to_num(beta_data), affine)
-    beta_file = os.path.abspath(in_file)[:-7] + '_betas.nii.gz'
-    nib.save(beta_img, beta_file)
-
-    # return paths
-    return res_file, rsq_file, beta_file
+Events_file_to_bunch = Function(function=events_file_to_bunch,
+                                input_names=['in_file', 'single_trial', 'sort_by_onset', 'exclude'],
+                                output_names=['subject_info'])
 
 
-Fit_nuisances = Function(function=fit_nuisances,
-                         input_names=['in_file', 'slice_regressor_list',
-                                      'vol_regressors', 'num_components',
-                                      'method'],
-                         output_names=['res_file', 'rsq_file', 'beta_file'])
+def load_confounds(in_file, which_confounds, extend_motion_pars=False):
+    import pandas as pd
+    import numpy as np
+    from nipype.interfaces.base import Bunch
+
+    if isinstance(which_confounds, str):
+        which_confounds = [which_confounds]
+
+    df = pd.read_csv(in_file, sep=str('\t'))
+
+    if extend_motion_pars:
+
+        if 'RotX' in df.columns.values:  # fmriprep terminology
+            col_names = ['X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ']
+        else:  # FSL terminology
+            col_names = ['X', 'Y', 'Z', 'Rot_X', 'Rot_Y', 'Rot_Z']
+
+        moco_pars = np.array(df[col_names])
+        moco_sq = moco_pars ** 2
+        moco_diff = np.diff(np.vstack((np.ones((1, 6)), moco_pars)), axis=0)
+        moco_diff_sq = moco_diff ** 2
+        ext_moco_pars = np.hstack((moco_sq, moco_diff, moco_diff_sq))
+        new_names = [c + '_sq' for c in col_names]
+        new_names.extend([c + '_dt' for c in col_names])
+        new_names.extend([c + '_dt_sq' for c in col_names])
+        moco_ext = pd.DataFrame(ext_moco_pars, columns=new_names)
+        df = pd.concat((df, moco_ext), axis=1)
+
+    subdf = pd.DataFrame(df[which_confounds])
+    regressor_names = subdf.columns.values
+    regressors = [subdf[col].tolist() for col in subdf.columns]
+    return regressor_names, regressors
+
+
+Load_confounds = Function(function=load_confounds,
+                          input_names=['in_file', 'which_confounds', 'extend_motion_pars'],
+                          output_names=['regressor_names', 'regressors'])
+
+
+def combine_events_and_confounds(subject_info, confound_names, confounds):
+    
+    subject_info.update(regressors=confounds, regressor_names=confound_names)
+    return subject_info
+
+
+Combine_events_and_confounds = Function(function=combine_events_and_confounds,
+                                        input_names=['subject_info', 'confound_names', 'confounds'],
+                                        output_names=['subject_info'])

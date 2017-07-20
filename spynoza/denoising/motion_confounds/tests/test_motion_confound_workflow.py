@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import pytest
 import os.path as op
 from ..workflows import create_motion_confound_workflow
