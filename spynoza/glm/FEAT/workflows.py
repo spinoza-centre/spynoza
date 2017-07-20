@@ -4,6 +4,7 @@ from nipype.interfaces.io import DataSink
 from nipype.interfaces.utility import Rename
 from nipype.interfaces.fsl.model import Level1Design, FEAT
 from ..workflows import create_modelgen_workflow
+from .nodes import Rename_feat_dir
 from ...utils import Extract_task
 
 
@@ -37,8 +38,8 @@ def create_firstlevel_workflow_FEAT(name='level1feat'):
 
     feat = pe.MapNode(interface=FEAT(), iterfield=['fsf_file'], name='FEAT')
     extract_task = pe.MapNode(interface=Extract_task, iterfield=['in_file'], name='extract_task')
-    rename_feat_dir = pe.MapNode(interface=Rename(format_string='%(task)s.feat'),
-                                 iterfield=['in_file', 'task'],
+    rename_feat_dir = pe.MapNode(interface=Rename_feat_dir,
+                                 iterfield=['feat_dir', 'task'],
                                  name='rename_feat_dir')
 
     firstlevel_wf = pe.Workflow(name=name)
@@ -70,8 +71,8 @@ def create_firstlevel_workflow_FEAT(name='level1feat'):
 
     firstlevel_wf.connect(input_node, 'func_file', extract_task, 'in_file')
     firstlevel_wf.connect(extract_task, 'task_name', rename_feat_dir, 'task')
-    firstlevel_wf.connect(feat, 'feat_dir', rename_feat_dir, 'in_file')
-    firstlevel_wf.connect(rename_feat_dir, 'out_file', output_node, 'feat_dir')
-    firstlevel_wf.connect(rename_feat_dir, 'out_file', datasink, 'firstlevelfeat')
+    firstlevel_wf.connect(feat, 'feat_dir', rename_feat_dir, 'feat_dir')
+    firstlevel_wf.connect(rename_feat_dir, 'feat_dir', output_node, 'feat_dir')
+    firstlevel_wf.connect(rename_feat_dir, 'feat_dir', datasink, 'firstlevelfeat')
 
     return firstlevel_wf
