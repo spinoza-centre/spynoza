@@ -29,6 +29,12 @@ def set_parameters_in_nodes(workflow, **kwargs):
     keyword-arguments, which should take the form of `'node_name'={'parameter': value_to_set}.
     A cool feature of this function is that it checks whether the node (node_name) is contained
     in a sub-workflow (or sub-sub-workflow, etc.) using a recursive call to itself.
+
+    Optionally, you can indicate that your parameter is meant as an iterable by setting
+    your "value_to_set" to a tuple of length 2, with the first entry being your 
+    "value_to_set" and the last being a boolean value indicating whether you want it
+    to be an iterable (True = make iterable). If you don't use this syntax, it defaults
+    to "no iterable".
     
     Parameters
     ----------
@@ -36,8 +42,10 @@ def set_parameters_in_nodes(workflow, **kwargs):
         The workflow in which the nodes need to be altered.
     **kwargs : key-word arguments
         A variable amount of keyword-arguments (dicts) which take the form of
-        'node_name': {'parameter': value_to_set}.
+        'node_name': {'parameter': value_to_set}, or optionally of
+        'node_name': {'parameter': (value_to_set, True/False)}
     """
+
     for node, options in kwargs.items():
 
         # Which nodes (or sub-workflows) are contained in the workflow?
@@ -65,12 +73,29 @@ def set_parameters_in_nodes(workflow, **kwargs):
 
         # Loop over options {parameter: value pairs} of node-instance
         for param, val in options.items():
+            
+            if not isinstance(val, tuple):
+                # Assume iterable=False
+                val = (val, False)
+            elif not isinstance(val[-1], bool):
+                # Or maybe it's a tuple, but not related to the iterable setting
+                val = (val, False)
+            else:
+                # Correct setting!
+                pass
 
             available_params = list(node_inst.inputs.__dict__.keys())
 
             if param in available_params:
-                # Set input if param exists
-                node_inst.set_input(param, val)
+                
+                if val[1]:
+                    # Set iterable (but make a list is no iterables yet)
+                    if node_inst.iterables is None:
+                        node_inst.iterables = []
+                    node_inst.iterables.append((param, val[0]))
+                else:
+                    # Set input directly (no iterable)
+                    node_inst.set_input(param, val)
             else:
                 msg = ("You want to set the parameter '%s' in node '%s' but "
                        "this parameter doesn't exist in this node. Known "
