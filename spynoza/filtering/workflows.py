@@ -41,11 +41,11 @@ def getusans(x):
 tolist = lambda x: [x]
 
 
-def create_extended_susan_workflow(name='extended_susan', separate_masks=True):
+def create_extended_susan_workflow(name='extended_susan', already_binary_mask=False, separate_masks=True):
 
     input_node = pe.Node(IdentityInterface(fields=['in_file',
                                                    'fwhm',
-                                                   'EPI_session_space',
+                                                   'EPI_mean',
                                                    'output_directory',
                                                    'sub_id']), name='inputspec')
 
@@ -63,24 +63,37 @@ def create_extended_susan_workflow(name='extended_susan', separate_masks=True):
     esw.connect(input_node, 'output_directory', datasink, 'base_directory')
     esw.connect(input_node, 'sub_id', datasink, 'container')
 
-    meanfuncmask = pe.Node(interface=fsl.BET(mask=True,
-                                             no_output=True,
-                                             frac=0.3),
-                           name='meanfuncmask')
+    if separate_masks:
+        maskfunc = pe.MapNode(interface=fsl.ImageMaths(suffix='_bet',
+                                                       op_string='-mas'),
+                              iterfield=['in_file', 'in_file2'],
+                              name='maskfunc')
+    else:
+        maskfunc = pe.MapNode(interface=fsl.ImageMaths(suffix='_bet',
+                                                       op_string='-mas'),
+                              iterfield=['in_file'],
+                              name='maskfunc')
+        
+    # Make masks if necessary
+    if not already_binary_mask:
 
-    esw.connect(input_node, 'EPI_session_space', meanfuncmask, 'in_file')
+        if not separate_masks:
+            meanfuncmask = pe.Node(interface=fsl.BET(mask=True,
+                                                     no_output=True,
+                                                     frac=0.3),
+                                   name='meanfuncmask')
+        else:
+            meanfuncmask = pe.MapNode(interface=fsl.BET(mask=True,
+                                                        no_output=True,
+                                                        frac=0.3),
+                                      name='meanfuncmask',
+                                      iterfield=['in_file'])
 
-    """
-    Mask the functional runs with the extracted mask
-    """
-
-    maskfunc = pe.MapNode(interface=fsl.ImageMaths(suffix='_bet',
-                                                   op_string='-mas'),
-                          iterfield=['in_file'],
-                          name='maskfunc')
-
-    esw.connect(input_node, 'in_file', maskfunc, 'in_file')
-    esw.connect(meanfuncmask, 'mask_file', maskfunc, 'in_file2')
+        esw.connect(input_node, 'EPI_mean', meanfuncmask, 'in_file')
+        esw.connect(input_node, 'in_file', maskfunc, 'in_file')
+        esw.connect(meanfuncmask, 'mask_file', maskfunc, 'in_file2')
+    else:
+        esw.connect(input_node, 'EPI_mean', maskfunc, 'in_file2')
 
     """
     Determine the 2nd and 98th percentile intensities of each functional run
@@ -146,7 +159,7 @@ def create_extended_susan_workflow(name='extended_susan', separate_masks=True):
     functional
     """
 
-    smooth = create_susan_smooth(separate_masks=separate_masks)
+    smooth = create_susan_smooth(separate_masks=True)
 
     esw.connect(input_node, 'fwhm', smooth, 'inputnode.fwhm')
     esw.connect(maskfunc2, 'out_file', smooth, 'inputnode.in_files')
@@ -215,16 +228,3 @@ def create_extended_susan_workflow(name='extended_susan', separate_masks=True):
     esw.connect(dilatemask, 'out_file', datasink, 'filtering.@mask')
 
     return esw
-
-
-if __name__ == '__main__':
-    import os.path as op
-    test_data_path = '/media/lukas/data/Software/Spynoza/spynoza/spynoza/data/test_data'
-    smooth_wf = create_extended_susan_workflow(separate_masks=True)
-    smooth_wf.base_dir = '/tmp/spynoza/workingdir'
-    smooth_wf.inputs.inputspec.in_file = [op.join(test_data_path, 'sub-0020_gstroop_cut.nii.gz')]
-    smooth_wf.inputs.inputspec.EPI_session_space = op.join(test_data_path, 'sub-0020_gstroop_meanbold.nii.gz')
-    smooth_wf.inputs.inputspec.output_directory = '/tmp/spynoza'
-    smooth_wf.inputs.inputspec.sub_id = 'sub-0020'
-    smooth_wf.inputs.inputspec.fwhm = 5
-    smooth_wf.run()

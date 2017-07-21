@@ -16,12 +16,12 @@ def setup():
 
 
 @pytest.mark.filtering
-def test_create_extended_susan_workflow(method='FSL'):
-    smooth_wf = create_extended_susan_workflow(separate_masks=True)
+def test_create_extended_susan_workflow(already_binary_mask=False, separate_masks=False):
+    smooth_wf = create_extended_susan_workflow(already_binary_mask=already_binary_mask, separate_masks=separate_masks)
     smooth_wf.base_dir = '/tmp/spynoza/workingdir'
     smooth_wf.inputs.inputspec.in_file = [op.join(test_data_path, 'func', 'sub-0020_task-harriri_bold_cut.nii.gz'),
                                           op.join(test_data_path, 'func', 'sub-0020_task-wm_bold_cut.nii.gz')]
-    smooth_wf.inputs.inputspec.EPI_session_space = op.join(test_data_path, 'func',
+    smooth_wf.inputs.inputspec.EPI_mean = op.join(test_data_path, 'func',
                                                            'sub-0020_task-harriri_meanbold.nii.gz')
     smooth_wf.inputs.inputspec.output_directory = '/tmp/spynoza'
     smooth_wf.inputs.inputspec.sub_id = 'sub-0020'
