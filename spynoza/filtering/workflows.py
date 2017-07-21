@@ -41,7 +41,8 @@ def getusans(x):
 tolist = lambda x: [x]
 
 
-def create_extended_susan_workflow(name='extended_susan', already_binary_mask=False, separate_masks=True):
+def create_extended_susan_workflow(name='extended_susan', already_binary_mask=False, separate_masks=True,
+                                   datasink_parameterization=False):
 
     input_node = pe.Node(IdentityInterface(fields=['in_file',
                                                    'fwhm',
@@ -54,7 +55,7 @@ def create_extended_susan_workflow(name='extended_susan', already_binary_mask=Fa
                                                               'mean']), name='outputspec')
 
     datasink = pe.Node(DataSink(), name='sinker')
-    datasink.inputs.parameterization = False
+    datasink.inputs.parameterization = datasink_parameterization
 
     # first link the workflow's output_directory into the datasink.
 
@@ -73,6 +74,8 @@ def create_extended_susan_workflow(name='extended_susan', already_binary_mask=Fa
                                                        op_string='-mas'),
                               iterfield=['in_file'],
                               name='maskfunc')
+    
+    esw.connect(input_node, 'in_file', maskfunc, 'in_file')
         
     # Make masks if necessary
     if not already_binary_mask:
@@ -90,7 +93,6 @@ def create_extended_susan_workflow(name='extended_susan', already_binary_mask=Fa
                                       iterfield=['in_file'])
 
         esw.connect(input_node, 'EPI_mean', meanfuncmask, 'in_file')
-        esw.connect(input_node, 'in_file', maskfunc, 'in_file')
         esw.connect(meanfuncmask, 'mask_file', maskfunc, 'in_file2')
     else:
         esw.connect(input_node, 'EPI_mean', maskfunc, 'in_file2')
@@ -225,6 +227,4 @@ def create_extended_susan_workflow(name='extended_susan', already_binary_mask=Fa
     # Datasink
     esw.connect(meanscale, 'out_file', datasink, 'filtering')
     esw.connect(selectnode, 'out', datasink, 'filtering.@smoothed')
-    esw.connect(dilatemask, 'out_file', datasink, 'filtering.@mask')
-
     return esw
