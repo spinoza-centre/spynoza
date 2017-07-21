@@ -11,7 +11,8 @@ PYTHON_VERSION = sys.version_info[0]
 
 @pytest.mark.skipif(PYTHON_VERSION > 2, reason="FSL FEAT requires python 2")
 @pytest.mark.glmfeat
-def test_create_firstlevel_workflow_FEAT():
+@pytest.mark.parametrize('extend_motion_pars', [True, False])
+def test_create_firstlevel_workflow_FEAT(extend_motion_pars):
 
     firstlevel_wf = create_firstlevel_workflow_FEAT()
     firstlevel_wf.base_dir = '/tmp/spynoza/workingdir'
@@ -27,7 +28,9 @@ def test_create_firstlevel_workflow_FEAT():
     firstlevel_wf.inputs.inputspec.confound_file = [op.join(test_data_path, 'func', 'sub-0020_task-harriri_bold_confounds.tsv'),
                                                     op.join(test_data_path, 'func', 'sub-0020_task-wm_bold_confounds.tsv')]
     firstlevel_wf.inputs.inputspec.which_confounds = ['X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ']
-    firstlevel_wf.inputs.inputspec.extend_motion_pars = True
+    firstlevel_wf.inputs.inputspec.extend_motion_pars = extend_motion_pars
+    firstlevel_wf.inputs.inputspec.hp_filter = 100
+    firstlevel_wf.inputs.inputspec.hrf_base = {'dgamma': {'derivs': True}}
     firstlevel_wf.inputs.inputspec.output_directory = '/tmp/spynoza/firstlevelfeat'
 
     firstlevel_wf.inputs.inputspec.sub_id = 'sub-0020'

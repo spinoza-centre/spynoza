@@ -20,6 +20,8 @@ def create_firstlevel_workflow_FEAT(name='level1feat'):
                                                    'which_confounds',
                                                    'extend_motion_pars',
                                                    'model_serial_correlations',
+                                                   'hrf_base',
+                                                   'hp_filter',
                                                    'contrasts',
                                                    'output_directory',
                                                    'sub_id']), name='inputspec')
@@ -57,9 +59,11 @@ def create_firstlevel_workflow_FEAT(name='level1feat'):
     firstlevel_wf.connect(input_node, 'exclude', modelgen_wf, 'inputspec.exclude')
     firstlevel_wf.connect(input_node, 'confound_file', modelgen_wf, 'inputspec.confound_file')
     firstlevel_wf.connect(input_node, 'which_confounds', modelgen_wf, 'inputspec.which_confounds')                                               
+    firstlevel_wf.connect(input_node, 'hp_filter', modelgen_wf, 'inputspec.hp_filter')                                               
 
     firstlevel_wf.connect(input_node, 'TR', level1_design, 'interscan_interval')
     firstlevel_wf.connect(input_node, 'model_serial_correlations', level1_design, 'model_serial_correlations')
+    firstlevel_wf.connect(input_node, 'hrf_base', level1_design, 'bases')
     firstlevel_wf.connect(input_node, 'contrasts', level1_design, 'contrasts')
     
     firstlevel_wf.connect(modelgen_wf, 'outputspec.session_info', level1_design, 'session_info')

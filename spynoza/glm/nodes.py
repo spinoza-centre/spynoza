@@ -63,6 +63,9 @@ def load_confounds(in_file, which_confounds, extend_motion_pars=False):
         new_names.extend([c + '_dt' for c in col_names])
         new_names.extend([c + '_dt_sq' for c in col_names])
         moco_ext = pd.DataFrame(ext_moco_pars, columns=new_names)
+        # We're going to assume that if you want to extend the motion params,
+        # you want to regress them out ...
+        which_confounds.extend(new_names)
         df = pd.concat((df, moco_ext), axis=1)
 
     subdf = pd.DataFrame(df[which_confounds])

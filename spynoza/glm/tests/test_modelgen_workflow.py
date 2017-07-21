@@ -20,6 +20,7 @@ def test_create_modelgen_workflow():
     modelgen_wf.inputs.inputspec.single_trial = False
     modelgen_wf.inputs.inputspec.sort_by_onset = False
     modelgen_wf.inputs.inputspec.exclude = None
+    modelgen_wf.inputs.inputspec.hp_filter = 100
     modelgen_wf.inputs.inputspec.confound_file = [op.join(test_data_path, 'func', 'sub-0020_task-harriri_bold_confounds.tsv'),
                                                   op.join(test_data_path, 'func', 'sub-0020_task-wm_bold_confounds.tsv')]
     modelgen_wf.inputs.inputspec.which_confounds = ['X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ']

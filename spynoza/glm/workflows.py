@@ -13,7 +13,8 @@ def create_modelgen_workflow(name='modelgen'):
                                                    'TR',
                                                    'confound_file',
                                                    'which_confounds',
-                                                   'extend_motion_pars'
+                                                   'extend_motion_pars',
+                                                   'hp_filter',
                                                    ]), name='inputspec')
 
     output_node = pe.Node(IdentityInterface(fields=['session_info']),
@@ -30,8 +31,7 @@ def create_modelgen_workflow(name='modelgen'):
                              iterfield=['subject_info', 'confound_names', 'confounds'],
                              name='combine_evs')
 
-    specify_model = pe.MapNode(SpecifyModel(input_units='secs',
-                                            high_pass_filter_cutoff=100),
+    specify_model = pe.MapNode(SpecifyModel(input_units='secs'),
                                iterfield=['subject_info', 'functional_runs'],
                                name='specify_model')
 
@@ -44,7 +44,7 @@ def create_modelgen_workflow(name='modelgen'):
     modelgen_wf.connect(input_node, 'confound_file', load_confounds, 'in_file')
     modelgen_wf.connect(input_node, 'which_confounds', load_confounds, 'which_confounds')
     modelgen_wf.connect(input_node, 'extend_motion_pars', load_confounds, 'extend_motion_pars')
-
+    modelgen_wf.connect(input_node, 'hp_filter', specify_model, 'high_pass_filter_cutoff')
     modelgen_wf.connect(events_file_to_bunch, 'subject_info', combine_evs, 'subject_info')
     modelgen_wf.connect(load_confounds, 'regressor_names', combine_evs, 'confound_names')
     modelgen_wf.connect(load_confounds, 'regressors', combine_evs, 'confounds')
