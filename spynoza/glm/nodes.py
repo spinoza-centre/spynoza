@@ -42,6 +42,9 @@ def load_confounds(in_file, which_confounds, extend_motion_pars=False):
     import numpy as np
     from nipype.interfaces.base import Bunch
 
+    if which_confounds is None:
+        return None, None
+
     if isinstance(which_confounds, str):
         which_confounds = [which_confounds]
 
@@ -81,7 +84,9 @@ Load_confounds = Function(function=load_confounds,
 
 def combine_events_and_confounds(subject_info, confound_names, confounds):
     
-    subject_info.update(regressors=confounds, regressor_names=confound_names)
+    if confound_names is not None and confounds is not None:
+        subject_info.update(regressors=confounds, regressor_names=confound_names)
+
     return subject_info
 
 
