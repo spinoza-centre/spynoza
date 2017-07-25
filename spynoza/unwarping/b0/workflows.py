@@ -91,60 +91,33 @@ def create_B0_workflow(name ='b0_unwarping', compute_echo_spacing=True):
                          name='outputspec')
 
     # Connect
+    unwarp_workflow.connect(input_node, 'in_files', out_file, 'in_file')
+    unwarp_workflow.connect(input_node, 'fieldmap_pha', norm_pha, 'in_file')
+    unwarp_workflow.connect(input_node, 'fieldmap_mag', mask_mag, 'in_file')
+    unwarp_workflow.connect(mask_mag, 'mask_file', mask_mag_dil, 'in_file')
+    unwarp_workflow.connect(input_node, 'fieldmap_mag', prelude, 'magnitude_file')
+    unwarp_workflow.connect(norm_pha, 'out_file', prelude, 'phase_file')
+    unwarp_workflow.connect(mask_mag_dil, 'out_file', prelude, 'mask_file')
+    unwarp_workflow.connect(prelude, 'unwrapped_phase_file', radials_per_second, 'in_file')
+    unwarp_workflow.connect(input_node, 'te_diff', radials_per_second, 'asym')
+    unwarp_workflow.connect(mask_mag, 'out_file', registration, 'in_file')
+    unwarp_workflow.connect(input_node, 'in_files', registration, 'reference')
+    unwarp_workflow.connect(radials_per_second, 'out_file', applyxfm, 'in_file')
+    unwarp_workflow.connect(registration, 'out_matrix_file', applyxfm, 'in_matrix_file')
+    unwarp_workflow.connect(input_node, 'in_files', applyxfm, 'reference')
     if compute_echo_spacing:
-        unwarp_workflow.connect([
-                        (input_node,              out_file, [('in_files', 'in_file')]),
-                        (input_node,              norm_pha, [('fieldmap_pha', 'in_file')]),
-                        (input_node,              mask_mag, [('fieldmap_mag', 'in_file')]),
-                        (mask_mag,                mask_mag_dil, [('mask_file', 'in_file')]),
-                        (input_node,              prelude, [('fieldmap_mag', 'magnitude_file')]),
-                        (norm_pha,                prelude, [('out_file', 'phase_file')]),
-                        (mask_mag_dil,            prelude, [('out_file', 'mask_file')]),
-                        (prelude,                 radials_per_second, [('unwrapped_phase_file', 'in_file')]),
-                        (input_node,              radials_per_second, [('te_diff', 'asym')]),
-                        (mask_mag,                registration, [('out_file', 'in_file')]),
-                        (input_node,              registration, [('in_files', 'reference')]),
-                        (radials_per_second,      applyxfm, [('out_file', 'in_file')]),
-                        (registration,            applyxfm, [('out_matrix_file', 'in_matrix_file')]),
-                        (input_node,              applyxfm, [('in_files', 'reference')]),
-                        (input_node,              echo_spacing, [('wfs', 'wfs')]),
-                        (input_node,              echo_spacing, [('epi_factor', 'epi_factor')]),
-                        (input_node,              echo_spacing, [('acceleration', 'acceleration')]),
-                        (echo_spacing,            fugue, [('echo_spacing', 'dwell_time')]),
-                        (input_node,              fugue, [('in_files', 'in_file')]),
-                        (out_file,                fugue, [('out_file', 'unwarped_file')]),
-                        (applyxfm,                fugue, [('out_file', 'fmap_in_file')]),
-                        (input_node,              fugue, [('te_diff', 'asym_se_time')]),
-                        (input_node,              fugue, [('phase_encoding_direction', 'unwarp_direction')]),
-                        (fugue,                   outputnode, [('unwarped_file', 'out_files')]),
-                        (applyxfm,                outputnode, [('out_file', 'field_coefs')])
-                        ])
+        unwarp_workflow.connect(input_node, 'wfs', echo_spacing, 'wfs')
+        unwarp_workflow.connect(input_node, 'epi_factor', echo_spacing, 'epi_factor')
+        unwarp_workflow.connect(input_node, 'acceleration', echo_spacing, 'acceleration')
+        unwarp_workflow.connect(echo_spacing, 'echo_spacing', fugue, 'dwell_time')
     else:
-
-        # Connect
-        unwarp_workflow.connect([
-                        (input_node,              out_file, [('in_files', 'in_file')]),
-                        (input_node,              norm_pha, [('fieldmap_pha', 'in_file')]),
-                        (input_node,              mask_mag, [('fieldmap_mag', 'in_file')]),
-                        (mask_mag,                mask_mag_dil, [('mask_file', 'in_file')]),
-                        (input_node,              prelude, [('fieldmap_mag', 'magnitude_file')]),
-                        (norm_pha,                prelude, [('out_file', 'phase_file')]),
-                        (mask_mag_dil,            prelude, [('out_file', 'mask_file')]),
-                        (prelude,                 radials_per_second, [('unwrapped_phase_file', 'in_file')]),
-                        (input_node,              radials_per_second, [('te_diff', 'asym')]),
-                        (mask_mag,                registration, [('out_file', 'in_file')]),
-                        (input_node,              registration, [('in_files', 'reference')]),
-                        (radials_per_second,      applyxfm, [('out_file', 'in_file')]),
-                        (registration,            applyxfm, [('out_matrix_file', 'in_matrix_file')]),
-                        (input_node,              applyxfm, [('in_files', 'reference')]),
-                        (input_node,              fugue, [('echo_spacing', 'dwell_time')]),
-                        (input_node,              fugue, [('in_files', 'in_file')]),
-                        (out_file,                fugue, [('out_file', 'unwarped_file')]),
-                        (applyxfm,                fugue, [('out_file', 'fmap_in_file')]),
-                        (input_node,              fugue, [('te_diff', 'asym_se_time')]),
-                        (input_node,              fugue, [('phase_encoding_direction', 'unwarp_direction')]),
-                        (fugue,                   outputnode, [('unwarped_file', 'out_files')]),
-                        (applyxfm,                outputnode, [('out_file', 'field_coefs')])
-                        ])
-
+        unwarp_workflow.connect(input_node, 'echo_spacing', fugue, 'dwell_time')
+    unwarp_workflow.connect(input_node, 'in_files', fugue, 'in_file')
+    unwarp_workflow.connect(out_file, 'out_file', fugue, 'unwarped_file')
+    unwarp_workflow.connect(applyxfm, 'out_file', fugue, 'fmap_in_file')
+    unwarp_workflow.connect(input_node, 'te_diff', fugue, 'asym_se_time')
+    unwarp_workflow.connect(input_node, 'phase_encoding_direction', fugue, 'unwarp_direction')
+    unwarp_workflow.connect(fugue, 'unwarped_file', outputnode, 'out_files')
+    unwarp_workflow.connect(applyxfm, 'out_file', outputnode, 'field_coefs')
+    
     return unwarp_workflow
