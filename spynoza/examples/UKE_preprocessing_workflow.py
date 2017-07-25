@@ -56,8 +56,7 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
                     'EchoTime',                     # extra
                     'bd_design_matrix_file',        # extra
                     ]), name='inputspec')
-
-    print analysis_params
+    
     for param in analysis_params:
          exec('input_node.inputs.{} = analysis_params[param]'.format(param))
 
@@ -101,7 +100,7 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
 
     # the actual top-level workflow
     preprocessing_workflow = pe.Workflow(name=name)
-    preprocessing_workflow.base_dir = op.join(analysis_params['output_directory'], 'temp/')
+    preprocessing_workflow.base_dir = op.join(analysis_params['base_dir'], 'temp/')
 
     # data source
     preprocessing_workflow.connect(input_node, 'raw_data_dir', datasource, 'base_directory')
@@ -132,7 +131,7 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
         # set slope/intercept to unity for B0 map
         preprocessing_workflow.connect(reorient_B0_magnitude, 'out_file', int_slope_B0_magnitude, 'in_file')
         preprocessing_workflow.connect(reorient_B0_phasediff, 'out_file', int_slope_B0_phasediff, 'in_file')
-
+        
         #B0 field correction:
         if 'EchoSpacing' in analysis_params:
             B0_wf = create_B0_workflow(name='B0', compute_echo_spacing=False)
@@ -149,7 +148,7 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
         preprocessing_workflow.connect(input_node, 'PhaseEncodingDirection', B0_wf, 'inputspec.phase_encoding_direction')
         preprocessing_workflow.connect(B0_wf, 'outputspec.field_coefs', datasink, 'B0.fieldcoef')
         preprocessing_workflow.connect(B0_wf, 'outputspec.out_files', datasink, 'B0')
-
+        
     # motion correction
     motion_proc = create_motion_correction_workflow('moco', method=analysis_params['moco_method'])
     if analysis_params['B0_or_topup'] == 'B0':
@@ -159,7 +158,7 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
     preprocessing_workflow.connect(input_node, 'RepetitionTime', motion_proc, 'inputspec.tr')
     preprocessing_workflow.connect(input_node, 'output_directory', motion_proc, 'inputspec.output_directory')
     preprocessing_workflow.connect(input_node, 'which_file_is_EPI_space', motion_proc, 'inputspec.which_file_is_EPI_space')
-
+    
     # registration
     reg = create_registration_workflow(analysis_params, name='reg')
     preprocessing_workflow.connect(input_node, 'output_directory', reg, 'inputspec.output_directory')
@@ -167,13 +166,13 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
     preprocessing_workflow.connect(input_node, 'sub_FS_id', reg, 'inputspec.freesurfer_subject_ID')
     preprocessing_workflow.connect(input_node, 'FS_subject_dir', reg, 'inputspec.freesurfer_subject_dir')
     preprocessing_workflow.connect(input_node, 'standard_file', reg, 'inputspec.standard_file')
-
+    
     # temporal filtering
     preprocessing_workflow.connect(input_node, 'sg_filter_window_length', sgfilter, 'window_length')
     preprocessing_workflow.connect(input_node, 'sg_filter_order', sgfilter, 'polyorder')
     preprocessing_workflow.connect(motion_proc, 'outputspec.motion_corrected_files', sgfilter, 'in_file')
     preprocessing_workflow.connect(sgfilter, 'out_file', datasink, 'tf')
-
+    
     # node for percent signal change
     preprocessing_workflow.connect(input_node, 'psc_func', psc, 'func')
     preprocessing_workflow.connect(sgfilter, 'out_file', psc, 'in_file')
