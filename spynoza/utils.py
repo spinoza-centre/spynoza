@@ -73,7 +73,7 @@ def set_parameters_in_nodes(workflow, **kwargs):
 
         # Loop over options {parameter: value pairs} of node-instance
         for param, val in options.items():
-            
+
             if not isinstance(val, tuple):
                 # Assume iterable=False
                 val = (val, False)
@@ -83,11 +83,10 @@ def set_parameters_in_nodes(workflow, **kwargs):
             else:
                 # Correct setting!
                 pass
-
+            
             available_params = list(node_inst.inputs.__dict__.keys())
 
             if param in available_params:
-                
                 if val[1]:
                     # Set iterable (but make a list is no iterables yet)
                     if node_inst.iterables is None:
@@ -95,7 +94,7 @@ def set_parameters_in_nodes(workflow, **kwargs):
                     node_inst.iterables.append((param, val[0]))
                 else:
                     # Set input directly (no iterable)
-                    node_inst.set_input(param, val)
+                    node_inst.set_input(param, val[0])
             else:
                 msg = ("You want to set the parameter '%s' in node '%s' but "
                        "this parameter doesn't exist in this node. Known "
