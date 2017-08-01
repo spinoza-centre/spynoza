@@ -7,7 +7,7 @@ def events_file_to_bunch(in_file, single_trial=False, sort_by_onset=False,
     from nipype.interfaces.base import Bunch
 
     events = pd.read_csv(in_file, sep=str('\t'))
-    
+
     if exclude is not None:  # not tested
         events.drop(exclude, axis=1, inplace=True)
 
@@ -83,7 +83,7 @@ Load_confounds = Function(function=load_confounds,
 
 
 def combine_events_and_confounds(subject_info, confound_names, confounds):
-    
+
     if confound_names is not None and confounds is not None:
         subject_info.update(regressors=confounds, regressor_names=confound_names)
 

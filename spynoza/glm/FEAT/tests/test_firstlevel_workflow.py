@@ -31,9 +31,7 @@ def test_create_firstlevel_workflow_FEAT(extend_motion_pars):
     firstlevel_wf.inputs.inputspec.extend_motion_pars = extend_motion_pars
     firstlevel_wf.inputs.inputspec.hp_filter = 100
     firstlevel_wf.inputs.inputspec.hrf_base = {'dgamma': {'derivs': True}}
-    firstlevel_wf.inputs.inputspec.output_directory = '/tmp/spynoza/firstlevelfeat'
 
-    firstlevel_wf.inputs.inputspec.sub_id = 'sub-0020'
     firstlevel_wf.inputs.inputspec.model_serial_correlations = False
     contrast_harriri = ('Emotion>Control', 'T', ['emotion', 'control'], [1., -1.])
     contrast_wm = ('Active>Passive', 'T', ['active', 'passive'], [1., -1.])

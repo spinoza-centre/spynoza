@@ -1,6 +1,5 @@
 from nipype.interfaces.utility import IdentityInterface
 import nipype.pipeline as pe
-from nipype.interfaces.io import DataSink
 from nipype.interfaces.utility import Rename
 from nipype.interfaces.fsl.model import Level1Design, FEAT
 from ..workflows import create_modelgen_workflow
@@ -22,16 +21,11 @@ def create_firstlevel_workflow_FEAT(name='level1feat'):
                                                    'model_serial_correlations',
                                                    'hrf_base',
                                                    'hp_filter',
-                                                   'contrasts',
-                                                   'output_directory',
-                                                   'sub_id']), name='inputspec')
+                                                   'contrasts'
+                                                   ]), name='inputspec')
 
     output_node = pe.Node(IdentityInterface(fields=['fsf_file', 'ev_file', 'feat_dir']),
                           name='outputspec')
-
-    datasink = pe.Node(interface=DataSink(), name='datasink')
-    datasink.inputs.parameterization = False
-
 
     level1_design = pe.MapNode(interface=Level1Design(bases={'dgamma': {'derivs': True}},
                                                       interscan_interval=2.0,
@@ -45,11 +39,9 @@ def create_firstlevel_workflow_FEAT(name='level1feat'):
                                  name='rename_feat_dir')
 
     firstlevel_wf = pe.Workflow(name=name)
-    firstlevel_wf.connect(input_node, 'output_directory', datasink, 'base_directory')
-    firstlevel_wf.connect(input_node, 'sub_id', datasink, 'container')
 
     modelgen_wf = create_modelgen_workflow()
-    
+
     firstlevel_wf.connect(input_node, 'events_file', modelgen_wf, 'inputspec.events_file')
     firstlevel_wf.connect(input_node, 'func_file', modelgen_wf, 'inputspec.func_file')
     firstlevel_wf.connect(input_node, 'TR', modelgen_wf, 'inputspec.TR')
@@ -65,18 +57,15 @@ def create_firstlevel_workflow_FEAT(name='level1feat'):
     firstlevel_wf.connect(input_node, 'model_serial_correlations', level1_design, 'model_serial_correlations')
     firstlevel_wf.connect(input_node, 'hrf_base', level1_design, 'bases')
     firstlevel_wf.connect(input_node, 'contrasts', level1_design, 'contrasts')
-    
+
     firstlevel_wf.connect(modelgen_wf, 'outputspec.session_info', level1_design, 'session_info')
     firstlevel_wf.connect(level1_design, 'fsf_files', feat, 'fsf_file')
     firstlevel_wf.connect(level1_design, 'fsf_files', output_node, 'fsf_file')
     firstlevel_wf.connect(level1_design, 'ev_files', output_node, 'ev_file')
-    firstlevel_wf.connect(level1_design, 'fsf_files', datasink, 'fsf_file')
-    firstlevel_wf.connect(level1_design, 'ev_files', datasink, 'ev_file')
 
     firstlevel_wf.connect(input_node, 'func_file', extract_task, 'in_file')
     firstlevel_wf.connect(extract_task, 'task_name', rename_feat_dir, 'task')
     firstlevel_wf.connect(feat, 'feat_dir', rename_feat_dir, 'feat_dir')
     firstlevel_wf.connect(rename_feat_dir, 'feat_dir', output_node, 'feat_dir')
-    firstlevel_wf.connect(rename_feat_dir, 'feat_dir', datasink, 'firstlevelfeat')
 
     return firstlevel_wf

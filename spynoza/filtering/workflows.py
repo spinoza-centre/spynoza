@@ -1,7 +1,6 @@
 from nipype.workflows.fmri.fsl.preprocess import create_susan_smooth
 import nipype.pipeline as pe
 import nipype.interfaces.fsl as fsl
-from nipype.interfaces.io import DataSink
 from nipype.interfaces.utility import IdentityInterface, Merge, Select
 
 """
@@ -41,28 +40,18 @@ def getusans(x):
 tolist = lambda x: [x]
 
 
-def create_extended_susan_workflow(name='extended_susan', already_binary_mask=False, separate_masks=True,
-                                   datasink_parameterization=False):
+def create_extended_susan_workflow(name='extended_susan', already_binary_mask=False, separate_masks=True):
 
     input_node = pe.Node(IdentityInterface(fields=['in_file',
                                                    'fwhm',
                                                    'EPI_mean',
-                                                   'output_directory',
-                                                   'sub_id']), name='inputspec')
+                                                  ]), name='inputspec')
 
     output_node = pe.Node(interface=IdentityInterface(fields=['smoothed_files',
                                                               'mask',
                                                               'mean']), name='outputspec')
 
-    datasink = pe.Node(DataSink(), name='sinker')
-    datasink.inputs.parameterization = datasink_parameterization
-
-    # first link the workflow's output_directory into the datasink.
-
     esw = pe.Workflow(name=name)
-
-    esw.connect(input_node, 'output_directory', datasink, 'base_directory')
-    esw.connect(input_node, 'sub_id', datasink, 'container')
 
     if separate_masks:
         maskfunc = pe.MapNode(interface=fsl.ImageMaths(suffix='_bet',
@@ -74,9 +63,9 @@ def create_extended_susan_workflow(name='extended_susan', already_binary_mask=Fa
                                                        op_string='-mas'),
                               iterfield=['in_file'],
                               name='maskfunc')
-    
+
     esw.connect(input_node, 'in_file', maskfunc, 'in_file')
-        
+
     # Make masks if necessary
     if not already_binary_mask:
 
@@ -224,7 +213,4 @@ def create_extended_susan_workflow(name='extended_susan', already_binary_mask=Fa
     esw.connect(meanscale, ('out_file', pickfirst), meanfunc3, 'in_file')
     esw.connect(meanfunc3, 'out_file', output_node, 'mean')
 
-    # Datasink
-    esw.connect(meanscale, 'out_file', datasink, 'filtering')
-    esw.connect(selectnode, 'out', datasink, 'filtering.@smoothed')
     return esw

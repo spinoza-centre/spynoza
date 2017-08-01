@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import pytest
 import os.path as op
+import shutil
 from ..workflows import create_extended_susan_workflow
 from ... import test_data_path
 
@@ -12,7 +13,7 @@ def setup():
     print('Setup ...')
     yield None
     print('teardown ...')
-    #shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'moco'))
+    shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'moco'))
 
 
 @pytest.mark.filtering
@@ -21,9 +22,6 @@ def test_create_extended_susan_workflow(already_binary_mask=False, separate_mask
     smooth_wf.base_dir = '/tmp/spynoza/workingdir'
     smooth_wf.inputs.inputspec.in_file = [op.join(test_data_path, 'func', 'sub-0020_task-harriri_bold_cut.nii.gz'),
                                           op.join(test_data_path, 'func', 'sub-0020_task-wm_bold_cut.nii.gz')]
-    smooth_wf.inputs.inputspec.EPI_mean = op.join(test_data_path, 'func',
-                                                           'sub-0020_task-harriri_meanbold.nii.gz')
-    smooth_wf.inputs.inputspec.output_directory = '/tmp/spynoza'
-    smooth_wf.inputs.inputspec.sub_id = 'sub-0020'
+    smooth_wf.inputs.inputspec.EPI_mean = op.join(test_data_path, 'func', 'sub-0020_task-harriri_meanbold.nii.gz')
     smooth_wf.inputs.inputspec.fwhm = 5
     smooth_wf.run()

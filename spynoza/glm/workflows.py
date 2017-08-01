@@ -55,5 +55,3 @@ def create_modelgen_workflow(name='modelgen'):
     modelgen_wf.connect(specify_model, 'session_info', output_node, 'session_info')
 
     return modelgen_wf
-
-
