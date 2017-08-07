@@ -22,7 +22,7 @@ def FS_label_list_glob(freesurfer_subject_ID, freesurfer_subject_dir,
     return label_list
 
 
-FS_label_list_node = Function(input_names=('freesurfer_subject_ID',
+FS_LabelNode = Function(input_names=('freesurfer_subject_ID',
                                            'freesurfer_subject_dir',
                                            'label_directory', 're'),
                               output_names='label_list',
