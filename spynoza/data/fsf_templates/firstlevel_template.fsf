@@ -14,7 +14,7 @@ set fmri(level) 1
 # 7 : Full first-level analysis
 # 1 : Pre-processing
 # 2 : Statistics
-set fmri(analysis) 2
+set fmri(analysis) 7
 
 # Use relative filenames
 set fmri(relative_yn) 0
@@ -263,9 +263,6 @@ set fmri(totalVoxels) 123846400
 
 # Number of lower-level copes feeding into higher-level analysis
 set fmri(ncopeinputs) 0
-
-# 4D AVW data or FEAT directory (1)
-set feat_files(1) ""
 
 # Add confound EVs text file
 set fmri(confoundevs) 0
