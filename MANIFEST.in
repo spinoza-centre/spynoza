@@ -1,1 +1,1 @@
-recursive-include data *
+recursive-include spynoza/data/fsf_templates *

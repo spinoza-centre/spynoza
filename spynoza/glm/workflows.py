@@ -4,7 +4,7 @@ from nipype.algorithms.modelgen import SpecifyModel
 from .nodes import Events_file_to_bunch, Combine_events_and_confounds, Load_confounds
 
 
-def create_modelgen_workflow(name='modelgen'):
+def create_modelgen_workflow(name='modelgen', skip_specify_model=False):
     input_node = pe.Node(IdentityInterface(fields=['events_file',
                                                    'single_trial',
                                                    'sort_by_onset',
@@ -31,10 +31,7 @@ def create_modelgen_workflow(name='modelgen'):
                              iterfield=['subject_info', 'confound_names', 'confounds'],
                              name='combine_evs')
 
-    specify_model = pe.MapNode(SpecifyModel(input_units='secs'),
-                               iterfield=['subject_info', 'functional_runs'],
-                               name='specify_model')
-
+    
     modelgen_wf = pe.Workflow(name=name)
     modelgen_wf.connect(input_node, 'events_file', events_file_to_bunch, 'in_file')
     modelgen_wf.connect(input_node, 'single_trial', events_file_to_bunch, 'single_trial')
@@ -44,14 +41,20 @@ def create_modelgen_workflow(name='modelgen'):
     modelgen_wf.connect(input_node, 'confound_file', load_confounds, 'in_file')
     modelgen_wf.connect(input_node, 'which_confounds', load_confounds, 'which_confounds')
     modelgen_wf.connect(input_node, 'extend_motion_pars', load_confounds, 'extend_motion_pars')
-    modelgen_wf.connect(input_node, 'hp_filter', specify_model, 'high_pass_filter_cutoff')
     modelgen_wf.connect(events_file_to_bunch, 'subject_info', combine_evs, 'subject_info')
     modelgen_wf.connect(load_confounds, 'regressor_names', combine_evs, 'confound_names')
     modelgen_wf.connect(load_confounds, 'regressors', combine_evs, 'confounds')
-    modelgen_wf.connect(combine_evs, 'subject_info', specify_model, 'subject_info')
     
-    modelgen_wf.connect(input_node, 'func_file', specify_model, 'functional_runs')
-    modelgen_wf.connect(input_node, 'TR', specify_model, 'time_repetition')
-    modelgen_wf.connect(specify_model, 'session_info', output_node, 'session_info')
+    if skip_specify_model:
+        modelgen_wf.connect(combine_evs, 'subject_info', output_node, 'session_info')
+    else:
+        specify_model = pe.MapNode(SpecifyModel(input_units='secs'),
+                               iterfield=['subject_info', 'functional_runs'],
+                               name='specify_model')
+        modelgen_wf.connect(input_node, 'hp_filter', specify_model, 'high_pass_filter_cutoff')
+        modelgen_wf.connect(combine_evs, 'subject_info', specify_model, 'subject_info')
+        modelgen_wf.connect(input_node, 'func_file', specify_model, 'functional_runs')
+        modelgen_wf.connect(input_node, 'TR', specify_model, 'time_repetition')
+        modelgen_wf.connect(specify_model, 'session_info', output_node, 'session_info')
 
     return modelgen_wf

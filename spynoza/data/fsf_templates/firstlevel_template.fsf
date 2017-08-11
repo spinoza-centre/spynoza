@@ -52,7 +52,7 @@ set fmri(multiple) 1
 set fmri(inputtype) 2
 
 # Carry out pre-stats processing?
-set fmri(filtering_yn) 0
+set fmri(filtering_yn) 1
 
 # Brain/background threshold, %
 set fmri(brain_thresh) 10
@@ -162,7 +162,7 @@ set fmri(nftests_real) 0
 set fmri(constcol) 0
 
 # Carry out post-stats steps?
-set fmri(poststats_yn) 0
+set fmri(poststats_yn) 1
 
 # Pre-threshold masking?
 set fmri(threshmask) ""
