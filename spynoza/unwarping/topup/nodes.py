@@ -15,7 +15,7 @@ def topup_scan_params(pe_direction='y', te=0.025, epi_factor=37):
         ['\t'.join(['%1.3f' % s for s in sp]) for sp in scan_param_array]))
 
     fn = os.path.join(tempfile.gettempdir(), 'scan_params.txt')
-    np.savetxt(fn, scan_param_array, fmt='%1.3f')
+    np.savetxt(fn, scan_param_array, fmt=str('%1.3f'))
     return fn
 
 

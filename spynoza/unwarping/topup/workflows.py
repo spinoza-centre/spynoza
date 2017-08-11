@@ -65,6 +65,10 @@ def create_topup_workflow(analysis_info, name='topup'):
     --interp=spline
     --scale=1 -v"""
 
+
+    # Using newlines led to errors on Tux07
+    topup_args = topup_args.replace('\n', ' ')
+
     topup_node = pe.MapNode(fsl.TOPUP(args=topup_args),
                             name='topup',
                             iterfield=['in_file'])
