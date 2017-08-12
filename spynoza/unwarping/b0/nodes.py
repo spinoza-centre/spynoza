@@ -11,14 +11,21 @@ Make_output_filename = Function(function=make_output_filename,
                                 output_names=['out_file'])
 
 
-def compute_echo_spacing(wfs, epi_factor, acceleration):
+def compute_echo_spacing_philips(wfs, epi_factor, acceleration):
     return ((1000.0 * wfs) / (434.215 * epi_factor) / acceleration) / 1000.0
 
 
-Compute_echo_spacing = Function(function=compute_echo_spacing,
+Compute_echo_spacing_philips = Function(function=compute_echo_spacing_philips,
                                 input_names=['wfs', 'epi_factor', 'acceleration'],
                                 output_names=['echo_spacing'])
 
+def compute_echo_spacing_siemens(echo_spacing, acceleration):
+    return echo_spacing / acceleration
+
+
+Compute_echo_spacing_siemens = Function(function=compute_echo_spacing_siemens,
+                                input_names=['echo_spacing', 'acceleration'],
+                                output_names=['echo_spacing'])
 
 def prepare_phasediff(in_file):
     import nibabel as nib

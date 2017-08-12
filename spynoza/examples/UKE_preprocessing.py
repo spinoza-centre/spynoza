@@ -28,8 +28,11 @@ def run(analysis_parameters, acquisition_parameters):
     analysis_parameters.update(acquisition_parameters)
     preprocessing_workflow = create_preprocessing_workflow(analysis_parameters,
                                                              name=analysis_parameters['task'])
-    #preprocessing_workflow.write_graph(os.path.join(analysis_parameters["base_dir"], 'graph' + analysis_parameters["task"])+'.pdf',
-    #                                                         format='pdf', graph2use='colored')
+    try:
+        preprocessing_workflow.write_graph(os.path.join(analysis_parameters["base_dir"], 'graph' + analysis_parameters["task"])+'.pdf',
+                                                            format='pdf', graph2use='colored')
+    except:
+        pass
     preprocessing_workflow.run('MultiProc', plugin_args={'n_procs': 24})
 
 parser = argparse.ArgumentParser()

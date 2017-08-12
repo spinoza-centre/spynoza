@@ -127,20 +127,18 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
 
     #B0 field correction:
     if analysis_params['B0_or_topup'] == 'B0':
-
         # set slope/intercept to unity for B0 map
         preprocessing_workflow.connect(reorient_B0_magnitude, 'out_file', int_slope_B0_magnitude, 'in_file')
         preprocessing_workflow.connect(reorient_B0_phasediff, 'out_file', int_slope_B0_phasediff, 'in_file')
-        
         #B0 field correction:
         if 'EchoSpacing' in analysis_params:
-            B0_wf = create_B0_workflow(name='B0', compute_echo_spacing=False)
+            B0_wf = create_B0_workflow(name='B0', scanner='siemens')
             preprocessing_workflow.connect(input_node, 'EchoSpacing', B0_wf, 'inputspec.echo_spacing')
         else:
-            B0_wf = create_B0_workflow(name='B0', compute_echo_spacing=True)
+            B0_wf = create_B0_workflow(name='B0', scanner='philips')
             preprocessing_workflow.connect(input_node, 'WaterFatShift', B0_wf, 'inputspec.wfs')
             preprocessing_workflow.connect(input_node, 'EpiFactor', B0_wf, 'inputspec.epi_factor')
-            preprocessing_workflow.connect(input_node, 'SenseFactor', B0_wf, 'inputspec.acceleration')
+        preprocessing_workflow.connect(input_node, 'SenseFactor', B0_wf, 'inputspec.acceleration')
         preprocessing_workflow.connect(reorient_epi, 'out_file', B0_wf, 'inputspec.in_files')
         preprocessing_workflow.connect(int_slope_B0_magnitude, 'out_file', B0_wf, 'inputspec.fieldmap_mag')
         preprocessing_workflow.connect(int_slope_B0_phasediff, 'out_file', B0_wf, 'inputspec.fieldmap_pha')
@@ -177,7 +175,7 @@ def create_preprocessing_workflow(analysis_params, name='yesno_3T'):
     preprocessing_workflow.connect(input_node, 'psc_func', psc, 'func')
     preprocessing_workflow.connect(sgfilter, 'out_file', psc, 'in_file')
     preprocessing_workflow.connect(psc, 'out_file', datasink, 'psc')
-
+    
     # # retroicor functionality
     # if analysis_params['perform_physio'] == 1:
     #     retr = create_retroicor_workflow(name = 'retroicor', order_or_timing = analysis_params['retroicor_order_or_timing'])
