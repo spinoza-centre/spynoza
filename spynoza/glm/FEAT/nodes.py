@@ -5,7 +5,7 @@ def rename_feat_dir(feat_dir, task):
     """ Renames the FEAT directory from fsl.FEAT.
 
     Mimicks nipype.utility.Rename, but Rename doesn't
-    work for directories (it seems ...), and this function
+    work for directories, and this function
     *does*.
 
     Parameters
@@ -31,12 +31,81 @@ Rename_feat_dir = Function(function=rename_feat_dir, input_names=['feat_dir', 't
                            output_names=['feat_dir'])
 
 
-def custom_level1design_feat(func_file, highres_file=None, session_info=None, output_dirname='firstlevel_hp100_smooth5_pw_stc_deriv_gbf', 
-                             contrasts='single-trial', smoothing=5, temp_deriv=True, registration='fmriprep', highpass=100,
-                             slicetiming='up', motion_correction=0, bet=True, prewhitening=1, motion_regression='no',
-                             thresholding='uncorrected', p_val=0.05, z_val=2.3, mask=None, hrf='gamma',
-                             open_feat_html=True):
-    
+def custom_level1design_feat(func_file, highres_file=None, session_info=None, output_dirname='firstlevel', 
+                             contrasts='single-trial', smoothing=0, temp_deriv=False, registration='full', highpass=100,
+                             slicetiming=None, motion_correction=None, bet=True, prewhitening=True, motion_regression=None,
+                             thresholding='uncorrected', p_val=0.05, z_val=2.3, mask=None, hrf='doublegamma',
+                             open_feat_html=False):
+    """ Custom implementation of a FSL create-level1-design function.
+
+    This function (which can be wrapped in a custom Nipype Function node) creates an FSL design.fsf
+    file. This function is similar to the Nipype Level1Design node (interfaces.fsl.model) but allows
+    for way more options to be set. 
+
+    Parameters
+    ----------
+    func_file : str
+        Path to functional file (4D) with timeseries data
+    highres_file : str
+        Path to file corresponding to high-resolution anatomical scan (should already be skull-stripped!).
+        Only necessary if doing functional-highres-standard registration (i.e. registration = 'full');
+        otherwise, set to None.
+    session_info : Nipype Bunch-object
+        Bunch-object (dict-like) with information about stimulus-related and nuisance regressors.
+    output_dirname : str
+        Name of output directory (.feat will be appended to it).
+    contrasts : str, tuple, or list
+        (List of) tuple(s) with defined contrasts. Should be formatted using the Nipype syntax:
+        `(name_of_contrast, 'T', [cond_name_1, cond_name_2], [weight_1, weight_2])` for a t-contrast,
+        or `(name_of_f_test, 'F', [contrast_1, contrast_2])` for F-tests.
+    smoothing : float or int
+        Smoothing kernel in FWHM (mm)
+    temp_deriv : bool
+        Whether to include temporal derivates of real EVs.
+    registration : str
+        Registration-scheme to apply. Currently supports three types: 'full', which registers
+        the functional file to the high-res anatomical (using FLIRT BBR) and subsequent linear-
+        non-linear registration to the MNI152 (2mm) standard brain (using FNIRT); another option
+        is 'fmriprep', which only calculates a 3-parameter (translation only) transformation because
+        output from the fmriprep-preprocessing-pipeline is already registered to MNI but is still in 
+        native dimensions (i.e. EPI-space). Last option is 'none', which doesn't do any registration.
+    highpass : int
+        Length (in seconds) of FSL highpass filter to apply.
+    slicetiming : str
+        Whether to apply slice-time correction; options are 'up' (ascending), 'down' (descending),
+        or 'no' (no slicetiming correction).
+    motion_correction : bool
+        Whether to apply motion-correction (MCFLIRT).
+    bet : bool
+        Whether to BET (skullstrip) the functional file.
+    prewhitening : bool
+        Whether to do prewhitening.
+    motion_regression : str
+        Whether to do motion-regression. Options: 'no' (no motion regression), 'yes' (standard 6 parameters motion
+        regression), 'ext' (extended 24 parameter motion regression). 
+    thresholding : str
+        What type of thresholding to apply. Options: 'none', 'uncorrected', 'voxel', 'cluster'. 
+    p_val : float
+        What p-value to use in thresholding. 
+    z_val : float  
+        What minimum z-value to use in cluster-correction
+    mask : str 
+        File to use in pre-thresholding masking. Setting to None means no masking. 
+    hrf : str
+        What HRF-model to use. Default is 'doublegamma', but other options are: 'gamma',
+        'gammabasisfunctions', 'gaussian'. 
+    open_feat_html : bool
+        Whether to automatically open HTML-progress report.
+
+    Returns
+    -------
+    design_file : str
+        The path to the created design.fsf file
+    confound_txt_file : str
+        Path to the created confounds.txt file
+    ev_files : list
+        List with paths to EV-text-files. 
+    """
     import os.path as op
     import nibabel as nib
     from nipype.interfaces.fsl import Info
@@ -88,9 +157,9 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
                                  'up': 1, 1: 1,
                                  'down': 2, 2: 2},
                     
-                    motion_correction={True: 1, 1: 1, False: 0, 0: 0},
+                    motion_correction={True: 1, 1: 1, False: 0, 0: 0, None: 0},
                     
-                    bet={True: 1, 1: 1, False: 0, 0: 0},
+                    bet={True: 1, 1: 1, False: 0, 0: 0, None: 0},
                     
                     motion_regression={'no': 0, False: 0, None: 0,
                                        'yes': 1, True: 1, 1: 1,
@@ -107,9 +176,9 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
                          'none': 0, None: 0,
                          'gaussian': 1,
                          'gamma': 2,
-                         'gammabasisfunctions': 4,
-                         'sinebasisfunctions': 5,
-                         'firbasisfunctions': 6},
+                         'gammabasisfunctions': 4}, #,
+                         #'sinebasisfunctions': 5,
+                         #'firbasisfunctions': 6},
 
                     open_feat_html={True: 1, 1: 1,
                                     False: 0, 0: 0, None: 0}
@@ -141,7 +210,7 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
 
     hdr = nib.load(func_file).header
     
-    args = {'outputdir': "\"%s\"" % op.join(op.abspath(output_dirname)),
+    args = {'outputdir': "\"%s\"" % output_dirname,
             'tr': hdr['pixdim'][4],
             'npts': hdr['dim'][4],
             'smooth': smoothing,
@@ -174,13 +243,15 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
     # 4D AVW data or FEAT directory (1)
     fsf_out.append("set feat_files(1) \"%s\"" % func_file)
 
-    # Add confound (ToDo: do nothing if there are no regressors)
-    confounds = np.array(session_info.regressors).T
     confound_txt_file = op.join(op.abspath('confounds.txt'))
+    if hasattr(session_info, 'regressors'):
+        confounds = np.array(session_info.regressors).T
+        np.savetxt(confound_txt_file, confounds, fmt=str('%.5f'), delimiter='\t')
+        fsf_out.append('set confoundev_files(1) \"%s\"' % confound_txt_file)
+    else:
+        open(confound_txt_file, 'a').close()  # for compatibility issues
+        fsf_out.append('set confoundev_files(1) \"\"')
     
-    np.savetxt(confound_txt_file, confounds, fmt=str('%.5f'), delimiter='\t')
-    fsf_out.append('set confoundev_files(1) \"%s\"' % confound_txt_file)
-
     if highres_file is not None:
 
         fsf_template.append("set highres_files(1) \"%s\"" % highres_file)
@@ -287,12 +358,12 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
                 fsf_out.append('set fmri(ftest_orig%i.%i) %i' % (i + 1, ii + 1, to_set))
                 fsf_out.append('set fmri(ftest_real%i.%i) %i' % (i + 1, ii + 1, to_set))
 
-    to_write = op.join(op.abspath('design.fsf'))
-    with open(to_write, 'w') as fsfout:
-         print("Writing fsf to %s" % to_write)
+    design_file = op.join(op.abspath('design.fsf'))
+    with open(design_file, 'w') as fsfout:
+         print("Writing fsf to %s" % design_file)
          fsfout.write("\n".join(fsf_out))
 
-    return to_write, confound_txt_file, ev_files
+    return design_file, confound_txt_file, ev_files
 
 
 Custom_Level1design_Feat = Function(input_names=['func_file', 'highres_file', 'session_info',

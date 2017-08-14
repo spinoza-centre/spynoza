@@ -42,11 +42,22 @@ def load_confounds(in_file, which_confounds, extend_motion_pars=False):
     import numpy as np
     from nipype.interfaces.base import Bunch
 
-    if which_confounds is None:
+    if not which_confounds or which_confounds is None or which_confounds == 'none':
         return None, None
 
+    options = {'moco': ['X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ'],
+               'moco+wm+gs': ['X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ', 'WhiteMatter', 'GlobalSignal'],
+               'moco+wm': ['X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ', 'WhiteMatter'],
+               'moco+gs': ['X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ', 'GlobalSignal'],
+               'moco+tcc': ['X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ', 'tCompCor00'],
+               'moco+acc': ['X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ', 'aCompCor00']}
+
     if isinstance(which_confounds, str):
-        which_confounds = [which_confounds]
+
+        if which_confounds in options.keys():
+            which_confounds = options[which_confounds]
+        else:
+            which_confounds = [which_confounds]
 
     df = pd.read_csv(in_file, sep=str('\t'))
 
