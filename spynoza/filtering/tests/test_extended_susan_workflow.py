@@ -13,7 +13,7 @@ def setup():
     print('Setup ...')
     yield None
     print('teardown ...')
-    shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'moco'))
+    #shutil.rmtree(op.join('/tmp/spynoza/workingdir', 'moco'))
 
 
 @pytest.mark.filtering

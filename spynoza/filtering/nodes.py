@@ -6,7 +6,8 @@ import nipype.pipeline as pe
 from nipype.interfaces.utility import Function
 
 
-def savgol_filter(in_file, polyorder=3, deriv=0, window_length=120, tr=None):
+def savgol_filter(in_file, polyorder=3, deriv=0, window_length=120, tr=None,
+                  out_file=None):
     """ Applies a savitsky-golay filter to a nifti-file.
 
     Fits a savitsky-golay filter to a 4D fMRI nifti-file and subtracts the
@@ -23,6 +24,8 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length=120, tr=None):
         Number of derivatives to use in filter.
     window_length : int (default: 120)
         Window length in seconds.
+    out_file : str
+        Save-path of filtered file. Default: None, saved in cwd.
 
     Returns
     -------
@@ -63,7 +66,11 @@ def savgol_filter(in_file, polyorder=3, deriv=0, window_length=120, tr=None):
     data_filt = data_filt.reshape(dims)
     img = nib.Nifti1Image(data_filt, affine=affine, header=header)
     new_name = os.path.basename(in_file).split('.')[:-2][0] + '_sg.nii.gz'
-    out_file = os.path.abspath(new_name)
+
+    if out_file is None:
+        # assume it's used in nipype workflow
+        out_file = os.path.abspath(new_name)
+
     nib.save(img, out_file)
     return out_file
 
@@ -71,7 +78,7 @@ Savgol_filter = Function(function=savgol_filter,
                          input_names=['in_file', 'polyorder', 'deriv',
                                       'window_length', 'tr'],
                          output_names=['out_file'])
-                         
+
 sgfilter = pe.MapNode(interface=Function(input_names=['in_file', 'window_length', 'polyorder'],
                                 output_names=['out_file'],
                                 function=savgol_filter),
