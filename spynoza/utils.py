@@ -1,6 +1,17 @@
 import nipype.pipeline as pe
 from nipype.interfaces.utility import Function
+from nipype.interfaces.base import Str, TraitedSpec, BaseInterface, DynamicTraitedSpec, isdefined
+from nipype.interfaces.io import add_traits
 import numpy as np
+import sys
+import os
+
+# For Py2/Py3 compatibility (allows for isinstance(val, str))
+PY3 = sys.version_info[0] == 3
+if PY3:
+    string_types = str,
+else:
+    string_types = basestring
 
 
 def set_postfix(in_file, postfix):
@@ -217,28 +228,61 @@ def dyns_min_1(dyns):
 Dyns_min_1 = Function(function=dyns_min_1, input_names=['dyns'],
                       output_names=['dyns_1'])
 
-# ToDo: make concat_iterables work for arbitrary amount of iterables
-def concat_iterables(iterables):
-    """ Concatenates iterables (starting with subject).
 
-    Parameters
-    ----------
-    iterables : list
-        List of iterables to be concatenated into a path (e.g. after using
-        nipype Merge-node).
+class ConcatenateIterablesOutputSpec(TraitedSpec):
+    out = Str(desc='Concatenated iterables string')
 
-    Returns
-    -------
-    out_name : str
-        Concatenation of iterables
+
+class ConcatenateIterables(BaseInterface):
+    """ Interface class that concatates strings.function
+
+    Mainly used to concatenate iterables to be used as container
+    in datasink-node.
     """
-    import os.path as op
-    return op.join(*iterables)
+    
+    input_spec = DynamicTraitedSpec
+    output_spec = ConcatenateIterablesOutputSpec
 
+    def __init__(self, fields=None, mandatory_inputs=True, **inputs):
+        super(ConcatenateIterables, self).__init__(**inputs)
+        
+        if fields is None or not fields:
+            raise ValueError('ConcatenateIterable fields must be a non-empty list')
+        
+        # Each input must be in the fields.
+        for in_field in inputs:
+            if in_field not in fields:
+                raise ValueError('ConcatenateIterables input is not in the fields: %s' % in_field)
+        
+        self._fields = fields
+        self._mandatory_inputs = mandatory_inputs
+        add_traits(self.inputs, fields)
+        # Adding any traits wipes out all input values set in superclass initialization,
+        # even it the trait is not in the add_traits argument. The work-around is to reset
+        # the values after adding the traits.
+        self.inputs.trait_set(**inputs)
 
-Concat_iterables = Function(function=concat_iterables,
-                            input_names=['iterables'],
-                            output_names=['concatenated_path'])
+    def _run_interface(self, runtime):
+        return runtime
+
+    def _list_outputs(self):
+        # manual mandatory inputs check
+        values = []
+        if self._fields and self._mandatory_inputs:
+            for key in self._fields:
+                value = getattr(self.inputs, key)
+                if not isdefined(value):
+                    msg = ("%s requires a value for input '%s' because it was listed in 'fields'. "
+                           "You can turn off mandatory inputs checking by passing mandatory_inputs "
+                           " = False to the constructor." % (self.__class__.__name__, key))
+                    raise ValueError(msg)
+                else:
+                    if isinstance(value, (tuple, list, set)):
+                        value = ''.join(value)
+                    values.append('%s-%s' % (str(key), str(value)))
+
+        outputs = dict(out=os.sep.join(values))
+        return outputs
 
 
 def pickfirst(files):
