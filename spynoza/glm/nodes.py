@@ -16,7 +16,12 @@ def events_file_to_bunch(in_file, single_trial=False, sort_by_onset=False,
         if sort_by_onset:
             events = events.sort_values(by='onset')
 
-        conditions = [[e] for e in events['trial_type'].tolist()] 
+        conditions = []
+        for event_type in events['trial_type'].unique():
+
+            for i, cond in enumerate(events['trial_type'][events['trial_type'] == event_type]):
+                conditions.append('%s_%i' % (cond, i + 1))
+ 
         onsets = [[e] for e in events['onset'].tolist()]
         durations = [[e] for e in events['duration'].tolist()]
         amplitudes = [[e] for e in events['weight'].tolist()]

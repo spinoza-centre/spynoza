@@ -129,14 +129,22 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
 
     n_orig_evs = len(session_info.conditions)
     if contrasts == 'single-trial':
-        n_con = len(session_info.conditions)
-        n_ftest = 1
-    else:
-        t_contrasts = [con for con in contrasts if con[1] == 'T']
-        f_contrasts = [con for con in contrasts if con[1] == 'F']
-        n_con = len(t_contrasts)
-        n_ftest = len(f_contrasts)
 
+        cons = []
+        for i in range(n_orig_evs):
+            con_values = np.zeros(len(session_info.conditions))
+            con_values[i] = 1
+            this_con = (session_info.conditions[i], 'T', session_info.conditions, con_values)
+            cons.append(this_con)
+        f_con = ('f_all', 'F', cons)
+        cons.append(f_con)
+        contrasts = cons
+
+    t_contrasts = [con for con in contrasts if con[1] == 'T']
+    print(t_contrasts)
+    f_contrasts = [con for con in contrasts if con[1] == 'F']
+    n_con = len(t_contrasts)
+    n_ftest = len(f_contrasts)
     n_real_evs = n_orig_evs
 
     if temp_deriv:
@@ -299,38 +307,7 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
         for x in range(n_orig_evs + 1):
             fsf_out.append('set fmri(ortho%i.%i) 0' % ((i + 1), x))
 
-    if contrasts == 'single-trial':
-    
-        for i in range(n_orig_evs):
-            fsf_out.append('set fmri(conpic_real.%i) 1' % (i + 1))
-            fsf_out.append('set fmri(conname_real.%i) \"%s\"' % ((i + 1),
-                                                                 session_info.conditions[i]))
-            fsf_out.append('set fmri(conpic_orig.%i) 1' % (i + 1))
-            fsf_out.append('set fmri(conname_orig.%i) \"%s\"' % ((i + 1),
-                                                                 session_info.conditions[i]))
-            for x in range(n_orig_evs):
-                to_set = "1" if (x + 1) == (i + 1) else "0"
-
-                fsf_out.append('set fmri(con_orig%i.%i) %s' % ((i + 1), (x + 1), to_set))
-
-            for x in range(n_real_evs):
-                to_set = "1" if x == i else "0"
-                fsf_out.append('set fmri(con_real%i.%i) %s' % ((i + 1), (x + 1), to_set))
-
-            fsf_out.append('set fmri(ftest_real1.%i) 1' % (i + 1))
-            fsf_out.append('set fmri(ftest_orig1.%i) 1' % (i + 1))
-
-        for x in range(n_orig_evs):
-
-            for y in range(n_orig_evs):
-
-                if (x + 1) == (y + 1):
-                    continue
-
-                fsf_out.append('set fmri(conmask%i_%i) 0' % ((x + 1),
-                                                             (y + 1)))
-    
-    elif contrasts and contrasts is not None:
+    if contrasts and contrasts is not None:
 
         for i, contrast in enumerate(t_contrasts):
             cname, ctype, ccond, cweights = contrast
