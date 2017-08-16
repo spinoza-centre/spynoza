@@ -11,16 +11,18 @@ def events_file_to_bunch(in_file, single_trial=False, sort_by_onset=False,
     if exclude is not None:  # not tested
         events.drop(exclude, axis=1, inplace=True)
 
-    if single_trial:
+    if sort_by_onset:
+        events = events.sort_values(by='onset')
 
-        if sort_by_onset:
-            events = events.sort_values(by='onset')
+    if single_trial:
+        n_trials = len(events)
+
 
         conditions = []
         for event_type in events['trial_type'].unique():
 
             for i, cond in enumerate(events['trial_type'][events['trial_type'] == event_type]):
-                conditions.append('%s_%i' % (cond, i + 1))
+                conditions.append('%s_%s' % (cond, (len(str(n_trials)) - len(str(i + 1))) * '0' + str(i + 1)))
  
         onsets = [[e] for e in events['onset'].tolist()]
         durations = [[e] for e in events['duration'].tolist()]
