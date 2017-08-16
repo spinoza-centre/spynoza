@@ -2,8 +2,8 @@ import nipype.pipeline as pe
 from nipype.interfaces.utility import IdentityInterface
 import nipype.interfaces.fsl.preprocess as fsl
 from .nodes import (Prepare_phasediff, Radials_per_second, Dilate_mask,
-                    Compute_echo_spacing_philips, Compute_echo_spacing_siemens, 
-                    Make_output_filename)
+                    Compute_echo_spacing_philips, Compute_echo_spacing_siemens,
+                    TE_diff_ms, Make_output_filename)
 from nipype.interfaces.fsl import PrepareFieldmap
 
 def create_B0_workflow(name ='b0_unwarping', scanner='philips'):
@@ -34,10 +34,10 @@ def create_B0_workflow(name ='b0_unwarping', scanner='philips'):
     Outputs::
         outputnode.epi_corrected
     """
-    
+
     # Nodes:
     # ------
-    
+
     # Define input and workflow:
     input_node = pe.Node(name='inputspec',
                          interface=IdentityInterface(fields=['in_files',
@@ -49,7 +49,7 @@ def create_B0_workflow(name ='b0_unwarping', scanner='philips'):
                                                              'echo_spacing',
                                                              'te_diff',
                                                              'phase_encoding_direction']))
-    
+
     # Normalize phase difference of the fieldmap phase to be [-pi, pi)
     norm_pha = pe.Node(interface=Prepare_phasediff, name='normalize_phasediff')
 
@@ -62,10 +62,10 @@ def create_B0_workflow(name ='b0_unwarping', scanner='philips'):
 
     # Convert unwrapped fieldmap phase to radials per second:
     radials_per_second = pe.Node(interface=Radials_per_second, name='radials_ps')
-    
+
     # in case of SIEMENS scanner:
-    prepare_fieldmap = PrepareFieldmap()
-    
+    prepare_fieldmap = pe.Node(PrepareFieldmap(), name='prepare_fieldmap')
+
     # Register unwrapped fieldmap (rad/s) to epi, using the magnitude of the fieldmap
     registration = pe.MapNode(fsl.FLIRT(bins=256, cost='corratio', dof=6,
                                         interp='trilinear',
@@ -83,7 +83,8 @@ def create_B0_workflow(name ='b0_unwarping', scanner='philips'):
     # compute effective echospacing:
     echo_spacing_philips = pe.Node(interface=Compute_echo_spacing_philips, name='echo_spacing_philips')
     echo_spacing_siemens = pe.Node(interface=Compute_echo_spacing_siemens, name='echo_spacing_siemens')
-    
+    te_diff_in_ms = pe.Node(interface=TE_diff_ms, name='te_diff_in_ms')
+
     # Unwarp with FSL Fugue
     fugue = pe.MapNode(interface=fsl.FUGUE(median_2dfilter=True),
                        iterfield=['in_file', 'unwarped_file', 'fmap_in_file'],
@@ -97,21 +98,21 @@ def create_B0_workflow(name ='b0_unwarping', scanner='philips'):
     # Define output node
     outputnode = pe.Node(IdentityInterface(fields=['out_files', 'field_coefs']),
                          name='outputspec')
-    
+
     # Workflow:
     # ---------
-    
+
     unwarp_workflow = pe.Workflow(name=name)
     unwarp_workflow.connect(input_node, 'in_files', out_file, 'in_file')
-    
+
     # registration:
     unwarp_workflow.connect(input_node, 'fieldmap_mag', mask_mag, 'in_file')
     unwarp_workflow.connect(mask_mag, 'mask_file', mask_mag_dil, 'in_file')
     unwarp_workflow.connect(mask_mag, 'out_file', registration, 'in_file')
     unwarp_workflow.connect(input_node, 'in_files', registration, 'reference')
-    
+
     if scanner == 'philips':
-        
+
         # prepare fieldmap:
         unwarp_workflow.connect(input_node, 'fieldmap_pha', norm_pha, 'in_file')
         unwarp_workflow.connect(input_node, 'fieldmap_mag', prelude, 'magnitude_file')
@@ -119,35 +120,37 @@ def create_B0_workflow(name ='b0_unwarping', scanner='philips'):
         unwarp_workflow.connect(mask_mag_dil, 'out_file', prelude, 'mask_file')
         unwarp_workflow.connect(prelude, 'unwrapped_phase_file', radials_per_second, 'in_file')
         unwarp_workflow.connect(input_node, 'te_diff', radials_per_second, 'asym')
-        
+
         # transform fieldmap:
         unwarp_workflow.connect(radials_per_second, 'out_file', applyxfm, 'in_file')
         unwarp_workflow.connect(registration, 'out_matrix_file', applyxfm, 'in_matrix_file')
         unwarp_workflow.connect(input_node, 'in_files', applyxfm, 'reference')
-    
+
         # compute echo spacing:
         unwarp_workflow.connect(input_node, 'wfs', echo_spacing_philips, 'wfs')
         unwarp_workflow.connect(input_node, 'epi_factor', echo_spacing_philips, 'epi_factor')
         unwarp_workflow.connect(input_node, 'acceleration', echo_spacing_philips, 'acceleration')
         unwarp_workflow.connect(echo_spacing_philips, 'echo_spacing', fugue, 'dwell_time')
-        
+
     elif scanner == 'siemens':
-        
+
+        unwarp_workflow.connect(input_node, 'te_diff', te_diff_in_ms, 'te_diff')
+
         # prepare fieldmap:
         unwarp_workflow.connect(mask_mag, 'out_file', prepare_fieldmap, 'in_magnitude')
         unwarp_workflow.connect(input_node, 'fieldmap_pha', prepare_fieldmap, 'in_phase')
-        unwarp_workflow.connect(input_node, 'te_diff', prepare_fieldmap, 'delta_TE')
-        
+        unwarp_workflow.connect(te_diff_in_ms, 'te_diff', prepare_fieldmap, 'delta_TE')
+
         # transform fieldmap:
         unwarp_workflow.connect(prepare_fieldmap, 'out_fieldmap', applyxfm, 'in_file')
         unwarp_workflow.connect(registration, 'out_matrix_file', applyxfm, 'in_matrix_file')
         unwarp_workflow.connect(input_node, 'in_files', applyxfm, 'reference')
-         
+
         # compute echo spacing:
         unwarp_workflow.connect(input_node, 'acceleration', echo_spacing_siemens, 'acceleration')
         unwarp_workflow.connect(input_node, 'echo_spacing', echo_spacing_siemens, 'echo_spacing')
         unwarp_workflow.connect(echo_spacing_siemens, 'echo_spacing', fugue, 'dwell_time')
-        
+
     unwarp_workflow.connect(input_node, 'in_files', fugue, 'in_file')
     unwarp_workflow.connect(out_file, 'out_file', fugue, 'unwarped_file')
     unwarp_workflow.connect(applyxfm, 'out_file', fugue, 'fmap_in_file')
@@ -155,7 +158,7 @@ def create_B0_workflow(name ='b0_unwarping', scanner='philips'):
     unwarp_workflow.connect(input_node, 'phase_encoding_direction', fugue, 'unwarp_direction')
     unwarp_workflow.connect(fugue, 'unwarped_file', outputnode, 'out_files')
     unwarp_workflow.connect(applyxfm, 'out_file', outputnode, 'field_coefs')
-    
+
     # # Connect
     # unwarp_workflow.connect(input_node, 'in_files', out_file, 'in_file')
     # unwarp_workflow.connect(input_node, 'fieldmap_pha', norm_pha, 'in_file')
@@ -185,5 +188,5 @@ def create_B0_workflow(name ='b0_unwarping', scanner='philips'):
     # unwarp_workflow.connect(input_node, 'phase_encoding_direction', fugue, 'unwarp_direction')
     # unwarp_workflow.connect(fugue, 'unwarped_file', outputnode, 'out_files')
     # unwarp_workflow.connect(applyxfm, 'out_file', outputnode, 'field_coefs')
-    
+
     return unwarp_workflow
