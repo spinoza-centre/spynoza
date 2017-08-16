@@ -141,7 +141,6 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
         contrasts = cons
 
     t_contrasts = [con for con in contrasts if con[1] == 'T']
-    print(t_contrasts)
     f_contrasts = [con for con in contrasts if con[1] == 'F']
     n_con = len(t_contrasts)
     n_ftest = len(f_contrasts)
