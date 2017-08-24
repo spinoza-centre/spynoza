@@ -1,6 +1,10 @@
 import nipype.pipeline as pe
 from nipype.interfaces.utility import Function
 import numpy as np
+from nipype.interfaces.base import traits, File, BaseInterface, BaseInterfaceInputSpec, TraitedSpec
+from nilearn.masking import compute_epi_mask
+import os
+
 
 
 def set_postfix(in_file, postfix):
@@ -391,3 +395,63 @@ def split_4D_to_3D(in_file):
 
 Split_4D_to_3D = Function(function=split_4D_to_3D, input_names=['in_file'],
                           output_names=['out_files'])
+
+
+
+class CopyHeaderInputSpec(BaseInterfaceInputSpec):
+    in_file = File(exists=True, mandatory=True, desc='the file we get the data from')
+    hdr_file = File(exists=True, mandatory=True, desc='the file we get the header from')
+
+
+class CopyHeaderOutputSpec(TraitedSpec):
+    out_file = File(exists=True, desc='written file path')
+
+
+class CopyHeader(BaseInterface):
+    """
+    Copy a header from the `hdr_file` to `out_file` with data drawn from
+    `in_file`.
+    """
+    input_spec = CopyHeaderInputSpec
+    output_spec = CopyHeaderOutputSpec
+
+    def _run_interface(self, runtime):
+        in_img = nb.load(self.inputs.hdr_file)
+        out_img = nb.load(self.inputs.in_file)
+        new_img = out_img.__class__(out_img.get_data(), in_img.affine, in_img.header)
+        new_img.set_data_dtype(out_img.get_data_dtype())
+
+        out_name = fname_presuffix(self.inputs.in_file,
+                                   suffix='_fixhdr', newpath='.')
+        new_img.to_filename(out_name)
+        self._results['out_file'] = out_name
+        return runtime
+
+
+class ComputeEPIMaskInputSpec(BaseInterfaceInputSpec):
+    in_file = File(exists=True, desc="3D or 4D EPI file")
+    lower_cutoff = traits.Float(0.2, desc='lower cutoff', usedefault=True)
+    upper_cutoff = traits.Float(0.85, desc='upper cutoff', usedefault=True)
+
+
+class ComputeEPIMaskOutputSpec(TraitedSpec):
+    mask_file = File(exists=True, desc="Binary brain mask")
+
+
+class ComputeEPIMask(BaseInterface):
+    input_spec = ComputeEPIMaskInputSpec
+    output_spec = ComputeEPIMaskOutputSpec
+
+    def _run_interface(self, runtime):
+        mask_nii = compute_epi_mask(self.inputs.in_file, lower_cutoff=self.inputs.lower_cutoff, upper_cutoff=self.inputs.upper_cutoff)
+        mask_nii.to_filename("mask_file.nii.gz")
+
+        self._mask_file = os.path.abspath("mask_file.nii.gz")
+
+        runtime.returncode = 0
+        return runtime
+
+    def _list_outputs(self):
+        outputs = self._outputs().get()
+        outputs['mask_file'] = self._mask_file
+        return outputs
