@@ -1,4 +1,6 @@
-from nodes import TopupScanParameters, BIDSDataGrabber, ComputeEPIMask, CopyHeader
+from .nodes import TopupScanParameters
+from ...io import BIDSGrabber
+from ...utils import ComputeEPIMask, CopyHeader
 
 import nipype.pipeline as pe
 from nipype.interfaces import fsl
@@ -7,7 +9,7 @@ import nipype.interfaces.io as nio
 
 from nipype.interfaces import ants
 
-def create_bids_topup_workflow(mode='concatenate',
+def create_bids_topup_workflow(mode='average',
                                name='bids_topup_workflow', 
                                base_dir='/home/neuro/workflow_folders'):
 
@@ -59,8 +61,8 @@ def create_bids_topup_workflow(mode='concatenate',
                           mean_vol=True), name='mc_bold')
 
         meaner_bold = pe.Node(fsl.MeanImage(), name='meaner_bold')
-        workflow.connect(applymask_bold, 'out_file', mc_bold, 'in_file') 
-        workflow.connect(mc_bold, 'out_file', meaner_bold, 'in_file') 
+        workflow.connect(applymask_bold, 'out_file', mc_bold, 'in_file')
+        workflow.connect(mc_bold, 'out_file', meaner_bold, 'in_file')
 
         mc_fieldmap = pe.Node(fsl.MCFLIRT(cost='normcorr',
                           interpolation='sinc',
@@ -70,7 +72,7 @@ def create_bids_topup_workflow(mode='concatenate',
         workflow.connect(applymask_fieldmap, 'out_file', mc_fieldmap, 'in_file')
 
         meaner_fieldmap = pe.Node(fsl.MeanImage(), name='meaner_fieldmap')
-        workflow.connect(mc_fieldmap, 'out_file', meaner_fieldmap, 'in_file') 
+        workflow.connect(mc_fieldmap, 'out_file', meaner_fieldmap, 'in_file')
 
         workflow.connect(meaner_bold, 'out_file', merge_list, 'in1')
         workflow.connect(meaner_fieldmap, 'out_file', merge_list, 'in2')
@@ -83,7 +85,6 @@ def create_bids_topup_workflow(mode='concatenate',
                                                         'out_field',
                                                         'out_movpar']),
                          name='outputnode')
-                                                         
 
 
     # Make the warps compatbile with ANTS
@@ -101,7 +102,7 @@ def create_bids_topup_workflow(mode='concatenate',
                                name='unwarp_reference')
 
     if mode == 'concatenate':
-        workflow.connect(applymask_bold, 'out', unwarp_reference, 'input_image')
+        workflow.connect(applymask_bold, 'out_file', unwarp_reference, 'input_image')
     elif mode == 'average':
         workflow.connect(meaner_bold, 'out_file', unwarp_reference, 'input_image')
 
@@ -141,26 +142,3 @@ def _add_dimension(in_file):
 
 def _pick_first(l):
     return l[0]
-    
-if __name__ == '__main__':
-    
-
-    dg = pe.Node(BIDSDataGrabber, name='datagrabber')
-    dg.inputs.subject = '012'
-    dg.inputs.task = 'binoculardots055'
-    dg.inputs.run = 1
-
-    workflow = create_bids_topup_workflow(mode='average')
-
-    for var in ['bold', 'bold_metadata', 'fieldmap', 'fieldmap_metadata']:
-        workflow.connect(dg, var, workflow.get_node('inputnode'), var)
-
-    ds = pe.Node(nio.DataSink(base_directory='/data/tests'),
-                 name='datasink')
-
-    workflow.connect(workflow.get_node('outputnode'), 'out_corrected', ds, 'out_corrected')
-    workflow.connect(workflow.get_node('outputnode'), 'out_field', ds, 'out_field')
-    workflow.connect(workflow.get_node('outputnode'), 'out_movpar', ds, 'out_movpar')
-    workflow.run()
-
-
