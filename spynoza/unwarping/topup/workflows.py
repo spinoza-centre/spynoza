@@ -1,119 +1,166 @@
+from nodes import TopupScanParameters, BIDSDataGrabber, ComputeEPIMask, CopyHeader
+
 import nipype.pipeline as pe
 from nipype.interfaces import fsl
-from ...utils import Get_scaninfo, Dyns_min_1
-from nipype.interfaces.utility import Merge, IdentityInterface
-from .nodes import Topup_scan_params, Apply_scan_params
+import nipype.interfaces.utility as util
+import nipype.interfaces.io as nio
+
+from nipype.interfaces import ants
+
+def create_bids_topup_workflow(mode='concatenate',
+                               name='bids_topup_workflow', 
+                               base_dir='/home/neuro/workflow_folders'):
+
+    inputnode = pe.Node(util.IdentityInterface(fields=['bold',
+                                                       'bold_metadata',
+                                                       'fieldmap',
+                                                       'fieldmap_metadata']),
+                        name='inputnode')
+
+    workflow = pe.Workflow(name=name, base_dir=base_dir)
+
+    # Mask the BOLD and fieldmap using compute_epi_maks from nilearn ("Nichols method")
+    create_bold_mask = pe.Node(ComputeEPIMask(upper_cutoff=0.8), name='create_bold_mask')
+    create_fieldmap_mask = pe.Node(ComputeEPIMask(upper_cutoff=0.8), name='create_fieldmap_mask')
+
+    workflow.connect(inputnode, 'bold', create_bold_mask, 'in_file') 
+    workflow.connect(inputnode, 'fieldmap', create_fieldmap_mask, 'in_file') 
+
+    applymask_bold = pe.Node(fsl.ApplyMask(), name="mask_bold")
+    applymask_fieldmap = pe.Node(fsl.ApplyMask(), name="mask_fieldmap")
+
+    workflow.connect(create_bold_mask, 'mask_file', applymask_bold, 'mask_file') 
+    workflow.connect(inputnode, 'bold', applymask_bold, 'in_file') 
+
+    workflow.connect(create_fieldmap_mask, 'mask_file', applymask_fieldmap, 'mask_file') 
+    workflow.connect(inputnode, 'fieldmap', applymask_fieldmap, 'in_file') 
+
+    # Create the parameter file that steers TOPUP
+    topup_parameters = pe.Node(TopupScanParameters, name='topup_scanparameters')
+    topup_parameters.inputs.mode = mode
+    workflow.connect(inputnode, 'bold_metadata', topup_parameters, 'bold_metadata')
+    workflow.connect(inputnode, 'fieldmap_metadata', topup_parameters, 'fieldmap_metadata')
+
+    topup_node = pe.Node(fsl.TOPUP(args='-v'),
+                            name='topup')
+
+    workflow.connect(topup_parameters, 'encoding_file', topup_node, 'encoding_file')
+
+    merge_list = pe.Node(util.Merge(2), name='merge_lists')
+
+    if mode == 'concatenate':
+        workflow.connect(applymask_bold, 'out_file', merge_list, 'in1') 
+        workflow.connect(applymask_fieldmap, 'out_file', merge_list, 'in2') 
 
 
-def create_topup_workflow(analysis_info, name='topup'):
+    elif mode == 'average':
+        mc_bold = pe.Node(fsl.MCFLIRT(cost='normcorr',
+                          interpolation='sinc',
+                          mean_vol=True), name='mc_bold')
 
-    ###########################################################################
-    # NODES
-    ###########################################################################
+        meaner_bold = pe.Node(fsl.MeanImage(), name='meaner_bold')
+        workflow.connect(applymask_bold, 'out_file', mc_bold, 'in_file') 
+        workflow.connect(mc_bold, 'out_file', meaner_bold, 'in_file') 
 
-    input_node = pe.Node(IdentityInterface(
-        fields=['in_files', 'alt_files', 'conf_file', 'output_directory',
-                'echo_time', 'phase_encoding_direction', 'epi_factor']),
-        name='inputspec')
+        mc_fieldmap = pe.Node(fsl.MCFLIRT(cost='normcorr',
+                          interpolation='sinc',
+                          mean_vol=True), name='mc_fieldmap')
 
-    output_node = pe.Node(IdentityInterface(fields=['out_files', 'field_coefs']),
-                          name='outputspec')
+        workflow.connect(meaner_bold, 'out_file', mc_fieldmap, 'ref_file')
+        workflow.connect(applymask_fieldmap, 'out_file', mc_fieldmap, 'in_file')
 
-    get_info = pe.MapNode(interface=Get_scaninfo,
-                          name='get_scaninfo',
-                          iterfield=['in_file'])
+        meaner_fieldmap = pe.Node(fsl.MeanImage(), name='meaner_fieldmap')
+        workflow.connect(mc_fieldmap, 'out_file', meaner_fieldmap, 'in_file') 
 
-    dyns_min_1_node = pe.MapNode(interface=Dyns_min_1,
-                                 name='dyns_min_1_node',
-                                 iterfield=['dyns'])
+        workflow.connect(meaner_bold, 'out_file', merge_list, 'in1')
+        workflow.connect(meaner_fieldmap, 'out_file', merge_list, 'in2')
 
-    topup_scan_params_node = pe.Node(interface=Topup_scan_params,
-                                     name='topup_scan_params')
+    merger = pe.Node(fsl.Merge(dimension='t'), name='merger')
+    workflow.connect(merge_list, 'out', merger, 'in_files')
+    workflow.connect(merger, 'merged_file', topup_node, 'in_file')
 
-    apply_scan_params_node = pe.MapNode(interface=Apply_scan_params,
-                                        name='apply_scan_params',
-                                        iterfield=['nr_trs'])
+    outputnode = pe.Node(util.IdentityInterface(fields=['out_corrected',
+                                                        'out_field',
+                                                        'out_movpar']),
+                         name='outputnode')
+                                                         
 
-    PE_ref = pe.MapNode(fsl.ExtractROI(t_size=1),
-                        name='PE_ref',
-                        iterfield=['in_file', 't_min'])
 
-    # hard-coded the timepoint for this node, no more need for alt_t.
-    PE_alt = pe.MapNode(fsl.ExtractROI(t_min=0, t_size=1),
-                        name='PE_alt',
-                        iterfield=['in_file'])
+    # Make the warps compatbile with ANTS
+    cphdr_warp = pe.Node(CopyHeader(), name='cphdr_warp')
 
-    PE_comb = pe.MapNode(Merge(2), name='PE_list', iterfield = ['in1', 'in2'])
-    PE_merge = pe.MapNode(fsl.Merge(dimension='t'),
-                          name='PE_merged',
-                          iterfield=['in_files'])
+    workflow.connect(topup_node, ('out_warps', _pick_first), cphdr_warp, 'in_file')
+    workflow.connect(inputnode, 'bold', cphdr_warp, 'hdr_file')
 
-    # implementing the contents of b02b0.cnf in the args, 
-    # while supplying an emtpy text file as a --config option 
-    # gets topup going on our server. 
-    topup_args = """--warpres=20,16,14,12,10,6,4,4,4
-    --subsamp=1,1,1,1,1,1,1,1,1
-    --fwhm=8,6,4,3,3,2,1,0,0
-    --miter=5,5,5,5,5,10,10,20,20
-    --lambda=0.005,0.001,0.0001,0.000015,0.000005,0.0000005,0.00000005,0.0000000005,0.00000000001
-    --ssqlambda=1
-    --regmod=bending_energy
-    --estmov=1,1,1,1,1,0,0,0,0
-    --minmet=0,0,0,0,0,1,1,1,1
-    --splineorder=3
-    --numprec=double
-    --interp=spline
-    --scale=1 -v"""
+    to_ants = pe.Node(util.Function(function=_add_dimension), name='to_ants')
+    workflow.connect(cphdr_warp, 'out_file', to_ants, 'in_file')
 
-    topup_node = pe.MapNode(fsl.TOPUP(args=topup_args),
-                            name='topup',
-                            iterfield=['in_file'])
-    unwarp = pe.MapNode(fsl.ApplyTOPUP(in_index=[1], method='jac'),
-                        name='unwarp',
-                        iterfield = ['in_files', 'in_topup_fieldcoef',
-                                     'in_topup_movpar', 'encoding_file'])
+    unwarp_reference = pe.Node(ants.ApplyTransforms(dimension=3,
+                                                        float=True,
+                                                        interpolation='LanczosWindowedSinc'),
+                               name='unwarp_reference')
 
-    ###########################################################################
-    # WORKFLOW
-    ###########################################################################
-    topup_workflow = pe.Workflow(name=name)
+    if mode == 'concatenate':
+        workflow.connect(applymask_bold, 'out', unwarp_reference, 'input_image')
+    elif mode == 'average':
+        workflow.connect(meaner_bold, 'out_file', unwarp_reference, 'input_image')
 
-    # these are now mapnodes because they split up over files
-    topup_workflow.connect(input_node, 'in_files', get_info, 'in_file')
-    topup_workflow.connect(input_node, 'in_files', PE_ref, 'in_file')
-    topup_workflow.connect(input_node, 'alt_files', PE_alt, 'in_file')
+    workflow.connect(to_ants, 'out', unwarp_reference, 'transforms')
+    workflow.connect(inputnode, 'bold', unwarp_reference, 'reference_image')
 
-    # this is a simple node, connecting to the input node
-    topup_workflow.connect(input_node, 'phase_encoding_direction', topup_scan_params_node, 'pe_direction')
-    topup_workflow.connect(input_node, 'echo_time', topup_scan_params_node, 'te')
-    topup_workflow.connect(input_node, 'epi_factor', topup_scan_params_node, 'epi_factor')
+    # Write all interesting stuff to outputnode
+    workflow.connect(topup_node, 'out_field', outputnode, 'out_field')
+    workflow.connect(topup_node, 'out_warps', outputnode, 'out_warps')
+    workflow.connect(to_ants, 'out', outputnode, 'out_warp')
+    workflow.connect(unwarp_reference, 'output_image', outputnode, 'unwarped_image')
 
-    # preparing a node here, which automatically iterates over dyns output of the get_info mapnode
-    topup_workflow.connect(input_node, 'echo_time', apply_scan_params_node, 'te')
-    topup_workflow.connect(input_node, 'phase_encoding_direction', apply_scan_params_node, 'pe_direction')
-    topup_workflow.connect(input_node, 'epi_factor', apply_scan_params_node, 'epi_factor')
-    topup_workflow.connect(get_info, 'dyns', apply_scan_params_node, 'nr_trs')
+    return workflow
 
-    # the nr_trs and in_files both propagate into the PR_ref node
-    topup_workflow.connect(get_info, 'dyns', dyns_min_1_node, 'dyns')
-    topup_workflow.connect(dyns_min_1_node, 'dyns_1', PE_ref, 't_min')
+# Helper functions
+# --------------------
 
-    topup_workflow.connect(PE_ref, 'roi_file', PE_comb, 'in1')
-    topup_workflow.connect(PE_alt, 'roi_file', PE_comb, 'in2')
-    topup_workflow.connect(PE_comb, 'out', PE_merge, 'in_files')
+def _add_dimension(in_file):
+    import nibabel as nb
+    import numpy as np
+    import os
 
-    topup_workflow.connect(topup_scan_params_node, 'fn', topup_node, 'encoding_file')
-    topup_workflow.connect(PE_merge, 'merged_file', topup_node, 'in_file')
-    topup_workflow.connect(input_node, 'conf_file', topup_node, 'config')
+    nii = nb.load(in_file)
+    hdr = nii.header.copy()
+    hdr.set_data_dtype(np.dtype('<f4'))
+    hdr.set_intent('vector', (), '')
 
-    topup_workflow.connect(input_node, 'in_files', unwarp, 'in_files')
-    topup_workflow.connect(apply_scan_params_node, 'fn', unwarp, 'encoding_file')
-    topup_workflow.connect(topup_node, 'out_fieldcoef', unwarp, 'in_topup_fieldcoef')
-    topup_workflow.connect(topup_node, 'out_movpar', unwarp, 'in_topup_movpar')
+    field = nii.get_data()
+    field = field[:, :, :, np.newaxis, :]
 
-    topup_workflow.connect(unwarp, 'out_corrected', output_node, 'out_files')
-    topup_workflow.connect(topup_node, 'out_fieldcoef', output_node, 'field_coefs')
+    out_file = os.path.abspath("warpfield.nii.gz")
 
-    # ToDo: automatic datasink?
+    nb.Nifti1Image(field.astype(np.dtype('<f4')), nii.affine, hdr).to_filename(out_file)
 
-    return topup_workflow
+    return out_file
+
+
+def _pick_first(l):
+    return l[0]
+    
+if __name__ == '__main__':
+    
+
+    dg = pe.Node(BIDSDataGrabber, name='datagrabber')
+    dg.inputs.subject = '012'
+    dg.inputs.task = 'binoculardots055'
+    dg.inputs.run = 1
+
+    workflow = create_bids_topup_workflow(mode='average')
+
+    for var in ['bold', 'bold_metadata', 'fieldmap', 'fieldmap_metadata']:
+        workflow.connect(dg, var, workflow.get_node('inputnode'), var)
+
+    ds = pe.Node(nio.DataSink(base_directory='/data/tests'),
+                 name='datasink')
+
+    workflow.connect(workflow.get_node('outputnode'), 'out_corrected', ds, 'out_corrected')
+    workflow.connect(workflow.get_node('outputnode'), 'out_field', ds, 'out_field')
+    workflow.connect(workflow.get_node('outputnode'), 'out_movpar', ds, 'out_movpar')
+    workflow.run()
+
+
