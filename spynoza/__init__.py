@@ -6,6 +6,7 @@ from . import denoising
 from . import filtering
 from . import glm
 from . import ica_fix
+from . import io
 from . import masking
 from . import registration
 from . import uniformization
@@ -15,5 +16,5 @@ root_dir = op.dirname(op.abspath(__file__))
 test_data_path = op.join(root_dir, 'data', 'test_data')
 
 __all__ = ['unwarping', 'uniformization', 'registration',
-           'retroicor', 'masking', 'ica_fix', 'glm',
+           'retroicor', 'masking', 'ica_fix', 'io', 'glm',
            'filtering', 'test_data_path', 'root_dir']
