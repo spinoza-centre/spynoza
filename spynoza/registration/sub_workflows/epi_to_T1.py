@@ -6,6 +6,7 @@ from ...utils import pick_last
 
 
 def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
+                              init_reg_file=None,
                               do_BET=False,
                               do_FAST=True):
     """Registers session's EPI space to subject's T1 space
@@ -18,6 +19,8 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
         name of workflow
     use_FS : bool
         whether to use freesurfer's segmentation and BBRegister
+    init_reg_file : file
+        (optional) provide a freesurfer "LTA"-image to initalize registration with
     do_BET : bool
         whether to use FSL's BET to brain-extract the T1-weighted image
     Example
@@ -51,8 +54,14 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
 
     epi_to_T1_workflow = pe.Workflow(name=name)
 
+
+
     if use_FS: # do BBRegister
-        bbregister_N = pe.Node(freesurfer.BBRegister(init = 'fsl', contrast_type = 't2', out_fsl_file = True ),
+        if init_reg_file is None:
+            bbregister_N = pe.Node(freesurfer.BBRegister(init = 'fsl', contrast_type = 't2', out_fsl_file = True ),
+                               name = 'bbregister_N')
+        else:
+            bbregister_N = pe.Node(freesurfer.BBRegister(init_reg_file=init_reg_file, contrast_type = 't2', out_fsl_file = True ),
                                name = 'bbregister_N')
 
         epi_to_T1_workflow.connect(input_node, 'EPI_space_file', bbregister_N, 'source_file')
