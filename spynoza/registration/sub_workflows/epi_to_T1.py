@@ -23,6 +23,8 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
         (optional) provide a freesurfer "LTA"-image to initalize registration with
     do_BET : bool
         whether to use FSL's BET to brain-extract the T1-weighted image
+    do_FAST : bool
+        whether to apply FSL's FAST (segmentation into CSF/GM/WM) to T1-weighted image
     Example
     -------
     >>> epi_to_T1 = create_epi_to_T1_workflow('epi_to_T1', use_FS = True)
