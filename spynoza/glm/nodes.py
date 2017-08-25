@@ -22,8 +22,9 @@ def events_file_to_bunch(in_file, single_trial=False, sort_by_onset=False,
 
         conditions, onsets, durations, amplitudes = [], [], [], []
         for event_type in events['trial_type'].unique():
-
-            for i, tmp in enumerate(events[events['trial_type'] == event_type].iterrows()):
+            these_events = events[events['trial_type'] == event_type]
+            for i, tmp in enumerate(these_events.iterrows()):
+                tmp = tmp[1]
                 conditions.append('%s_%s' % (tmp['trial_type'], (len(str(n_trials)) - len(str(i + 1))) * '0' + str(i + 1)))
                 onsets.append(tmp['onset'].tolist())
                 durations.append(tmp['duration'].tolist())
