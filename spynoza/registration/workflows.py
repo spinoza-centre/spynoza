@@ -56,6 +56,7 @@ def create_registration_workflow(analysis_info, name='reg'):
     ### sub-workflows
     epi_2_T1 = create_epi_to_T1_workflow(name='epi',
                                          use_FS=analysis_info['use_FS'],
+                                         do_BET=analysis_info['do_BET'],
                                          do_FAST=analysis_info['do_FAST'])
     T1_to_standard = create_T1_to_standard_workflow(name='T1_to_standard',
                                                     use_FS=analysis_info[

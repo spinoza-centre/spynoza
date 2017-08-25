@@ -6,6 +6,7 @@ from ...utils import pick_last
 
 
 def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
+                              do_BET=False,
                               do_FAST=True):
     """Registers session's EPI space to subject's T1 space
     uses either FLIRT or, when a FS segmentation is present, BBRegister
@@ -17,6 +18,8 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
         name of workflow
     use_FS : bool
         whether to use freesurfer's segmentation and BBRegister
+    do_BET : bool
+        whether to use FSL's BET to brain-extract the T1-weighted image
     Example
     -------
     >>> epi_to_T1 = create_epi_to_T1_workflow('epi_to_T1', use_FS = True)
@@ -66,6 +69,10 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
 
     else:  # do FAST + FLIRT
 
+        if do_BET:
+            bet = pe.Node(fsl.BET(), name='bet')
+            epi_to_T1_workflow.connect(input_node, 'T1_file', bet, 'in_file')
+
         flirt_e2t = pe.Node(fsl.FLIRT(cost_func='bbr', output_type='NIFTI_GZ',
                                     dof=12, interp='sinc'),
                           name ='flirt_e2t')
@@ -76,13 +83,21 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
             fast = pe.Node(fsl.FAST(no_pve=True, img_type=1, segments=True),
                            name='fast')
 
-            epi_to_T1_workflow.connect(input_node, 'T1_file', fast, 'in_files')
+            if do_BET:
+                epi_to_T1_workflow.connect(bet, 'out_file', fast, 'in_files')
+            else:
+                epi_to_T1_workflow.connect(input_node, 'T1_file', fast, 'in_files')
+
             epi_to_T1_workflow.connect(fast, ('tissue_class_files', pick_last), flirt_e2t, 'wm_seg')
         elif not do_FAST and flirt_e2t.inputs.cost_func == 'bbr':
             print('You indicated not wanting to do FAST, but still wanting to do a'
                   ' BBR epi-to-T1 registration. That is probably not going to work ...')
 
-        epi_to_T1_workflow.connect(input_node, 'T1_file', flirt_e2t, 'reference')
+        if do_BET:
+            epi_to_T1_workflow.connect(bet, 'out_file', flirt_e2t, 'reference')
+        else:
+            epi_to_T1_workflow.connect(input_node, 'T1_file', flirt_e2t, 'reference')
+
         epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', output_node, 'EPI_T1_matrix_file')
 
         # the final invert node
