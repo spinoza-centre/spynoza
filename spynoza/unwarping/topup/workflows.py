@@ -83,7 +83,8 @@ def create_bids_topup_workflow(mode='average',
 
     outputnode = pe.Node(util.IdentityInterface(fields=['out_corrected',
                                                         'out_field',
-                                                        'out_movpar']),
+                                                        'out_movpar',
+                                                        'mean_bold']),
                          name='outputnode')
 
 
@@ -105,6 +106,7 @@ def create_bids_topup_workflow(mode='average',
         workflow.connect(applymask_bold, 'out_file', unwarp_reference, 'input_image')
     elif mode == 'average':
         workflow.connect(meaner_bold, 'out_file', unwarp_reference, 'input_image')
+        workflow.connect(meaner_bold, 'out_file', outputnode, 'mean_bold')
 
     workflow.connect(to_ants, 'out', unwarp_reference, 'transforms')
     workflow.connect(inputnode, 'bold', unwarp_reference, 'reference_image')
