@@ -12,11 +12,11 @@ def events_file_to_bunch(in_file, single_trial=False, sort_by_onset=False,
         events.drop(exclude, axis=1, inplace=True)
 
     if sort_by_onset:
+        print("SORTING BY ONSET!")
         events = events.sort_values(by='onset')
 
     if single_trial:
         n_trials = len(events)
-
 
         conditions = []
         for event_type in events['trial_type'].unique():
