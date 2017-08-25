@@ -3,8 +3,10 @@ from nipype.interfaces.utility import Function
 import numpy as np
 from nipype.interfaces.base import traits, File, BaseInterface, BaseInterfaceInputSpec, TraitedSpec
 from nilearn.masking import compute_epi_mask
+
 import os
 import nibabel as nb
+from nipype.utils.filemanip import fname_presuffix
 
 
 
@@ -425,9 +427,15 @@ class CopyHeader(BaseInterface):
         out_name = fname_presuffix(self.inputs.in_file,
                                    suffix='_fixhdr', newpath='.')
         new_img.to_filename(out_name)
-        self._results['out_file'] = out_name
+
+        self._out_file = out_name
+
         return runtime
 
+    def _list_outputs(self):
+        outputs = self._outputs().get()
+        outputs['out_file'] = self._out_file
+        return outputs
 
 class ComputeEPIMaskInputSpec(BaseInterfaceInputSpec):
     in_file = File(exists=True, desc="3D or 4D EPI file")
