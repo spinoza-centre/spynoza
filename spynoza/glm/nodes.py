@@ -8,25 +8,27 @@ def events_file_to_bunch(in_file, single_trial=False, sort_by_onset=False,
 
     events = pd.read_csv(in_file, sep=str('\t'))
 
+    if 'weight' not in events.columns:
+        events['weight'] = np.ones(len(events))
+
     if exclude is not None:  # not tested
         events.drop(exclude, axis=1, inplace=True)
 
     if sort_by_onset:
-        print("SORTING BY ONSET!")
         events = events.sort_values(by='onset')
 
     if single_trial:
         n_trials = len(events)
 
-        conditions = []
+        conditions, onsets, durations, amplitudes = [], [], [], []
         for event_type in events['trial_type'].unique():
 
-            for i, cond in enumerate(events['trial_type'][events['trial_type'] == event_type]):
-                conditions.append('%s_%s' % (cond, (len(str(n_trials)) - len(str(i + 1))) * '0' + str(i + 1)))
+            for i, tmp in enumerate(events[events['trial_type'] == event_type]):
+                conditions.append('%s_%s' % (tmp['trial_type'], (len(str(n_trials)) - len(str(i + 1))) * '0' + str(i + 1)))
+                onsets.append(tmp['onset'].tolist())
+                durations.append(tmp['duration'].tolist())
+                amplitudes.append(tmp['weight'].tolist())
  
-        onsets = [[e] for e in events['onset'].tolist()]
-        durations = [[e] for e in events['duration'].tolist()]
-        amplitudes = [[e] for e in events['weight'].tolist()]
     else:
         conditions = sorted(events['trial_type'].unique())
         onsets = [events['onset'][events['trial_type'] == tt].tolist() for tt in conditions]
