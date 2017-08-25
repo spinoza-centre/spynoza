@@ -4,6 +4,7 @@ import numpy as np
 from nipype.interfaces.base import traits, File, BaseInterface, BaseInterfaceInputSpec, TraitedSpec
 from nilearn.masking import compute_epi_mask
 import os
+import nibabel as nb
 
 
 
