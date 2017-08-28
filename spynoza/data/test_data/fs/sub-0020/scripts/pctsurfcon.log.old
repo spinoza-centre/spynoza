@@ -1,9 +1,0 @@
-Logfile for pctsurfcon
-ma  1 mei 2017 23:24:19 CEST
-setenv SUBJECTS_DIR /media/lukas/data/Software/Spynoza/spynoza/spynoza/data/test_data/fs
-cd /media/lukas/data/Software/Spynoza/spynoza/spynoza/data/test_data/fs/sub-0020/scripts
-/usr/local/freesurfer/bin/pctsurfcon
-$Id: pctsurfcon,v 1.15 2016/02/12 21:43:15 zkaufman Exp $
-Linux uva 4.8.0-46-generic #49~16.04.1-Ubuntu SMP Fri Mar 31 14:51:03 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
-FREESURFER_HOME /usr/local/freesurfer
-Cleaning up
