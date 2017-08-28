@@ -109,7 +109,7 @@ def create_bids_topup_workflow(mode='average',
         workflow.connect(meaner_bold, 'out_file', outputnode, 'mean_bold')
 
     workflow.connect(to_ants, 'out', unwarp_reference, 'transforms')
-    workflow.connect(inputnode, 'bold', unwarp_reference, 'reference_image')
+    workflow.connect(meaner_bold, 'out', unwarp_reference, 'reference_image')
 
     # Write all interesting stuff to outputnode
     workflow.connect(topup_node, 'out_field', outputnode, 'out_field')
