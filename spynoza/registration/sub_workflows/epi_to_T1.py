@@ -8,7 +8,8 @@ from ...utils import pick_last
 def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
                               init_reg_file=None,
                               do_BET=False,
-                              do_FAST=True):
+                              do_FAST=True,
+                              apply_transform=False):
     """Registers session's EPI space to subject's T1 space
     uses either FLIRT or, when a FS segmentation is present, BBRegister
     Requires fsl and freesurfer tools
@@ -25,6 +26,9 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
         whether to use FSL's BET to brain-extract the T1-weighted image
     do_FAST : bool
         whether to apply FSL's FAST (segmentation into CSF/GM/WM) to T1-weighted image
+    apply_transform : bool
+        whether to apply the computed transofmration matrix on the input (e.g., for
+        checking purposes)
     Example
     -------
     >>> epi_to_T1 = create_epi_to_T1_workflow('epi_to_T1', use_FS = True)
@@ -38,7 +42,8 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
           inputspec.EPI_space_file : EPI session file
           inputspec.freesurfer_subject_ID : FS subject ID
           inputspec.freesurfer_subject_dir : $SUBJECTS_DIR
-    Outputs::
+          inputspec.wm_seg_file : nifti-file with white matter segmentation
+          Outputs::
            outputspec.EPI_T1_register_file : BBRegister registration file that maps EPI space to T1
            outputspec.EPI_T1_matrix_file : FLIRT registration file that maps EPI space to T1
            outputspec.T1_EPI_matrix_file : FLIRT registration file that maps T1 space to EPI
@@ -46,12 +51,17 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
 
     input_node = pe.Node(IdentityInterface(
         fields=['EPI_space_file', 'output_directory', 'freesurfer_subject_ID',
-                'freesurfer_subject_dir', 'T1_file']), name='inputspec')
+                'freesurfer_subject_dir', 'T1_file', 'wm_seg_file']), name='inputspec')
 
     # Idea: also output FAST outputs for later use?
-    output_node = pe.Node(IdentityInterface(fields=('EPI_T1_matrix_file',
-                                                    'T1_EPI_matrix_file',
-                                                    'EPI_T1_register_file')),
+    fields = ['EPI_T1_matrix_file',
+              'T1_EPI_matrix_file',
+              'EPI_T1_regiser_file']
+
+    if apply_transform:
+        fields.append('transformed_EPI_space_file')
+
+    output_node = pe.Node(IdentityInterface(fields=fields),
                           name='outputspec')
 
     epi_to_T1_workflow = pe.Workflow(name=name)
@@ -88,6 +98,19 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
                                     dof=12, interp='sinc'),
                           name ='flirt_e2t')
 
+
+        if init_reg_file is not None:
+            if init_reg_file.endswith('lta'):
+                convert_init_reg = pe.Node(freesurfer.Tkregister2(reg_file=init_reg_file,
+                                                                  fsl_out='init_reg.mat'), 
+                                           name='convert_init_reg_to_fsl')
+                epi_to_T1_workflow.connect(input_node, 'EPI_space_file', convert_init_reg, 'moving_image')
+                epi_to_T1_workflow.connect(input_node, 'T1_file', convert_init_reg, 'target_image')
+                epi_to_T1_workflow.connect(convert_init_reg, 'fsl_file', flirt_e2t, 'in_matrix_file')
+            else:
+                flirt_e2t.inputs.in_matrix_file = init_reg_file
+
+
         epi_to_T1_workflow.connect(input_node, 'EPI_space_file', flirt_e2t, 'in_file')
 
         if do_FAST:
@@ -101,8 +124,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
 
             epi_to_T1_workflow.connect(fast, ('tissue_class_files', pick_last), flirt_e2t, 'wm_seg')
         elif not do_FAST and flirt_e2t.inputs.cost_func == 'bbr':
-            print('You indicated not wanting to do FAST, but still wanting to do a'
-                  ' BBR epi-to-T1 registration. That is probably not going to work ...')
+            epi_to_T1_workflow.connect(input_node, 'wm_seg_file', flirt_e2t, 'wm_seg')
 
         if do_BET:
             epi_to_T1_workflow.connect(bet, 'out_file', flirt_e2t, 'reference')
@@ -115,5 +137,13 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
         invert_EPI_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name='invert_EPI_N')
         epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', invert_EPI_N, 'in_file')
         epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', output_node, 'T1_EPI_matrix_file')
+
+    if apply_transform:
+        applier = pe.Node(fsl.ApplyXFM(), name='applier')
+        epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', applier, 'in_matrix_file')
+        epi_to_T1_workflow.connect(input_node, 'EPI_space_file', applier, 'in_file')
+        epi_to_T1_workflow.connect(input_node, 'T1_file', applier, 'reference')
+        epi_to_T1_workflow.connect(applier, 'out_file', output_node, 'transformed_EPI_space_file')
+
 
     return epi_to_T1_workflow
