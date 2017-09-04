@@ -13,6 +13,7 @@ import os
 import os.path as op
 from shutil import copy, copytree, rmtree, copyfileobj
 import re
+import gzip
 
 iflogger = logging.getLogger('interface')
 
