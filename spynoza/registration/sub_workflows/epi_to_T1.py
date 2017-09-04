@@ -101,12 +101,12 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
 
         if init_reg_file is not None:
             if init_reg_file.endswith('lta'):
-                convert_init_reg = pe.Node(freesurfer.Tkregister2(reg_file=init_reg_file,
-                                                                  fsl_out='init_reg.mat'), 
+                convert_init_reg = pe.Node(freesurfer.utils.LTAConvert(in_lta=init_reg_file,
+                                                                  out_fsl=True), 
                                            name='convert_init_reg_to_fsl')
-                epi_to_T1_workflow.connect(input_node, 'EPI_space_file', convert_init_reg, 'moving_image')
-                epi_to_T1_workflow.connect(input_node, 'T1_file', convert_init_reg, 'target_image')
-                epi_to_T1_workflow.connect(convert_init_reg, 'fsl_file', flirt_e2t, 'in_matrix_file')
+                epi_to_T1_workflow.connect(input_node, 'EPI_space_file', convert_init_reg, 'source_file')
+                epi_to_T1_workflow.connect(input_node, 'T1_file', convert_init_reg, 'target_file')
+                epi_to_T1_workflow.connect(convert_init_reg, 'out_fsl', flirt_e2t, 'in_matrix_file')
             else:
                 flirt_e2t.inputs.in_matrix_file = init_reg_file
 
