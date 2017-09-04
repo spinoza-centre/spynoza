@@ -1,1 +1,3 @@
 recursive-include data *
+
+include spynoza/data/ants_json/*.json

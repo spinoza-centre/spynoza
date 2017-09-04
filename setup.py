@@ -33,4 +33,6 @@ setup(
     license='MIT',
     platforms='Linux',
     packages=find_packages(),
+    package_data={'spynoza': ['spynoza/data/ants_json/*.json']}, 
+    include_package_data=True,
     zip_safe=False)
