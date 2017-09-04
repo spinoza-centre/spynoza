@@ -2,8 +2,6 @@ import nipype.pipeline.engine as pe
 import nipype.interfaces.utility as util
 
 from nipype.interfaces.base import traits, File, BaseInterface, BaseInterfaceInputSpec, TraitedSpec
-from niworkflows.common import report as nrc
-from niworkflows import NIWORKFLOWS_LOG
 from nilearn.masking import compute_epi_mask
 
 import os
