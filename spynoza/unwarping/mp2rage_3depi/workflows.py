@@ -68,7 +68,7 @@ def create_3DEPI_registration_workflow(name='3d_epi_registration',
         
         if init_reg_file.endswith('lta'):
             convert_to_ants = pe.Node(freesurfer.utils.LTAConvert(in_lta=init_reg_file,
-                                                                 out_itk=True), name='convert_to_mat')
+                                                                 out_itk=True), name='convert_to_ants')
 
             workflow.connect(inputnode, 'T1w_EPI_file', convert_to_ants, 'source_file')
             workflow.connect(inputnode, 'T1w_file', convert_to_ants, 'target_file')
