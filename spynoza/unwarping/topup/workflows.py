@@ -8,8 +8,10 @@ import nipype.interfaces.utility as util
 import nipype.interfaces.io as nio
 
 from nipype.interfaces import ants
+from nipype.interfaces import afni
 
 def create_bids_topup_workflow(mode='average',
+                               package='fsl',
                                name='bids_topup_workflow', 
                                base_dir='/home/neuro/workflow_folders'):
 
@@ -37,49 +39,59 @@ def create_bids_topup_workflow(mode='average',
     workflow.connect(create_fieldmap_mask, 'mask_file', applymask_fieldmap, 'mask_file') 
     workflow.connect(inputnode, 'fieldmap', applymask_fieldmap, 'in_file') 
 
-    # Create the parameter file that steers TOPUP
-    topup_parameters = pe.Node(TopupScanParameters, name='topup_scanparameters')
-    topup_parameters.inputs.mode = mode
-    workflow.connect(inputnode, 'bold_metadata', topup_parameters, 'bold_metadata')
-    workflow.connect(inputnode, 'fieldmap_metadata', topup_parameters, 'fieldmap_metadata')
 
-    topup_node = pe.Node(fsl.TOPUP(args='-v'),
-                            name='topup')
+    mc_bold = pe.Node(fsl.MCFLIRT(cost='normcorr',
+                      interpolation='sinc',
+                      mean_vol=True), name='mc_bold')
 
-    workflow.connect(topup_parameters, 'encoding_file', topup_node, 'encoding_file')
+    meaner_bold = pe.Node(fsl.MeanImage(), name='meaner_bold')
+    workflow.connect(applymask_bold, 'out_file', mc_bold, 'in_file')
+    workflow.connect(mc_bold, 'out_file', meaner_bold, 'in_file')
 
-    merge_list = pe.Node(util.Merge(2), name='merge_lists')
+    mc_fieldmap = pe.Node(fsl.MCFLIRT(cost='normcorr',
+                      interpolation='sinc',
+                      mean_vol=True), name='mc_fieldmap')
 
-    if mode == 'concatenate':
-        workflow.connect(applymask_bold, 'out_file', merge_list, 'in1') 
-        workflow.connect(applymask_fieldmap, 'out_file', merge_list, 'in2') 
+    workflow.connect(meaner_bold, 'out_file', mc_fieldmap, 'ref_file')
+    workflow.connect(applymask_fieldmap, 'out_file', mc_fieldmap, 'in_file')
+
+    meaner_fieldmap = pe.Node(fsl.MeanImage(), name='meaner_fieldmap')
+    workflow.connect(mc_fieldmap, 'out_file', meaner_fieldmap, 'in_file')
 
 
-    elif mode == 'average':
-        mc_bold = pe.Node(fsl.MCFLIRT(cost='normcorr',
-                          interpolation='sinc',
-                          mean_vol=True), name='mc_bold')
+    if package == 'fsl':
+        # Create the parameter file that steers TOPUP
+        topup_parameters = pe.Node(TopupScanParameters, name='topup_scanparameters')
+        topup_parameters.inputs.mode = mode
+        workflow.connect(inputnode, 'bold_metadata', topup_parameters, 'bold_metadata')
+        workflow.connect(inputnode, 'fieldmap_metadata', topup_parameters, 'fieldmap_metadata')
 
-        meaner_bold = pe.Node(fsl.MeanImage(), name='meaner_bold')
-        workflow.connect(applymask_bold, 'out_file', mc_bold, 'in_file')
-        workflow.connect(mc_bold, 'out_file', meaner_bold, 'in_file')
+        topup_node = pe.Node(fsl.TOPUP(args='-v'),
+                                name='topup')
 
-        mc_fieldmap = pe.Node(fsl.MCFLIRT(cost='normcorr',
-                          interpolation='sinc',
-                          mean_vol=True), name='mc_fieldmap')
+        workflow.connect(topup_parameters, 'encoding_file', topup_node, 'encoding_file')
 
-        workflow.connect(meaner_bold, 'out_file', mc_fieldmap, 'ref_file')
-        workflow.connect(applymask_fieldmap, 'out_file', mc_fieldmap, 'in_file')
-
-        meaner_fieldmap = pe.Node(fsl.MeanImage(), name='meaner_fieldmap')
-        workflow.connect(mc_fieldmap, 'out_file', meaner_fieldmap, 'in_file')
-
+        merge_list = pe.Node(util.Merge(2), name='merge_lists')
         workflow.connect(meaner_bold, 'out_file', merge_list, 'in1')
         workflow.connect(meaner_fieldmap, 'out_file', merge_list, 'in2')
 
-    merger = pe.Node(fsl.Merge(dimension='t'), name='merger')
-    workflow.connect(merge_list, 'out', merger, 'in_files')
-    workflow.connect(merger, 'merged_file', topup_node, 'in_file')
+        merger = pe.Node(fsl.Merge(dimension='t'), name='merger')
+        workflow.connect(merge_list, 'out', merger, 'in_files')
+        workflow.connect(merger, 'merged_file', topup_node, 'in_file')
+
+
+    elif package == 'afni':
+        qwarp = pe.Node(afni.QwarpPlusMinus(pblur=[0.05, 0.05],
+                                            blur=[-1, -1],
+                                            noweight=True,
+                                            minpatch=9,
+                                            nopadWARP=True,), name='qwarp')
+
+        workflow.connect(meaner_bold, 'out_file', qwarp, 'source_file')
+        workflow.connect(meaner_fieldmap, 'out_file', qwarp, 'base_file')
+
+
+
 
     outputnode = pe.Node(util.IdentityInterface(fields=['out_corrected',
                                                         'out_field',
@@ -91,7 +103,6 @@ def create_bids_topup_workflow(mode='average',
     # Make the warps compatbile with ANTS
     cphdr_warp = pe.Node(CopyHeader(), name='cphdr_warp')
 
-    workflow.connect(topup_node, ('out_warps', _pick_first), cphdr_warp, 'in_file')
     workflow.connect(inputnode, 'bold', cphdr_warp, 'hdr_file')
 
     to_ants = pe.Node(util.Function(function=_add_dimension), name='to_ants')
@@ -102,18 +113,21 @@ def create_bids_topup_workflow(mode='average',
                                                         interpolation='LanczosWindowedSinc'),
                                name='unwarp_reference')
 
-    if mode == 'concatenate':
-        workflow.connect(applymask_bold, 'out_file', unwarp_reference, 'input_image')
-    elif mode == 'average':
-        workflow.connect(meaner_bold, 'out_file', unwarp_reference, 'input_image')
-        workflow.connect(meaner_bold, 'out_file', outputnode, 'mean_bold')
+    workflow.connect(meaner_bold, 'out_file', unwarp_reference, 'input_image')
+    workflow.connect(meaner_bold, 'out_file', outputnode, 'mean_bold')
 
     workflow.connect(to_ants, 'out', unwarp_reference, 'transforms')
     workflow.connect(meaner_bold, 'out_file', unwarp_reference, 'reference_image')
 
     # Write all interesting stuff to outputnode
-    workflow.connect(topup_node, 'out_field', outputnode, 'out_field')
-    workflow.connect(topup_node, 'out_warps', outputnode, 'out_warps')
+    if package == 'fsl':
+        workflow.connect(topup_node, ('out_warps', _pick_first), cphdr_warp, 'in_file')
+        workflow.connect(topup_node, 'out_field', outputnode, 'out_field')
+        workflow.connect(topup_node, 'out_warps', outputnode, 'out_warps')
+    elif package == 'afni':
+        workflow.connect(qwarp, 'source_warp', cphdr_warp, 'in_file')
+        workflow.connect(qwarp, 'warped_base', outputnode, 'out_warps')
+
     workflow.connect(to_ants, 'out', outputnode, 'out_warp')
     workflow.connect(unwarp_reference, 'output_image', outputnode, 'unwarped_image')
 
