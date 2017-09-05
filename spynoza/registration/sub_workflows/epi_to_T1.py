@@ -1,11 +1,14 @@
 import nipype.pipeline as pe
 from nipype.interfaces import fsl
 from nipype.interfaces import freesurfer
+from nipype.interfaces import ants
 from nipype.interfaces.utility import Function, IdentityInterface
 from ...utils import pick_last
+import pkg_resources
 
 
-def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
+def create_epi_to_T1_workflow(name='epi_to_T1', 
+                              package='freesurfer',
                               init_reg_file=None,
                               do_BET=False,
                               do_FAST=True,
@@ -56,7 +59,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
     # Idea: also output FAST outputs for later use?
     fields = ['EPI_T1_matrix_file',
               'T1_EPI_matrix_file',
-              'EPI_T1_regiser_file']
+              'EPI_T1_register_file']
 
     if apply_transform:
         fields.append('transformed_EPI_space_file')
@@ -68,7 +71,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
 
 
 
-    if use_FS: # do BBRegister
+    if package == 'freesurfer': # do BBRegister
         if init_reg_file is None:
             bbregister_N = pe.Node(freesurfer.BBRegister(init = 'fsl', contrast_type = 't2', out_fsl_file = True ),
                                name = 'bbregister_N')
@@ -88,7 +91,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
         epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', invert_EPI_N, 'in_file')
         epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', output_node, 'T1_EPI_matrix_file')
 
-    else:  # do FAST + FLIRT
+    elif package == 'fsl':  # do FAST + FLIRT
 
         if do_BET:
             bet = pe.Node(fsl.BET(), name='bet')
@@ -123,6 +126,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
                 epi_to_T1_workflow.connect(input_node, 'T1_file', fast, 'in_files')
 
             epi_to_T1_workflow.connect(fast, ('tissue_class_files', pick_last), flirt_e2t, 'wm_seg')
+
         elif not do_FAST and flirt_e2t.inputs.cost_func == 'bbr':
             epi_to_T1_workflow.connect(input_node, 'wm_seg_file', flirt_e2t, 'wm_seg')
 
@@ -138,12 +142,55 @@ def create_epi_to_T1_workflow(name='epi_to_T1', use_FS=True,
         epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', invert_EPI_N, 'in_file')
         epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', output_node, 'T1_EPI_matrix_file')
 
-    if apply_transform:
-        applier = pe.Node(fsl.ApplyXFM(), name='applier')
-        epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', applier, 'in_matrix_file')
-        epi_to_T1_workflow.connect(input_node, 'EPI_space_file', applier, 'in_file')
-        epi_to_T1_workflow.connect(input_node, 'T1_file', applier, 'reference')
-        epi_to_T1_workflow.connect(applier, 'out_file', output_node, 'transformed_EPI_space_file')
+        if apply_transform:
+            applier = pe.Node(fsl.ApplyXFM(), name='applier')
+            epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', applier, 'in_matrix_file')
+            epi_to_T1_workflow.connect(input_node, 'EPI_space_file', applier, 'in_file')
+            epi_to_T1_workflow.connect(input_node, 'T1_file', applier, 'reference')
+            epi_to_T1_workflow.connect(applier, 'out_file', output_node, 'transformed_EPI_space_file')
+    
+    elif package == 'ants':
+
+        if do_BET:
+            bet = pe.Node(fsl.BET(), name='bet')
+            epi_to_T1_workflow.connect(input_node, 'T1_file', bet, 'in_file')
+
+        
+        bold_registration_json = pkg_resources.resource_filename('spynoza.data.ants_json', 'linear_precise.json')
+        ants_registration = pe.Node(ants.Registration(from_file=bold_registration_json,
+                                                      output_warped_image=apply_transform), 
+                                    name='ants_registration')
+
+        if init_reg_file is not None:
+            if init_reg_file.endswith('lta'):
+                convert_to_ants = pe.Node(freesurfer.utils.LTAConvert(in_lta=init_reg_file,
+                                                                     out_itk=True), name='convert_to_itk')
+
+                epi_to_T1_workflow.connect(input_node, 'EPI_space_file', convert_to_ants, 'source_file')
+                epi_to_T1_workflow.connect(input_node, 'T1_file', convert_to_ants, 'target_file')
+                
+                epi_to_T1_workflow.connect(convert_to_ants, 'out_itk', ants_registration, 'initial_moving_transform')
+            
+            else:
+                reg.inputs.initial_moving_transform = init_reg_file
+
+
+
+        epi_to_T1_workflow.connect(input_node, 'EPI_space_file', ants_registration, 'moving_image')
+
+        if do_BET:
+            epi_to_T1_workflow.connect(bet, 'out_file', ants_registration, 'fixed_image')
+        else:
+            epi_to_T1_workflow.connect(input_node, 'T1_file', ants_registration, 'fixed_image')
+
+        epi_to_T1_workflow.connect(ants_registration, 'forward_transforms', output_node, 'EPI_T1_matrix_file')
+
+        # the final invert node
+        epi_to_T1_workflow.connect(ants_registration, 'reverse_transforms', output_node, 'T1_EPI_matrix_file')
+
+        if apply_transform:
+            epi_to_T1_workflow.connect(ants_registration, 'warped_image', output_node, 'transformed_EPI_space_file')
+
 
 
     return epi_to_T1_workflow
