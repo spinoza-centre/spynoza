@@ -12,6 +12,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
                               init_reg_file=None,
                               do_BET=False,
                               do_FAST=True,
+                              parameter_file='linear_precise.json',
                               apply_transform=False):
     """Registers session's EPI space to subject's T1 space
     uses either FLIRT or, when a FS segmentation is present, BBRegister
@@ -29,6 +30,8 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
         whether to use FSL's BET to brain-extract the T1-weighted image
     do_FAST : bool
         whether to apply FSL's FAST (segmentation into CSF/GM/WM) to T1-weighted image
+    parameter_file : string
+        file in spynoza/spynoza/data/ants_json to initialize ANTS with
     apply_transform : bool
         whether to apply the computed transofmration matrix on the input (e.g., for
         checking purposes)
@@ -156,7 +159,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
             epi_to_T1_workflow.connect(input_node, 'T1_file', bet, 'in_file')
 
         
-        bold_registration_json = pkg_resources.resource_filename('spynoza.data.ants_json', 'linear_precise.json')
+        bold_registration_json = pkg_resources.resource_filename('spynoza.data.ants_json', parameter_file)
         ants_registration = pe.Node(ants.Registration(from_file=bold_registration_json,
                                                       output_warped_image=apply_transform), 
                                     name='ants_registration')
@@ -190,7 +193,5 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
 
         if apply_transform:
             epi_to_T1_workflow.connect(ants_registration, 'warped_image', output_node, 'transformed_EPI_space_file')
-
-
 
     return epi_to_T1_workflow
