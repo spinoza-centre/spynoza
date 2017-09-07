@@ -2,7 +2,7 @@
     "dimension": 3,
     "convergence_threshold": [ 1e-08, 1e-08, -0.01 ],
     "convergence_window_size": [ 20, 20, 5 ],
-    "metric": [ "Mattes", "Mattes", [ "Mattes", "CC" ] ],
+    "metric": [ "Mattes", "CC", [ "Mattes", "CC" ] ],
     "metric_weight": [ 1, 1, [ 0.5, 0.5 ] ],
     "radius_or_number_of_bins": [ 32, 32, [ 32, 4 ] ],
     "transforms": [ "Rigid", "Affine", "SyN" ],
