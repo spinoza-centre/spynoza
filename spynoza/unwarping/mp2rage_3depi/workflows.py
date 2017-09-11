@@ -84,36 +84,45 @@ def create_3DEPI_registration_workflow(name='3d_epi_registration',
     workflow.connect(mask_T1w_EPI, 'out_file', register_t1wepi_to_t1w, 'moving_image')
     workflow.connect(inputnode, 'T1w_file', register_t1wepi_to_t1w, 'fixed_image')
 
-    merge_transforms = pe.MapNode(niu.Merge(2), iterfield=['in2'], name='merge_transforms')
+    merge_transforms = pe.MapNode(niu.Merge(2, axis='vstack'), iterfield=['in2'], name='merge_transforms')
     workflow.connect(register_t1wepi_to_t1w, 'forward_transforms', merge_transforms, 'in1')
     workflow.connect(register_bold_epi2t1_epi, 'forward_transforms', merge_transforms, 'in2')
 
     transform_mean_bold_epi = pe.MapNode(ants.ApplyTransforms(interpolation='LanczosWindowedSinc'),
-                                    iterfield=['input_image'],
+                                    iterfield=['input_image', 'transforms'],
                                     name='transform_mean_bold_epi')
 
     workflow.connect(meaner_bold, 'out_file', transform_mean_bold_epi, 'input_image')
     workflow.connect(merge_transforms, 'out', transform_mean_bold_epi, 'transforms')
     workflow.connect(inputnode, 'T1w_file', transform_mean_bold_epi, 'reference_image')
     
-    outputnode = pe.Node(niu.IdentityInterface(fields=['warpfield_T1w_epi_to_T1w',
-                                                        'warped_T1w_epi_to_T1w',
+    outputnode = pe.Node(niu.IdentityInterface(fields=['T1w_epi_to_T1w_transform',
+                                                        'T1w_epi_to_T1w_transformed',
                                                          'motion_correction_parameters',
                                                          'motion_correction_matrices',
                                                          'motion_corrected_files',
-                                                         'mean_bold']),
+                                                         'bold_epi_to_T1w_epi_transform',
+                                                         'bold_epi_to_T1w_epi_transformed',
+                                                         'bold_epi_to_T1w_transform',
+                                                         'bold_epi_to_T1w_transformed',
+                                                         'mean_bold',
+                                                         'masked_T1w_epi']),
                         name='outputnode')
     
-    workflow.connect(register_t1wepi_to_t1w, 'composite_transform', outputnode, 'warpfield_T1w_epi_to_T1w')
-    workflow.connect(register_t1wepi_to_t1w, 'warped_image', outputnode, 'warped_T1w_epi_to_T1w')
+    workflow.connect(register_t1wepi_to_t1w, 'composite_transform', outputnode, 'T1w_epi_to_T1w_transform')
+    workflow.connect(register_t1wepi_to_t1w, 'warped_image', outputnode, 'T1w_epi_to_T1w_transformed')
 
     workflow.connect(mc_bold, 'out_file', outputnode, 'motion_corrected_files')
     workflow.connect(mc_bold, 'mat_file', outputnode, 'motion_correction_matrices')
     workflow.connect(mc_bold, 'par_file', outputnode, 'motion_correction_parameters')
 
-    workflow.connect(meaner_bold, 'out_file', outputnode, 'mean_bold')
+    workflow.connect(register_bold_epi2t1_epi, 'composite_transform', outputnode, 'bold_epi_to_T1w_epi_transform')
+    workflow.connect(register_bold_epi2t1_epi, 'warped_image', outputnode, 'bold_epi_to_T1w_epi_transformed')
 
-    workflow.connect(register_bold_epi2t1_epi, 'forward_transforms', outputnode, 'bold_epi_to_T1_epi_transform')
-    workflow.connect(transform_mean_bold_epi, 'output_image', outputnode, 'bold_epi_to_T1_epi_transformed')
+    workflow.connect(merge_transforms, 'out', outputnode, 'bold_epi_to_T1w_transform')
+    workflow.connect(transform_mean_bold_epi, 'output_image', outputnode, 'bold_epi_to_T1w_transformed')
+
+    workflow.connect(meaner_bold, 'out_file', outputnode, 'mean_bold')
+    workflow.connect(mask_T1w_EPI, 'out_file', outputnode, 'masked_T1w_epi')
 
     return workflow
