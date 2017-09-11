@@ -243,6 +243,7 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
             'con_mode': con_mode,
             'featwatcher_yn': arg_dict['open_feat_html'][open_feat_html],
             'confoundevs': 1}
+
     args.update(reg_dict[registration])
 
     fsf_out = []
@@ -319,13 +320,13 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
                                                                  cname))
 
             for ii, weight in enumerate(cweights):
-                fsf_out.append('set fmri(con_orig.%i.%i) %.1f' % (i  + 1, ii + 1, float(weight)))
+                fsf_out.append('set fmri(con_orig%i.%i) %.1f' % (i  + 1, ii + 1, float(weight)))
 
             ratio_orig_real = int(n_real_evs / n_orig_evs)
             real_weights = [[w] + [0] * (ratio_orig_real - 1) for w in cweights]
             real_weights = [item for sublist in real_weights for item in sublist]
             for ii, weight in enumerate(real_weights):
-                fsf_out.append('set fmri(con_real.%i.%i) %.1f' % (i  + 1, ii + 1, float(weight)))
+                fsf_out.append('set fmri(con_real%i.%i) %.1f' % (i  + 1, ii + 1, float(weight)))
 
         for i, contrast in enumerate(f_contrasts):
 
