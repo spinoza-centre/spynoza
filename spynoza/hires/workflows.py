@@ -177,8 +177,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
             topup_wf = create_bids_topup_workflow(package=topup_package)
 
-            wf.connect(applymask_bold_epi, 'out_file', topup_wf, 'inputspec.bold_epi')
-            wf.connect(mean_bold_epis2, 'out', topup_wf, 'inputspec.epi_op')
+            wf.connect(mean_bold_epis2, 'out', topup_wf, 'inputspec.bold_epi')
+            wf.connect(mean_epi_op2, 'out', topup_wf, 'inputspec.epi_op')
             wf.connect(inputspec, 'bold_epi_metadata', topup_wf, 'inputspec.bold_epi_metadata')
             wf.connect(inputspec, 'epi_op_metadata', topup_wf, 'inputspec.epi_op_metadata')
 
