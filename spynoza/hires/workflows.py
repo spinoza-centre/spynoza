@@ -90,14 +90,14 @@ def init_hires_unwarping_wf(name="unwarp_hires",
     if bold_epi:
         inputspec.inputs.bold_epi = bold_epi
         if bids_layout:
-            inputspec.inputs.bold_epi_metadata = [layout.get_metadata(epi) for epi in bold_epi]
+            inputspec.inputs.bold_epi_metadata = [bids_layout.get_metadata(epi) for epi in bold_epi]
         
     if epi_op:
         if method == 'topup':
             inputspec.inputs.epi_op = epi_op
 
             if bids_layout:
-                inputspec.inputs.epi_op_metadata = [layout.get_metadata(epi) for epi in epi_op]
+                inputspec.inputs.epi_op_metadata = [bids_layout.get_metadata(epi) for epi in epi_op]
         else:
             raise Exception('epi_op can only be set when using TOPUP method')
         
