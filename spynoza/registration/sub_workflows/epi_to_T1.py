@@ -56,7 +56,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
     """
 
     input_node = pe.Node(IdentityInterface(
-        fields=['EPI_space_file', 'output_directory', 'freesurfer_subject_ID',
+        fields=['EPI_space_file', 'freesurfer_subject_ID',
                 'freesurfer_subject_dir', 'T1_file', 'wm_seg_file']), name='inputspec')
 
     # Idea: also output FAST outputs for later use?
