@@ -5,7 +5,7 @@ import nipype.interfaces.io as nio
 from nipype.interfaces.utility import Rename
 from nipype.interfaces.utility import IdentityInterface
 import nipype.interfaces.utility as niu
-from ..utils import EPI_file_selector, Set_postfix, Remove_extension, ComputeEPIMask
+from ..utils import Set_postfix, Remove_extension, ComputeEPIMask, epi_file_selector
 
 
 def create_motion_correction_workflow(name='moco',
@@ -68,7 +68,11 @@ def create_motion_correction_workflow(name='moco',
     # Invariant nodes
     ########################################################################################
 
-    EPI_file_selector_node = pe.Node(interface=EPI_file_selector, name='EPI_file_selector_node')
+    EPI_file_selector_node = pe.Node(interface=niu.Function(function=epi_file_selector,
+                                                             input_names=['which_file', 'in_files'],
+                                                             output_names=['out_file']), 
+                                     name='EPI_file_selector_node')
+
     mean_bold = pe.Node(interface=fsl.maths.MeanImage(dimension='T'), name='mean_space')
     rename_mean_bold = pe.Node(niu.Rename(format_string='session_EPI_space', keep_ext=True),
                                 name='rename_mean_bold')
