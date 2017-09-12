@@ -3,6 +3,8 @@ from nipype.interfaces.utility import Function
 import numpy as np
 from nipype.interfaces.base import traits, File, BaseInterface, BaseInterfaceInputSpec, TraitedSpec
 from nilearn.masking import compute_epi_mask
+from nipype.interfaces import fsl
+import nipype.interfaces.utility as niu
 
 import os
 import nibabel as nb
@@ -502,3 +504,104 @@ class Reorient(BaseInterface):
         outputs = self._outputs().get()
         outputs.update(self._results)
         return outputs
+
+
+def init_temporally_crop_run_wf(name='temporally_crop_wf',
+                                in_files=None, 
+                                templates=None, 
+                                method='last'):
+    """This workflow crops the nifti-file in in_file to give
+    it the same number of timepoints as template
+    
+        Parameters
+    ----------
+    name : string
+        name of workflow
+        
+    in_files : string
+        data to be temporally cropped
+    
+    templates : string
+        data that defines sizes
+        
+    method : string
+        Where to crop. Possible values:
+         * first
+         * middle
+         * last
+        
+    """
+    
+    wf = pe.Workflow(name=name)
+    
+    inputspec = pe.Node(niu.IdentityInterface(fields=['in_files', 'templates']),
+                    name='inputspec')
+    
+    if in_files:
+        inputspec.inputs.in_files = in_files
+    
+    if templates:
+        inputspec.inputs.templates = templates
+        
+    get_num_scans_target = pe.MapNode(Function(function=get_scaninfo,
+                                                output_names=['TR', 'shape', 'dyns', 'voxsize',
+                                      'affine']),
+                                      iterfield=['in_file'],
+                        name='get_num_scans_target')
+    
+    get_num_scans_source = pe.MapNode(Function(function=get_scaninfo,
+                                                output_names=['TR', 'shape', 'dyns', 'voxsize',
+                                      'affine']),
+                                      iterfield=['in_file'],                                      
+                        name='get_num_scans_source')
+    
+
+    
+    
+    def get_extractroi_params(n_volumes_source, 
+                              n_volumes_target,
+                              method):        
+        import numpy as np
+
+        if method == 'last':
+            t_min = np.max((n_volumes_source - n_volumes_target, 0))
+        elif method == 'middle':
+            t_min = int(n_volumes_source / 2)
+        elif method == 'first':
+            t_min = 0
+        
+
+        t_size = np.min((n_volumes_target, n_volumes_source - t_min))
+        
+        print(t_min, t_size)
+        
+        return t_min, t_size
+    
+    get_extractroi_params_node = pe.MapNode(Function(function=get_extractroi_params, 
+                                                      output_names=['t_min', 't_size']),
+                                            iterfield=['n_volumes_source', 'n_volumes_target'],
+                                        name='get_extractroi_params_node')
+    
+    get_extractroi_params_node.inputs.method = method
+    
+    wf.connect(inputspec, 'in_files', get_num_scans_source, 'in_file')    
+    wf.connect(inputspec, 'templates', get_num_scans_target, 'in_file')    
+    
+    wf.connect(get_num_scans_source, 'dyns', get_extractroi_params_node, 'n_volumes_source')
+    wf.connect(get_num_scans_target, 'dyns', get_extractroi_params_node, 'n_volumes_target')
+    
+    extract_roi = pe.MapNode(fsl.ExtractROI(), 
+                             iterfield=['in_file', 't_min', 't_size'],
+                             name='extract_roi')
+    wf.connect(get_extractroi_params_node, 't_min', extract_roi, 't_min')
+    wf.connect(get_extractroi_params_node, 't_size', extract_roi, 't_size')
+    wf.connect(inputspec, 'in_files', extract_roi, 'in_file')
+    
+    outputspec = pe.Node(niu.IdentityInterface(fields=['out_files']),
+                        name='outputspec')
+    
+    wf.connect(extract_roi, 'roi_file', outputspec, 'out_files')
+    
+    return wf
+    
+    
