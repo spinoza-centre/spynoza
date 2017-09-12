@@ -5,12 +5,13 @@ import nipype.interfaces.io as nio
 from nipype.interfaces.utility import Rename
 from nipype.interfaces.utility import IdentityInterface
 import nipype.interfaces.utility as niu
-from ..utils import EPI_file_selector, Set_postfix, Remove_extension
+from ..utils import EPI_file_selector, Set_postfix, Remove_extension, ComputeEPIMask
 
 
 def create_motion_correction_workflow(name='moco',
                                       method='AFNI',
                                       extend_moco_params=False,
+                                      output_mask=False,
                                       lightweight=False):
     """uses sub-workflows to perform different registration steps.
     Requires fsl and freesurfer tools
@@ -46,7 +47,7 @@ def create_motion_correction_workflow(name='moco',
 
     if not lightweight:
         in_fields += ['output_directory', 'sub_id', 'tr']
-
+    
     input_node = pe.Node(IdentityInterface(fields=in_fields), 
                                             name='inputspec')
 
@@ -54,8 +55,11 @@ def create_motion_correction_workflow(name='moco',
     out_fields = ['motion_corrected_files', 'EPI_space_file']
     
     if not lightweight:
-        out_fields = ['motion_correction_plots', 'motion_correction_parameters',
+        out_fields += ['motion_correction_plots', 'motion_correction_parameters',
                   'extended_motion_correction_parameters', 'new_motion_correction_parameters']
+
+    if output_mask:
+        out_fields += ['EPI_space_mask']
 
     output_node = pe.Node(IdentityInterface(fields=out_fields), 
                                             name='outputspec')
@@ -151,6 +155,7 @@ def create_motion_correction_workflow(name='moco',
         motion_correction_workflow.connect(mean_bold, 'out_file', output_node, 'EPI_space_file')
         motion_correction_workflow.connect(motion_correct_all, 'out_file', output_node, 'motion_corrected_files')
 
+
     ########################################################################################
     # Plot the estimated motion parameters
     ########################################################################################
@@ -227,6 +232,7 @@ def create_motion_correction_workflow(name='moco',
         motion_correction_workflow.connect(motion_correct_all, 'out_file', rename_volreg, 'in_file')
         motion_correction_workflow.connect(rename_volreg, 'out_file', output_node, 'motion_corrected_files')
 
+
         # datasink:
         motion_correction_workflow.connect(mean_bold, 'out_file', rename_mean_bold, 'in_file')
         motion_correction_workflow.connect(rename_mean_bold, 'out_file', datasink, 'reg')
@@ -235,6 +241,11 @@ def create_motion_correction_workflow(name='moco',
         motion_correction_workflow.connect(motion_correct_all, 'oned_file', datasink, 'mcf.parameter_info')
         motion_correction_workflow.connect(motion_correct_all, 'oned_matrix_save', datasink, 'mcf.motion_pars')
         
+    if output_mask:
+        create_bold_mask = pe.Node(ComputeEPIMask(upper_cutoff=0.8), name='create_bold_mask')
+        motion_correction_workflow.connect(motion_correct_EPI_space, 'out_file', create_bold_mask, 'in_file')
+        motion_correction_workflow.connect(create_bold_mask, 'mask_file', output_node, 'EPI_space_mask')
+
     return motion_correction_workflow
 
 
