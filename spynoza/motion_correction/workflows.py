@@ -8,7 +8,10 @@ import nipype.interfaces.utility as niu
 from ..utils import EPI_file_selector, Set_postfix, Remove_extension
 
 
-def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_params=False):
+def create_motion_correction_workflow(name='moco',
+                                      method='AFNI',
+                                      extend_moco_params=False,
+                                      lightweight=False):
     """uses sub-workflows to perform different registration steps.
     Requires fsl and freesurfer tools
     Parameters
@@ -34,21 +37,27 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
            outputspec.motion_correction_parameters : motion correction parameters
     """
 
+
+    if lightweight and (method == 'AFNI'):
+        raise NotImplementedError('lightweight workflow currently only supports FSL')
+
     ### NODES
-    input_node = pe.Node(IdentityInterface(fields=['in_files',
-                                                    'output_directory', 
-                                                    'which_file_is_EPI_space',
-                                                    'sub_id',
-                                                    'tr']), 
+    in_fields = ['in_files', 'which_file_is_EPI_space']
+
+    if not lightweight:
+        in_fields += ['output_directory', 'sub_id', 'tr']
+
+    input_node = pe.Node(IdentityInterface(fields=in_fields), 
                                             name='inputspec')
-    output_node = pe.Node(IdentityInterface(fields=([
-                                                    'motion_corrected_files',
-                                                    'EPI_space_file',
-                                                    'mask_EPI_space_file',
-                                                    'motion_correction_plots',
-                                                    'motion_correction_parameters',
-                                                    'extended_motion_correction_parameters',
-                                                    'new_motion_correction_parameters'])), 
+
+
+    out_fields = ['motion_corrected_files', 'EPI_space_file']
+    
+    if not lightweight:
+        out_fields = ['motion_correction_plots', 'motion_correction_parameters',
+                  'extended_motion_correction_parameters', 'new_motion_correction_parameters']
+
+    output_node = pe.Node(IdentityInterface(fields=out_fields), 
                                             name='outputspec')
 
     ########################################################################################
@@ -73,14 +82,16 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
     ########################################################################################
     # outputs via datasink
     ########################################################################################
-    datasink = pe.Node(nio.DataSink(), name='sinker')
-    datasink.inputs.parameterization = False
 
-    # first link the workflow's output_directory into the datasink.
-    motion_correction_workflow.connect(input_node, 'output_directory', datasink,
-                                       'base_directory')
-    motion_correction_workflow.connect(input_node, 'sub_id', datasink,
-                                       'container')
+    if not lightweight:
+        datasink = pe.Node(nio.DataSink(), name='sinker')
+        datasink.inputs.parameterization = False
+
+        # first link the workflow's output_directory into the datasink.
+        motion_correction_workflow.connect(input_node, 'output_directory', datasink,
+                                           'base_directory')
+        motion_correction_workflow.connect(input_node, 'sub_id', datasink,
+                                           'container')
 
     ########################################################################################
     # FSL MCFlirt
@@ -93,13 +104,14 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
 
     if method == 'FSL':
 
-        rename_motion_files = pe.MapNode(niu.Rename(keep_ext=False),
-                                         name='rename_motion_files',
-                                         iterfield=['in_file', 'format_string'])
+        if not lightweight:
+            rename_motion_files = pe.MapNode(niu.Rename(keep_ext=False),
+                                             name='rename_motion_files',
+                                             iterfield=['in_file', 'format_string'])
 
-        remove_niigz_ext = pe.MapNode(interface=Remove_extension,
-                                      name='remove_niigz_ext',
-                                      iterfield=['in_file'])
+            remove_niigz_ext = pe.MapNode(interface=Remove_extension,
+                                          name='remove_niigz_ext',
+                                          iterfield=['in_file'])
 
         motion_correct_EPI_space = pe.Node(interface=fsl.MCFLIRT(
             cost='normcorr',
@@ -115,16 +127,17 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
                                         name='motion_correct_all',
                                         iterfield=['in_file'])
 
-        plot_motion = pe.MapNode(
-            interface=fsl.PlotMotionParams(in_source='fsl'),
-            name='plot_motion',
-            iterfield=['in_file'])
+        if not lightweight:
+            plot_motion = pe.MapNode(
+                interface=fsl.PlotMotionParams(in_source='fsl'),
+                name='plot_motion',
+                iterfield=['in_file'])
 
-        if extend_moco_params:
-            # make extend_motion_pars node here
-            # extend_motion_pars = pe.MapNode(Function(input_names=['moco_par_file', 'tr'], output_names=['new_out_file', 'ext_out_file'],
-            # function=_extend_motion_parameters), name='extend_motion_pars', iterfield = ['moco_par_file'])
-            pass
+            if extend_moco_params:
+                # make extend_motion_pars node here
+                # extend_motion_pars = pe.MapNode(Function(input_names=['moco_par_file', 'tr'], output_names=['new_out_file', 'ext_out_file'],
+                # function=_extend_motion_parameters), name='extend_motion_pars', iterfield = ['moco_par_file'])
+                pass
         
         # create reference:
         motion_correction_workflow.connect(EPI_file_selector_node, 'out_file', motion_correct_EPI_space, 'in_file')
@@ -133,16 +146,16 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
 
         # motion correction across runs
         motion_correction_workflow.connect(input_node, 'in_files', motion_correct_all, 'in_file')
-        #motion_correction_workflow.connect(motion_correct_all, 'out_file', output_node, 'motion_corrected_files')
-        # motion_correction_workflow.connect(motion_correct_all, 'par_file', extend_motion_pars, 'moco_par_file')
-        # motion_correction_workflow.connect(input_node, 'tr', extend_motion_pars, 'tr')
-        # motion_correction_workflow.connect(extend_motion_pars, 'ext_out_file', output_node, 'extended_motion_correction_parameters')
-        # motion_correction_workflow.connect(extend_motion_pars, 'new_out_file', output_node, 'new_motion_correction_parameters')
 
-        ########################################################################################
-        # Plot the estimated motion parameters
-        ########################################################################################
+        # output node:
+        motion_correction_workflow.connect(mean_bold, 'out_file', output_node, 'EPI_space_file')
+        motion_correction_workflow.connect(motion_correct_all, 'out_file', output_node, 'motion_corrected_files')
 
+    ########################################################################################
+    # Plot the estimated motion parameters
+    ########################################################################################
+
+    if not lightweight:
         # rename:
         motion_correction_workflow.connect(mean_bold, 'out_file', rename_mean_bold, 'in_file')
         motion_correction_workflow.connect(motion_correct_all, 'par_file', rename_motion_files, 'in_file')
@@ -153,19 +166,14 @@ def create_motion_correction_workflow(name='moco', method='AFNI', extend_moco_pa
         plot_motion.iterables = ('plot_type', ['rotations', 'translations'])
         motion_correction_workflow.connect(rename_motion_files, 'out_file', plot_motion, 'in_file')
         motion_correction_workflow.connect(plot_motion, 'out_file', output_node, 'motion_correction_plots')
-        
-        # output node:
-        motion_correction_workflow.connect(mean_bold, 'out_file', output_node, 'EPI_space_file')
+    
         motion_correction_workflow.connect(rename_motion_files, 'out_file', output_node, 'motion_correction_parameters')
-        motion_correction_workflow.connect(motion_correct_all, 'out_file', output_node, 'motion_corrected_files')
-        
+    
         # datasink:
         motion_correction_workflow.connect(rename_mean_bold, 'out_file', datasink, 'reg')
         motion_correction_workflow.connect(motion_correct_all, 'out_file', datasink, 'mcf')
         motion_correction_workflow.connect(rename_motion_files, 'out_file', datasink, 'mcf.motion_pars')
         motion_correction_workflow.connect(plot_motion, 'out_file', datasink, 'mcf.motion_plots')
-        # motion_correction_workflow.connect(extend_motion_pars, 'ext_out_file', datasink, 'mcf.ext_motion_pars')
-        # motion_correction_workflow.connect(extend_motion_pars, 'new_out_file', datasink, 'mcf.new_motion_pars')
         
     ########################################################################################
     # AFNI 3DVolReg
