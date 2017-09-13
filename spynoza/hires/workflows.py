@@ -20,6 +20,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                             bold_epi=None,
                             epi_op=None,
                             t1w_epi=None,
+                            t1w=None,
                             crop_bold_epis=True,
                             topup_package='afni',
                             polish=True):
@@ -106,6 +107,9 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             inputspec.inputs.t1w_epi = t1w_epi
         else:
             raise Exception('t1w_epi can only be set when using T1w_EPI method')
+
+    if t1w:
+        inputspec.inputs.T1w = t1w
 
             
     
