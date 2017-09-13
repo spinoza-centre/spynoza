@@ -12,13 +12,10 @@ def topup_scan_params(bold_epi_metadata, epi_op_metadata, mode='concatenate'):
     import numpy as np
     import os
     
-    n_bold_epi_volumes = bold_metadata['NDynamics']
-    n_epi_volumes = epi_op_metadata['NDynamics']
+    bold_epi_total_readouttime = bold_epi_metadata['TotalReadoutTime']
+    epi_op_total_readouttime = epi_op_metadata['TotalReadoutTime']
     
-    bold_epi_total_readouttime = bold_metadata['TotalReadoutTime']
-    epi_total_readouttime = epi_op_metadata['TotalReadoutTime']
-    
-    bold_epi_phaseEncodingDirection = bold_metadata['PhaseEncodingDirection']
+    bold_epi_phaseEncodingDirection = bold_epi_metadata['PhaseEncodingDirection']
     epi_phaseEncodingDirection = epi_op_metadata['PhaseEncodingDirection']
     
     if type(bold_epi_phaseEncodingDirection) is str:
@@ -28,8 +25,7 @@ def topup_scan_params(bold_epi_metadata, epi_op_metadata, mode='concatenate'):
         epi_phaseEncodingDirection = [epi_phaseEncodingDirection]
     
     if mode == 'concatenate':
-        bold_epi_idx = n_bold_volumes
-        scan_param_array = np.zeros((n_bold_epi_volumes + n_epi_volumes, 4))
+        raise NotImplementedError()
     elif mode == 'average':
         bold_epi_idx = 1
         scan_param_array = np.zeros((2, 4))
@@ -51,8 +47,8 @@ def topup_scan_params(bold_epi_metadata, epi_op_metadata, mode='concatenate'):
     # Vectors should be unity length
     scan_param_array[:, :3] /= np.sqrt((scan_param_array[:, :3]**2).sum(1))[:, np.newaxis]
     
-    scan_param_array[:bold_epi_idx, 3] = bold_total_readouttime
-    scan_param_array[bold_epi_idx:, 3] = epi_total_readouttime
+    scan_param_array[:bold_epi_idx, 3] = bold_epi_total_readouttime
+    scan_param_array[bold_epi_idx:, 3] = epi_op_total_readouttime
                 
 
     fn = os.path.abspath('scan_params.txt')
