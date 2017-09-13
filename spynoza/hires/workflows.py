@@ -2,7 +2,7 @@ import nipype.pipeline.engine as pe
 import nipype.interfaces.utility as niu
 from nipype.interfaces import fsl, ants
 
-from ..utils import EPI_file_selector, average_over_runs, get_scaninfo, init_temporally_crop_run_wf
+from ..utils import EPI_file_selector, average_over_runs, get_scaninfo, init_temporally_crop_run_wf, pickfirst
 from ..motion_correction.workflows import create_motion_correction_workflow
 from ..unwarping.topup.workflows import create_bids_topup_workflow
 from ..registration.sub_workflows import create_epi_to_T1_workflow
@@ -183,8 +183,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
             wf.connect(mean_bold_epis2, 'out', topup_wf, 'inputspec.bold_epi')
             wf.connect(applymask_epi_op, 'out_file', topup_wf, 'inputspec.epi_op')
-            wf.connect(inputspec, 'bold_epi_metadata', topup_wf, 'inputspec.bold_epi_metadata')
-            wf.connect(inputspec, 'epi_op_metadata', topup_wf, 'inputspec.epi_op_metadata')
+            wf.connect(inputspec, ('bold_epi_metadata', pickfirst), topup_wf, 'inputspec.bold_epi_metadata')
+            wf.connect(inputspec, ('epi_op_metadata', pickfirst), topup_wf, 'inputspec.epi_op_metadata')
 
             registration_wf = create_epi_to_T1_workflow(package='ants',
                                                         parameter_file=linear_registration_parameters,
