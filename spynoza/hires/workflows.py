@@ -4,11 +4,8 @@ from nipype.interfaces import fsl, ants, afni
 from nipype.interfaces.base import isdefined
 import pkg_resources
 
-<<<<<<< HEAD
-from ..utils import average_over_runs, get_scaninfo, init_temporally_crop_run_wf, set_postfix, pickfirst
-=======
 from ..utils import EPI_file_selector, average_over_runs, get_scaninfo, init_temporally_crop_run_wf, pickfirst
->>>>>>> 54e479f7deeb0fa6cb277233fc5889a0016a5674
+
 from ..motion_correction.workflows import create_motion_correction_workflow
 from ..unwarping.topup.workflows import create_bids_topup_workflow
 from ..registration.sub_workflows import create_epi_to_T1_workflow
