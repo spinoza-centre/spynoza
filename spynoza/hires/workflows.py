@@ -400,6 +400,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                                                    name='add_polish_transforms')
 
                 wf.connect(polish_wf, 'outputspec.transforms', add_polish_transforms, 'in1')
+                wf.connect(merge_bold_epi_to_T1w, 'out', add_polish_transforms, 'in2')
 
                 polished_transformer = pe.MapNode(ants.ApplyTransforms(dimension=3,
                                                                 float=True,
