@@ -313,7 +313,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             
                 applymask_bold_epi = pe.Node(fsl.ApplyMask(),
                                                 name="applymask_bold_epi")
-                run_wf.connect(mean_bold_epi1, 'out_file', applymask_bold_epi, 'in_file') 
+                run_wf.connect(mean_bold_epi1, ('out_file', pickfirst), applymask_bold_epi, 'in_file') 
                 run_wf.connect(mc_wf_bold_epi, 'outputspec.EPI_space_mask', applymask_bold_epi, 'mask_file') 
 
                 applymask_epi_op = pe.Node(fsl.ApplyMask(), name="applymask_epi_op")
@@ -348,21 +348,23 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
                 run_wf.connect(topup_wf, 'outputspec.bold_epi_corrected', registration_wf, 'inputspec.EPI_space_file')
                 wf.connect(inputspec, 'T1w', run_wf, 'epi_to_T1.inputspec.T1_file')
+                    
+                ix1 = ix + 1
 
                 wf.connect(run_wf, 'bids_topup_workflow.outputspec.bold_epi_unwarp_field', \
-                           merge_topup_corrections_runs, 'in%s' % ix)
+                           merge_topup_corrections_runs, 'in%s' % ix1)
 
                 wf.connect(run_wf, 'epi_to_T1.outputspec.EPI_T1_matrix_file', \
-                           merge_epi_to_T1w_transforms_runs, 'in%s' % ix)
+                           merge_epi_to_T1w_transforms_runs, 'in%s' % ix1)
 
                 wf.connect(run_wf, 'applymask_bold_epi.out_file', \
-                           merge_mean_epis, 'in%s' % ix)
+                           merge_mean_epis, 'in%s' % ix1)
 
                 wf.connect(run_wf, 'mc_wf_bold_epi.outputspec.motion_corrected_files', \
-                           merge_mc_epis, 'in%s' % ix)
+                           merge_mc_epis, 'in%s' % ix1)
 
                 wf.connect(run_wf, 'mc_wf_bold_epi.outputspec.EPI_space_mask', \
-                           merge_epi_masks, 'in%s' % ix)
+                           merge_epi_masks, 'in%s' % ix1)
 
 
             merge_bold_epi_to_T1w = pe.MapNode(niu.Merge(2),
@@ -414,7 +416,6 @@ def init_hires_unwarping_wf(name="unwarp_hires",
         wf.connect(t1w_epi_wf, 'outputspec.bold_epi_mean',  pre_outputnode, 'bold_epi_mean')
         wf.connect(t1w_epi_wf, 'outputspec.bold_epi_to_T1w_transforms', pre_outputnode, 'bold_epi_to_T1w_transforms')
         wf.connect(t1w_epi_wf, 'outputspec.bold_epi_to_T1w_transformed', pre_outputnode, 'mean_epi_in_T1w_space')
-
 
 
     outputspec = pe.Node(niu.IdentityInterface(fields=out_fields),
@@ -474,7 +475,9 @@ def create_within_epi_reg_EPI_registrations_wf(method='best-run',
                                           initial_transforms=None,
                                           linear_registration_parameters='linear_hires.json'):
     """ Given a set of EPI runs registered to a
-    T1w-image. Register the EPI runs to each other, to maximize overlap"""
+    T1w-image. Register the EPI runs to each other, to maximize overlap.
+    The EPI that has the highest Mutual Information with the T1-weighted image is
+    """
     import numpy as np
 
     if method != 'best-run':
