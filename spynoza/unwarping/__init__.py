@@ -1,1 +1,1 @@
-from . import b0, topup, mp2rage_3depi
+from . import b0, topup, t1w_epi
