@@ -81,48 +81,53 @@ def create_t1w_epi_registration_workflow(name='3d_epi_registration',
             reg.inputs.initial_moving_transform = init_reg_file
 
     else:
-        register_t1wepi_to_t1w = pe.Node(ants.Registration(from_file=json), name='register_t1wepi_to_t1w')        
+        register_t1wepi_to_t1w = pe.Node(ants.Registration(from_file=t1w_registration_json), name='register_t1wepi_to_t1w')        
     
     workflow.connect(mask_T1w_EPI, 'out_file', register_t1wepi_to_t1w, 'moving_image')
     workflow.connect(inputspec, 'T1w', register_t1wepi_to_t1w, 'fixed_image')
 
     merge_transforms = pe.MapNode(niu.Merge(2, axis='vstack'), iterfield=['in2'], name='merge_transforms')
-    workflow.connect(register_t1wepi_to_t1w, 'forward_transforms', merge_transforms, 'in1')
-    workflow.connect(register_bold_epi2t1_epi, 'forward_transforms', merge_transforms, 'in2')
+    workflow.connect(register_bold_epi2t1_epi, 'forward_transforms', merge_transforms, 'in1')
+    workflow.connect(register_t1wepi_to_t1w, ('forward_transforms', reverse), merge_transforms, 'in2')
 
     transform_mean_bold_epi = pe.MapNode(ants.ApplyTransforms(interpolation='LanczosWindowedSinc'),
                                     iterfield=['input_image', 'transforms'],
                                     name='transform_mean_bold_epi')
 
     workflow.connect(meaner_bold, 'out_file', transform_mean_bold_epi, 'input_image')
-    workflow.connect(merge_transforms, 'out', transform_mean_bold_epi, 'transforms')
+    workflow.connect(merge_transforms, ('out', reverse), transform_mean_bold_epi, 'transforms')
     workflow.connect(inputspec, 'T1w', transform_mean_bold_epi, 'reference_image')
     
     outputspec = pe.Node(niu.IdentityInterface(fields=['T1w_epi_to_T1w_transform',
                                                         'T1w_epi_to_T1w_transformed',
                                                          'motion_correction_parameters',
-                                                         'motion_corrected_files',
+                                                         'bold_epi_mc',
+                                                         'bold_epi_mask',
                                                          'bold_epi_to_T1w_epi_transform',
                                                          'bold_epi_to_T1w_epi_transformed',
-                                                         'bold_epi_to_T1w_transform',
+                                                         'bold_epi_to_T1w_transforms',
                                                          'bold_epi_to_T1w_transformed',
-                                                         'mean_bold',
+                                                         'bold_epi_mean',
                                                          'masked_T1w_epi']),
                         name='outputspec')
     
-    workflow.connect(register_t1wepi_to_t1w, 'composite_transform', outputspec, 'T1w_epi_to_T1w_transform')
+    workflow.connect(register_t1wepi_to_t1w, 'forward_transforms', outputspec, 'T1w_epi_to_T1w_transform')
     workflow.connect(register_t1wepi_to_t1w, 'warped_image', outputspec, 'T1w_epi_to_T1w_transformed')
 
     workflow.connect(mc_bold, 'mat_file', outputspec, 'motion_correction_matrices')
-    workflow.connect(mc_bold, 'out_file', outputspec, 'motion_corrected_files')
+    workflow.connect(mc_bold, 'out_file', outputspec, 'bold_epi_mc')
+    workflow.connect(mask_bold_epi, 'out_file', outputspec, 'bold_epi_mask')
+    workflow.connect(meaner_bold, 'out_file', outputspec, 'bold_epi_mean')
 
-    workflow.connect(register_bold_epi2t1_epi, 'composite_transform', outputspec, 'bold_epi_to_T1w_epi_transform')
+    workflow.connect(register_bold_epi2t1_epi, 'forward_transforms', outputspec, 'bold_epi_to_T1w_epi_transform')
     workflow.connect(register_bold_epi2t1_epi, 'warped_image', outputspec, 'bold_epi_to_T1w_epi_transformed')
 
-    workflow.connect(merge_transforms, 'out', outputspec, 'bold_epi_to_T1w_transform')
+    workflow.connect(merge_transforms, 'out', outputspec, 'bold_epi_to_T1w_transforms')
     workflow.connect(transform_mean_bold_epi, 'output_image', outputspec, 'bold_epi_to_T1w_transformed')
 
-    workflow.connect(meaner_bold, 'out_file', outputspec, 'mean_bold')
     workflow.connect(mask_T1w_EPI, 'out_file', outputspec, 'masked_T1w_epi')
 
     return workflow
+
+def reverse(in_values):
+    return in_values[::-1]
