@@ -8,6 +8,7 @@ from ..utils import EPI_file_selector, average_over_runs, get_scaninfo, init_tem
 
 from ..motion_correction.workflows import create_motion_correction_workflow
 from ..unwarping.topup.workflows import create_bids_topup_workflow
+from ..unwarping.t1w_epi.workflows import create_t1w_epi_registration_workflow
 from ..registration.sub_workflows import create_epi_to_T1_workflow
 
 from spynoza.io.bids import collect_data
@@ -24,9 +25,10 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                             epi_op=None,
                             t1w_epi=None,
                             t1w=None,
-                            t1w_mask=None,
+                            inv2_epi=None,
                             crop_bold_epis=True,
                             topup_package='afni',
+                            within_epi_reg=True,
                             polish=True):
     
     """ Use an EPI with opposite phase-encoding (EPI_op) or a 
@@ -49,7 +51,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
     method : string
         which method is used to unwarp the bold EPI Possible values are:
          * topup:          Unwarp BOLD EPI runs using EPI_op and TOPUP algorithm.
-         * T1w_epi:        Use a T1-weighted image with similar distortions as the 
+         * t1w_epi:        Use a T1-weighted image with similar distortions as the 
                            bold EPI.
     single_warpfield : bool
         Whether to make one warpfield for every run separately, or to make only one
@@ -62,7 +64,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
         Which parameter to use for linear registration (see file in spynoza/data/ants_json)
     nonlinear_registration_parameters : string
         Which parameter to use for linear registration (see file in spynoza/data/ants_json)        
-    polish : bool
+    within_epi_reg : bool
         Determines whether bold EPIs are linearly registered to the best-fitting bold EPI
         in T1w-space at the end of the pipeline (reccomended).         
     bold_epi : list:
@@ -86,8 +88,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
         fields += ['epi_op',
                    'bold_epi_metadata',
                    'epi_op_metadata']
-    elif method == 'T1w_epi':
-        fields += ['T1w_epi']
+    elif method == 't1w_epi':
+        fields += ['T1w_epi', 'inv2_epi']
     
     inputspec = pe.Node(niu.IdentityInterface(fields=fields),
                         name='inputspec')
@@ -107,15 +109,29 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             raise Exception('epi_op can only be set when using TOPUP method')
         
     if t1w_epi:
-        if method == 'T1w_epi':
-            inputspec.inputs.t1w_epi = t1w_epi
+        if method == 't1w_epi':
+            inputspec.inputs.T1w_epi = t1w_epi
         else:
-            raise Exception('t1w_epi can only be set when using T1w_EPI method')
+            raise Exception('t1w_epi can only be set when using t1w_epi method')
+
+    if inv2_epi:
+        if method == 't1w_epi':
+            inputspec.inputs.inv2_epi = inv2_epi
+        else:
+            raise Exception('inv2_epi can only be set when using t1w_epi method')
 
     if t1w:
         inputspec.inputs.T1w = t1w
 
             
+    out_fields = ['bold_epi_mc',
+                  'bold_epi_mask',
+                  'bold_epi_mean',
+                  'bold_epi_to_T1w_transforms',
+                  'mean_epi_in_T1w_space']
+    
+    pre_outputnode = pe.Node(niu.IdentityInterface(fields=out_fields),
+                             name='pre_outputnode')
     
     #  *** TOPUP ***
     if method == 'topup':
@@ -123,9 +139,9 @@ def init_hires_unwarping_wf(name="unwarp_hires",
         # *** only ONE warpfield ***
         if single_warpfield:
 
-            if polish:
+            if within_epi_reg:
                 raise Exception('When using a single warpfield for \
-                                all BOLD runs, there is little use for polishing, right?')
+                                all BOLD runs, there is little use for within_epi_reging, right?')
             
             mc_wf_bold_epi = create_motion_correction_workflow(name='mc_wf_bold_epi',
                                                                output_mask=True,
@@ -202,8 +218,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             wf.connect(inputspec, 'T1w', registration_wf, 'inputspec.T1_file')
             
             merge_bold_epi_to_T1w = pe.Node(niu.Merge(2), name='merge_bold_epi_to_T1w')
-            wf.connect(registration_wf, 'outputspec.EPI_T1_matrix_file', merge_bold_epi_to_T1w, 'in1')
-            wf.connect(topup_wf, 'outputspec.bold_epi_unwarp_field', merge_bold_epi_to_T1w, 'in2')
+            wf.connect(topup_wf, 'outputspec.bold_epi_unwarp_field', merge_bold_epi_to_T1w, 'in1')
+            wf.connect(registration_wf, 'outputspec.EPI_T1_matrix_file', merge_bold_epi_to_T1w, 'in2')
 
             transform_epi_to_T1w = pe.MapNode(ants.ApplyTransforms(dimension=3,
                                                                 float=True,
@@ -213,22 +229,19 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
             wf.connect(applymask_bold_epi, 'out_file', transform_epi_to_T1w, 'input_image')
             wf.connect(inputspec, 'T1w', transform_epi_to_T1w, 'reference_image')
-            wf.connect(merge_bold_epi_to_T1w, 'out', transform_epi_to_T1w, 'transforms')
-
-            out_fields = ['bold_epi_mc', 'bold_epi_mask', 'bold_epi_to_T1w_transforms', 'T1w_to_bold_epi_transforms', 'mean_epi_in_T1w_space']
-            outputspec = pe.Node(niu.IdentityInterface(fields=out_fields),
-                                 name='outputspec')
+            wf.connect(merge_bold_epi_to_T1w, ('out', reverse), transform_epi_to_T1w, 'transforms')
 
             make_list_of_transforms = pe.Node(niu.Function(function=_make_list_from_element),
                                               name='make_list_of_transforms')
 
-            wf.connect(mc_wf_bold_epi, 'outputspec.motion_corrected_files', outputspec, 'bold_epi_mc')
-            wf.connect(mc_wf_bold_epi, 'outputspec.EPI_space_mask', outputspec, 'bold_epi_mask')
             wf.connect(merge_bold_epi_to_T1w, 'out', make_list_of_transforms, 'element')
             wf.connect(mc_wf_bold_epi, 'outputspec.motion_corrected_files', make_list_of_transforms, 'template_list')
 
-            wf.connect(make_list_of_transforms, 'out', outputspec, 'bold_epi_to_T1w_transforms')
-            wf.connect(transform_epi_to_T1w, 'output_image', outputspec, 'mean_epi_in_T1w_space')
+            wf.connect(mc_wf_bold_epi, 'outputspec.motion_corrected_files', pre_outputnode, 'bold_epi_mc')
+            wf.connect(mc_wf_bold_epi, 'outputspec.EPI_space_mask', pre_outputnode, 'bold_epi_mask')
+            wf.connect(mean_bold_epis1, 'out_file', pre_outputnode, 'bold_epi_mean')
+            wf.connect(make_list_of_transforms, 'out', pre_outputnode, 'bold_epi_to_T1w_transforms')
+            wf.connect(transform_epi_to_T1w, 'output_image', pre_outputnode, 'mean_epi_in_T1w_space')
 
         # SEPERATE warpfields for each run
         else:
@@ -357,12 +370,12 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             merge_bold_epi_to_T1w = pe.MapNode(niu.Merge(2),
                                                iterfield=['in1', 'in2'],
                                                name='merge_bold_epi_to_T1w')
-            transform_epi_to_T1w_no_polish = pe.MapNode(ants.ApplyTransforms(dimension=3,
+            transform_epi_to_T1w_no_within_epi_reg = pe.MapNode(ants.ApplyTransforms(dimension=3,
                                                                 float=True,
                                                                 interpolation='LanczosWindowedSinc'),
                                               iterfield=['input_image',
                                                          'transforms'],
-                                              name='transform_epi_to_T1w_no_polish')
+                                              name='transform_epi_to_T1w_no_within_epi_reg')
             
             wf.connect(merge_epi_to_T1w_transforms_runs, 'out', merge_bold_epi_to_T1w, 'in1')
             wf.connect(merge_topup_corrections_runs, 'out', merge_bold_epi_to_T1w, 'in2')
@@ -377,56 +390,90 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             wf.connect(inputspec, 'T1w', transform_epi_to_T1w, 'reference_image')
             wf.connect(merge_bold_epi_to_T1w, 'out', transform_epi_to_T1w, 'transforms')
 
-            out_fields = ['bold_epi_mc',
-                          'bold_epi_mask',
-                          'bold_epi_to_T1w_transforms',
-                          'mean_epi_in_T1w_space']
 
-            outputspec = pe.Node(niu.IdentityInterface(fields=out_fields),
-                                 name='outputspec')
+            wf.connect(merge_mc_epis, 'out', pre_outputnode, 'bold_epi_mc')
+            wf.connect(merge_epi_masks, 'out', pre_outputnode, 'bold_epi_mask')
+            wf.connect(merge_mean_epis, 'out', pre_outputnode, 'bold_epi_mean')
+            wf.connect(merge_bold_epi_to_T1w, 'out', pre_outputnode, 'bold_epi_to_T1w_transforms')
+            wf.connect(transform_epi_to_T1w, 'output_image', pre_outputnode, 'mean_epi_in_T1w_space')
 
-            wf.connect(merge_mc_epis, 'out', outputspec, 'bold_epi_mc')
-            wf.connect(merge_epi_masks, 'out', outputspec, 'bold_epi_mask')
-
-            if polish:
-                polish_wf = create_polish_EPI_registrations_wf()
-
-                wf.connect(inputspec, 'T1w', polish_wf, 'inputspec.T1w')
-                wf.connect(transform_epi_to_T1w, 'output_image', polish_wf, 'inputspec.EPI_runs')
+    
+    elif method == 't1w_epi':
 
 
-                add_polish_transforms = pe.MapNode(niu.Merge(2),
-                                                   iterfield=['in1', 'in2'],
-                                                   name='add_polish_transforms')
+        t1w_epi_wf = create_t1w_epi_registration_workflow(linear_registration_parameters=linear_registration_parameters,
+                                                          nonlinear_registration_parameters=nonlinear_registration_parameters,
+                                                          init_reg_file=init_reg_file)
 
-                wf.connect(polish_wf, 'outputspec.transforms', add_polish_transforms, 'in1')
-                wf.connect(merge_bold_epi_to_T1w, 'out', add_polish_transforms, 'in2')
+        wf.connect(inputspec, 'inv2_epi',  t1w_epi_wf, 'inputspec.INV2_epi')
+        wf.connect(inputspec, 'T1w',  t1w_epi_wf, 'inputspec.T1w')
+        wf.connect(inputspec, 'T1w_epi',  t1w_epi_wf, 'inputspec.T1w_epi')
+        wf.connect(inputspec, 'bold_epi',  t1w_epi_wf, 'inputspec.bold_epi')
+        
 
-                polished_transformer = pe.MapNode(ants.ApplyTransforms(dimension=3,
-                                                                float=True,
-                                                                interpolation='LanczosWindowedSinc'),
-                                              iterfield=['input_image', 'transforms'],
-                                              name='polished_transformer')
-
-                wf.connect(merge_mean_epis, 'out', polished_transformer, 'input_image')
-                wf.connect(inputspec, 'T1w', polished_transformer, 'reference_image')
-                wf.connect(add_polish_transforms, 'out', polished_transformer, 'transforms')
-
-                wf.connect(add_polish_transforms, 'out', outputspec, 'bold_epi_to_T1w_transforms')
-                wf.connect(polished_transformer, 'output_image', outputspec, 'mean_epi_in_T1w_space')
-
-            else:
-                wf.connect(merge_bold_epi_to_T1w, 'out', outputspec, 'bold_epi_to_T1w_transforms')
-                wf.connect(transform_epi_to_T1w, 'output_image', outputspec, 'mean_epi_in_T1w_space')
+        wf.connect(t1w_epi_wf, 'outputspec.bold_epi_mc',  pre_outputnode, 'bold_epi_mc')
+        wf.connect(t1w_epi_wf, 'outputspec.bold_epi_mask',  pre_outputnode, 'bold_epi_mask')
+        wf.connect(t1w_epi_wf, 'outputspec.bold_epi_mean',  pre_outputnode, 'bold_epi_mean')
+        wf.connect(t1w_epi_wf, 'outputspec.bold_epi_to_T1w_transforms', pre_outputnode, 'bold_epi_to_T1w_transforms')
+        wf.connect(t1w_epi_wf, 'outputspec.bold_epi_to_T1w_transformed', pre_outputnode, 'mean_epi_in_T1w_space')
 
 
+    outputspec = pe.Node(niu.IdentityInterface(fields=out_fields),
+                         name='outputspec')
 
+    wf.connect(pre_outputnode, 'bold_epi_mc', outputspec, 'bold_epi_mc')
+    wf.connect(pre_outputnode, 'bold_epi_mean', outputspec, 'bold_epi_mean')
+    wf.connect(pre_outputnode, 'bold_epi_mask', outputspec, 'bold_epi_mask')
+
+    if within_epi_reg or polish:
+
+        pre_outputnode2 = pe.Node(niu.IdentityInterface(fields=['bold_epi_to_T1w_transforms', 'mean_epi_in_T1w_space']),
+                               name='pre_outputnode2')
+
+        pre_outputnode3 = pe.Node(niu.IdentityInterface(fields=['bold_epi_to_T1w_transforms', 'mean_epi_in_T1w_space']),
+                               name='pre_outputnode3')
+
+        if within_epi_reg:
+            within_epi_reg_wf = create_within_epi_reg_EPI_registrations_wf(initial_transforms=True)
+
+            wf.connect(inputspec, 'T1w', within_epi_reg_wf, 'inputspec.T1w')
+            wf.connect(pre_outputnode, 'bold_epi_mean', within_epi_reg_wf, 'inputspec.bold_epi')
+            wf.connect(pre_outputnode, 'bold_epi_to_T1w_transforms', within_epi_reg_wf, 'inputspec.initial_transforms')
+
+            wf.connect(within_epi_reg_wf, 'outputspec.bold_epi_to_T1w_transforms', pre_outputnode2, 'bold_epi_to_T1w_transforms')
+            wf.connect(within_epi_reg_wf, 'outputspec.mean_epi_in_T1w_space', pre_outputnode2, 'mean_epi_in_T1w_space')
+
+        else:
+            wf.connect(pre_outputnode, 'outputspec.bold_epi_to_T1w_transforms', pre_outputnode2, 'bold_epi_to_T1w_transforms')
+            wf.connect(pre_outputnode, 'outputspec.mean_epi_in_T1w_space', pre_outputnode2, 'mean_epi_in_T1w_space')
+        
+        if polish:
+            polish_wf = polish_bold_epi_runs_in_T1w_space()
+
+            wf.connect(inputspec, 'T1w', polish_wf, 'inputspec.T1w')
+            wf.connect(pre_outputnode, 'bold_epi_mean', polish_wf, 'inputspec.bold_epi')
+            wf.connect(pre_outputnode2, 'bold_epi_to_T1w_transforms', polish_wf, 'inputspec.initial_transforms')
+
+            wf.connect(polish_wf, 'outputspec.bold_epi_to_T1w_transforms', pre_outputnode3, 'bold_epi_to_T1w_transforms')
+            wf.connect(polish_wf, 'outputspec.mean_epi_in_T1w_space', pre_outputnode3, 'mean_epi_in_T1w_space')
+        else:
+            wf.connect(pre_outputnode2, 'bold_epi_to_T1w_transforms', pre_outputnode3, 'bold_epi_to_T1w_transforms')
+            wf.connect(pre_outputnode2, 'mean_epi_in_T1w_space', pre_outputnode3, 'mean_epi_in_T1w_space')
+
+        wf.connect(pre_outputnode3, 'bold_epi_to_T1w_transforms', outputspec, 'bold_epi_to_T1w_transforms')
+        wf.connect(pre_outputnode3, 'mean_epi_in_T1w_space', outputspec, 'mean_epi_in_T1w_space')
+
+    else:
+        for field in out_fields[3:]:
+            wf.connect(pre_outputnode, field, outputspec, field)
             
     return wf
 
-def create_polish_EPI_registrations_wf(method='best-run',
-                                       apply_transform=False,
-                                       linear_registration_parameters='linear_hires.json'):
+def create_within_epi_reg_EPI_registrations_wf(method='best-run',
+                                          epi_runs=None,
+                                          apply_transform=False,
+                                          initial_transforms=None,
+                                          linear_registration_parameters='linear_hires.json'):
     """ Given a set of EPI runs registered to a
     T1w-image. Register the EPI runs to each other, to maximize overlap.
     The EPI that has the highest Mutual Information with the T1-weighted image is
@@ -435,13 +482,16 @@ def create_polish_EPI_registrations_wf(method='best-run',
 
     if method != 'best-run':
         raise NotImplementedError('Nope.')
+    
+    in_fields = ['bold_epi', 'T1w', 'initial_transforms']
 
-    fields = ['EPI_runs', 'T1w']
-
-    inputspec = pe.Node(niu.IdentityInterface(fields=fields),
+    inputspec = pe.Node(niu.IdentityInterface(fields=in_fields),
                         name='inputspec')
 
-    wf = pe.Workflow(name='polish_registration')
+    if epi_runs:
+        inputspec.inputs.bold_epi = epi_runs
+
+    wf = pe.Workflow(name='within_epi_reg_registration')
 
     mean_epis = pe.Node(niu.Function(function=average_over_runs),
                          name='mean_epis')
@@ -458,42 +508,133 @@ def create_polish_EPI_registrations_wf(method='best-run',
                                     iterfield=['moving_image'],
                                     name='measure_similarity')
 
-    wf.connect(inputspec, 'EPI_runs', mean_epis, 'in_files')
-    wf.connect(mean_epis, 'out', epi_masker, 'in_file')
-
-    wf.connect(epi_masker, 'out_file', measure_similarity, 'fixed_image_mask')
-
-
-    wf.connect(inputspec, 'T1w', measure_similarity, 'fixed_image')
-    wf.connect(inputspec, 'EPI_runs', measure_similarity, 'moving_image')
-
     bold_registration_json = pkg_resources.resource_filename('spynoza.data.ants_json', linear_registration_parameters)
-    ants_registration = pe.MapNode(ants.Registration(from_file=bold_registration_json,
-                                                  output_warped_image=apply_transform), 
-                                   iterfield=['moving_image'],
-                                name='ants_registration')
-    
+
     select_reference_epi = pe.Node(niu.Select(),
                                    name='select_reference_epi')
 
-    wf.connect(inputspec, 'EPI_runs', select_reference_epi, 'inlist')
-    wf.connect(measure_similarity, ('similarity', argmax), select_reference_epi, 'index')
-
-    wf.connect(select_reference_epi, ('out', pickfirst), ants_registration, 'fixed_image')
-
-    wf.connect(epi_masker, 'out_file', ants_registration, 'fixed_image_masks')
-    wf.connect(inputspec, 'EPI_runs', ants_registration, 'moving_image')
-
-    out_fields = ['transforms', 'transformed_epis']
-
-    outputspec = pe.Node(niu.IdentityInterface(fields=out_fields),
+    outputspec = pe.Node(niu.IdentityInterface(fields=['mean_epi_in_T1w_space',
+                                                       'bold_epi_to_T1w_transforms']),
                          name='outputspec')
 
-    wf.connect(ants_registration, 'warped_image', outputspec, 'transformed_epis')
-    wf.connect(ants_registration, 'forward_transforms', outputspec, 'transforms')
+    if initial_transforms:
+        inputspec.inputs.initial_transforms = initial_transforms
+
+        ants_registration = pe.MapNode(ants.Registration(from_file=bold_registration_json,
+                                                  output_warped_image=apply_transform), 
+                                   iterfield=['moving_image',
+                                              'initial_moving_transform'],
+                                name='ants_registration')
+        transform_inputs = pe.MapNode(ants.ApplyTransforms(),
+                                     iterfield=['input_image',
+                                                'transforms'],
+                                     name='transform_input')
+        wf.connect(inputspec, 'initial_transforms', transform_inputs, 'transforms')
+        wf.connect(inputspec, 'bold_epi', transform_inputs, 'input_image')
+        wf.connect(inputspec, 'T1w', transform_inputs, 'reference_image')
+        wf.connect(transform_inputs, 'output_image', mean_epis, 'in_files')
+        wf.connect(transform_inputs, 'output_image', measure_similarity, 'moving_image')
+        wf.connect(inputspec, 'initial_transforms', ants_registration, 'initial_moving_transform')
+
+        wf.connect(transform_inputs, 'output_image', select_reference_epi, 'inlist')
+        wf.connect(select_reference_epi, ('out', pickfirst), ants_registration, 'fixed_image')
+
+    else:
+        ants_registration = pe.MapNode(ants.Registration(from_file=bold_registration_json,
+                                                  output_warped_image=apply_transform), 
+                                   iterfield=['moving_image'],
+                                name='ants_registration')
+        wf.connect(inputspec, 'bold_epi', select_reference_epi, 'inlist')
+        wf.connect(inputspec, 'bold_epi', mean_epis, 'in_files')
+        wf.connect(inputspec, 'bold_epi', measure_similarity, 'moving_image')
+        wf.connect(select_reference_epi, ('out', pickfirst), ants_registration, 'fixed_image')
+
+
+    wf.connect(mean_epis, 'out', epi_masker, 'in_file')
+    wf.connect(epi_masker, 'out_file', measure_similarity, 'fixed_image_mask')
+    wf.connect(inputspec, 'T1w', measure_similarity, 'fixed_image')
+
+    wf.connect(measure_similarity, ('similarity', argmax), select_reference_epi, 'index')
+
+    wf.connect(epi_masker, 'out_file', ants_registration, 'fixed_image_masks')
+    wf.connect(inputspec, 'bold_epi', ants_registration, 'moving_image')
+
+    wf.connect(ants_registration, 'warped_image', outputspec, 'mean_epi_in_T1w_space')
+    wf.connect(ants_registration, 'forward_transforms', outputspec, 'bold_epi_to_T1w_transforms')
 
     return wf
 
+def polish_bold_epi_runs_in_T1w_space(name='polish_bold_epi_in_T1w_space',
+                                      mean_bold_epis=None,
+                                      T1w=None,
+                                      initial_moving_transforms=None,
+                                      registration_parameters='nonlinear_precise.json'):
+    """ Assumes that after mean_bold_epis are transformed using initial_transforms,
+        they are approximately exactly overlapping """
+
+    wf = pe.Workflow(name=name)
+
+    inputspec = pe.Node(niu.IdentityInterface(fields=['initial_transforms',
+                                                      'T1w',
+                                                      'bold_epi']),
+                        name='inputspec')
+
+    if mean_bold_epis:
+        inputspec.inputs.bold_epi = mean_bold_epis
+
+    if T1w:
+        inputspec.inputs.T1w = T1w
+
+    if initial_moving_transforms:
+        inputspec.inputs.initial_transforms = initial_moving_transforms
+
+
+
+    transform_inputs = pe.MapNode(ants.ApplyTransforms(),
+                                 iterfield=['input_image',
+                                            'transforms'],
+                                 name='transform_input')
+
+    wf.connect(inputspec, 'bold_epi', transform_inputs, 'input_image')
+    wf.connect(inputspec, 'T1w', transform_inputs, 'reference_image')
+    wf.connect(inputspec, ('initial_transforms', reverse), transform_inputs, 'transforms')
+
+    mean_runs = pe.Node(niu.Function(function=average_over_runs),
+                        name='mean_runs')
+    wf.connect(transform_inputs, 'output_image', mean_runs, 'in_files')
+
+    registration_json = pkg_resources.resource_filename('spynoza.data.ants_json', registration_parameters)
+    ants_registration = pe.Node(ants.Registration(from_file=registration_json, 
+                                                  output_warped_image=True), 
+                            name='ants_registration')
+
+    wf.connect(mean_runs, 'out', ants_registration, 'moving_image')
+    wf.connect(inputspec, 'T1w', ants_registration, 'fixed_image')
+
+    merge_transforms = pe.MapNode(niu.Merge(2),
+                                  iterfield=['in1'],
+                                  name='merge_transforms')
+
+    wf.connect(inputspec, 'initial_transforms',  merge_transforms, 'in1')
+    wf.connect(ants_registration, 'forward_transforms',  merge_transforms, 'in2')
+
+    transform_outputs = pe.MapNode(ants.ApplyTransforms(),
+                                   iterfield=['input_image',
+                                              'transforms'],
+                                   name='transform_outputs')
+
+    wf.connect(inputspec, 'bold_epi', transform_outputs, 'input_image')
+    wf.connect(inputspec, 'T1w', transform_outputs, 'reference_image')
+    wf.connect(merge_transforms, ('out', reverse), transform_outputs, 'transforms')
+
+
+    out_fields = ['mean_epi_in_T1w_space', 'bold_epi_to_T1w_transforms']
+    outputspec = pe.Node(niu.IdentityInterface(fields=out_fields),
+                         name='outputspec')
+    wf.connect(transform_outputs, 'output_image', outputspec, 'mean_epi_in_T1w_space')
+    wf.connect(merge_transforms, 'out', outputspec, 'bold_epi_to_T1w_transforms')
+
+    return wf
 
 
 def _make_list_from_element(element, template_list):
@@ -503,3 +644,7 @@ def _make_list_from_element(element, template_list):
 def argmax(in_values):
     import numpy as np
     return np.argmax(in_values)
+
+def reverse(in_values):
+    return in_values[::-1]
+
