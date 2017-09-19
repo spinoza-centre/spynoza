@@ -14,6 +14,8 @@ install_requires = [
     'scipy',
     'pandas',
     'jsonpickle',
+    'sklearn',
+    'bids',
     'nilearn'
 ]
 
