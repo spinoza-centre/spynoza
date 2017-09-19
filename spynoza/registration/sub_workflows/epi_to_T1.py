@@ -162,7 +162,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
         
         bold_registration_json = pkg_resources.resource_filename('spynoza.data.ants_json', parameter_file)
         ants_registration = pe.Node(ants.Registration(from_file=bold_registration_json,
-                                                      num_threads=4,
+                                                      num_threads=num_threads_ants,
                                                       output_warped_image=apply_transform), 
                                     name='ants_registration')
 
