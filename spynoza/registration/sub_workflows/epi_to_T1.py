@@ -13,6 +13,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
                               do_BET=False,
                               do_FAST=True,
                               parameter_file='linear_precise.json',
+                              num_threads_ants=4,
                               apply_transform=False):
     """Registers session's EPI space to subject's T1 space
     uses either FLIRT or, when a FS segmentation is present, BBRegister
@@ -161,6 +162,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
         
         bold_registration_json = pkg_resources.resource_filename('spynoza.data.ants_json', parameter_file)
         ants_registration = pe.Node(ants.Registration(from_file=bold_registration_json,
+                                                      num_threads=4,
                                                       output_warped_image=apply_transform), 
                                     name='ants_registration')
 

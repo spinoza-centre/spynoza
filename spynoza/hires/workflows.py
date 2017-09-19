@@ -29,7 +29,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                             crop_bold_epis=True,
                             topup_package='afni',
                             within_epi_reg=True,
-                            polish=True):
+                            polish=True,
+                            num_threads_ants=4):
     
     """ Use an EPI with opposite phase-encoding (EPI_op) or a 
     T1-weighted EPI image to unwarp functional MRI data at 7 Tesla.
@@ -211,6 +212,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             wf.connect(inputspec, ('epi_op_metadata', pickfirst), topup_wf, 'inputspec.epi_op_metadata')
 
             registration_wf = create_epi_to_T1_workflow(package='ants',
+                                                        num_threads_ants=num_threads_ants,
                                                         parameter_file=linear_registration_parameters,
                                                         init_reg_file=init_reg_file)
 
@@ -223,6 +225,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
             transform_epi_to_T1w = pe.MapNode(ants.ApplyTransforms(dimension=3,
                                                                 float=True,
+                                                                   num_threads=num_threads_ants,
                                                                 interpolation='LanczosWindowedSinc'),
                                               iterfield=['input_image'],
                                               name='transform_epi_to_T1w')
@@ -340,11 +343,13 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                 if type(init_reg_file) is list:
                     registration_wf = create_epi_to_T1_workflow(package='ants',
                                                                 parameter_file=linear_registration_parameters,
-                                                                init_reg_file=init_reg_file[ix])
+                                                                init_reg_file=init_reg_file[ix]
+                                                                num_threads=num_threads_ants)
                 else:
                     registration_wf = create_epi_to_T1_workflow(package='ants',
                                                                 parameter_file=linear_registration_parameters,
-                                                                init_reg_file=init_reg_file)
+                                                                init_reg_file=init_reg_file,
+                                                                num_threads=num_threads_ants)
 
                 run_wf.connect(topup_wf, 'outputspec.bold_epi_corrected', registration_wf, 'inputspec.EPI_space_file')
                 wf.connect(inputspec, 'T1w', run_wf, 'epi_to_T1.inputspec.T1_file')
@@ -372,6 +377,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                                                name='merge_bold_epi_to_T1w')
             transform_epi_to_T1w_no_within_epi_reg = pe.MapNode(ants.ApplyTransforms(dimension=3,
                                                                 float=True,
+                                                                 num_threads=num_threads_ants,
                                                                 interpolation='LanczosWindowedSinc'),
                                               iterfield=['input_image',
                                                          'transforms'],
@@ -382,6 +388,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
             transform_epi_to_T1w = pe.MapNode(ants.ApplyTransforms(dimension=3,
                                                                 float=True,
+                                                                   num_threads=num_threads_ants,
                                                                 interpolation='LanczosWindowedSinc'),
                                               iterfield=['input_image', 'transforms'],
                                               name='transform_epi_to_T1w')
@@ -473,6 +480,7 @@ def create_within_epi_reg_EPI_registrations_wf(method='best-run',
                                           epi_runs=None,
                                           apply_transform=False,
                                           initial_transforms=None,
+                                          num_threads_ants=4,
                                           linear_registration_parameters='linear_hires.json'):
     """ Given a set of EPI runs registered to a
     T1w-image. Register the EPI runs to each other, to maximize overlap.
@@ -504,6 +512,7 @@ def create_within_epi_reg_EPI_registrations_wf(method='best-run',
                                                                 metric_weight=1.0,
                                                                 radius_or_number_of_bins=5,
                                                                 sampling_strategy='Regular',
+                                                                num_threads=num_threads_ants,
                                                                 sampling_percentage=1.0),
                                     iterfield=['moving_image'],
                                     name='measure_similarity')
@@ -521,11 +530,12 @@ def create_within_epi_reg_EPI_registrations_wf(method='best-run',
         inputspec.inputs.initial_transforms = initial_transforms
 
         ants_registration = pe.MapNode(ants.Registration(from_file=bold_registration_json,
+                                                         num_threads_ants=4,
                                                   output_warped_image=apply_transform), 
                                    iterfield=['moving_image',
                                               'initial_moving_transform'],
                                 name='ants_registration')
-        transform_inputs = pe.MapNode(ants.ApplyTransforms(),
+        transform_inputs = pe.MapNode(ants.ApplyTransforms(num_threads=num_threads_ants),
                                      iterfield=['input_image',
                                                 'transforms'],
                                      name='transform_input')
@@ -541,6 +551,7 @@ def create_within_epi_reg_EPI_registrations_wf(method='best-run',
 
     else:
         ants_registration = pe.MapNode(ants.Registration(from_file=bold_registration_json,
+                                                         num_threads=num_threads_ants,
                                                   output_warped_image=apply_transform), 
                                    iterfield=['moving_image'],
                                 name='ants_registration')
@@ -567,6 +578,7 @@ def create_within_epi_reg_EPI_registrations_wf(method='best-run',
 def polish_bold_epi_runs_in_T1w_space(name='polish_bold_epi_in_T1w_space',
                                       mean_bold_epis=None,
                                       T1w=None,
+                                      num_threads_ants=4,
                                       initial_moving_transforms=None,
                                       registration_parameters='nonlinear_precise.json'):
     """ Assumes that after mean_bold_epis are transformed using initial_transforms,
@@ -590,7 +602,7 @@ def polish_bold_epi_runs_in_T1w_space(name='polish_bold_epi_in_T1w_space',
 
 
 
-    transform_inputs = pe.MapNode(ants.ApplyTransforms(),
+    transform_inputs = pe.MapNode(ants.ApplyTransforms(num_threads=num_threads_ants),
                                  iterfield=['input_image',
                                             'transforms'],
                                  name='transform_input')
@@ -605,6 +617,7 @@ def polish_bold_epi_runs_in_T1w_space(name='polish_bold_epi_in_T1w_space',
 
     registration_json = pkg_resources.resource_filename('spynoza.data.ants_json', registration_parameters)
     ants_registration = pe.Node(ants.Registration(from_file=registration_json, 
+                                                  num_threads=num_threads_ants,
                                                   output_warped_image=True), 
                             name='ants_registration')
 
@@ -618,7 +631,7 @@ def polish_bold_epi_runs_in_T1w_space(name='polish_bold_epi_in_T1w_space',
     wf.connect(inputspec, 'initial_transforms',  merge_transforms, 'in1')
     wf.connect(ants_registration, 'forward_transforms',  merge_transforms, 'in2')
 
-    transform_outputs = pe.MapNode(ants.ApplyTransforms(),
+    transform_outputs = pe.MapNode(ants.ApplyTransforms(num_threads=num_threads_ants),
                                    iterfield=['input_image',
                                               'transforms'],
                                    name='transform_outputs')
