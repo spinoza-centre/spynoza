@@ -13,7 +13,8 @@ install_requires = [
     'numpy',
     'scipy',
     'pandas',
-    'jsonpickle'
+    'jsonpickle',
+    'nilearn'
 ]
 
 setup(
