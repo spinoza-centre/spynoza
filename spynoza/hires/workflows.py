@@ -343,7 +343,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                 if type(init_reg_file) is list:
                     registration_wf = create_epi_to_T1_workflow(package='ants',
                                                                 parameter_file=linear_registration_parameters,
-                                                                init_reg_file=init_reg_file[ix]
+                                                                init_reg_file=init_reg_file[ix],
                                                                 num_threads=num_threads_ants)
                 else:
                     registration_wf = create_epi_to_T1_workflow(package='ants',
@@ -530,7 +530,7 @@ def create_within_epi_reg_EPI_registrations_wf(method='best-run',
         inputspec.inputs.initial_transforms = initial_transforms
 
         ants_registration = pe.MapNode(ants.Registration(from_file=bold_registration_json,
-                                                         num_threads_ants=4,
+                                                         num_threads=4,
                                                   output_warped_image=apply_transform), 
                                    iterfield=['moving_image',
                                               'initial_moving_transform'],
