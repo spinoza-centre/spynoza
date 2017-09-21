@@ -11,6 +11,7 @@ import pkg_resources
 def create_t1w_epi_registration_workflow(name='3d_epi_registration',
                                        linear_registration_parameters='linear_precise.json',
                                        nonlinear_registration_parameters='nonlinear_precise.json',
+                                       num_threads_ants=4,
                                        init_reg_file=None):
     
     workflow = pe.Workflow(name=name)
@@ -55,7 +56,8 @@ def create_t1w_epi_registration_workflow(name='3d_epi_registration',
     
     # *** Register EPI_bold to T1w_EPI (linear) ***
     bold_registration_json = pkg_resources.resource_filename('spynoza.data.ants_json', linear_registration_parameters)
-    register_bold_epi2t1_epi = pe.MapNode(ants.Registration(from_file=bold_registration_json),
+    register_bold_epi2t1_epi = pe.MapNode(ants.Registration(from_file=bold_registration_json,
+                                                            num_threads=num_threads_ants),
                                           iterfield=['moving_image'],
                                           name='register_bold_epi2t1_epi')
     workflow.connect(meaner_bold, 'out_file', register_bold_epi2t1_epi, 'moving_image')
@@ -66,7 +68,8 @@ def create_t1w_epi_registration_workflow(name='3d_epi_registration',
     t1w_registration_json = pkg_resources.resource_filename('spynoza.data.ants_json', nonlinear_registration_parameters)
 
     if init_reg_file is not None:
-        register_t1wepi_to_t1w = pe.Node(ants.Registration(from_file=t1w_registration_json), name='register_t1wepi_to_t1w')
+        register_t1wepi_to_t1w = pe.Node(ants.Registration(from_file=t1w_registration_json,
+                                                           num_threads=num_threads_ants), name='register_t1wepi_to_t1w')
         
         if init_reg_file.endswith('lta'):
             convert_to_ants = pe.Node(freesurfer.utils.LTAConvert(in_lta=init_reg_file,

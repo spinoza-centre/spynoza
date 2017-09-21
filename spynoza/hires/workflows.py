@@ -225,7 +225,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
             transform_epi_to_T1w = pe.MapNode(ants.ApplyTransforms(dimension=3,
                                                                 float=True,
-                                                                   num_threads=num_threads_ants,
+                                                                num_threads=num_threads_ants,
                                                                 interpolation='LanczosWindowedSinc'),
                                               iterfield=['input_image'],
                                               name='transform_epi_to_T1w')
@@ -410,6 +410,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
         t1w_epi_wf = create_t1w_epi_registration_workflow(linear_registration_parameters=linear_registration_parameters,
                                                           nonlinear_registration_parameters=nonlinear_registration_parameters,
+                                                          num_threads_ants=num_threads_ants,
                                                           init_reg_file=init_reg_file)
 
         wf.connect(inputspec, 'inv2_epi',  t1w_epi_wf, 'inputspec.INV2_epi')
