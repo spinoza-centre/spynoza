@@ -4,7 +4,7 @@ from nipype.interfaces import fsl, ants, afni
 from nipype.interfaces.base import isdefined
 import pkg_resources
 
-from ..utils import EPI_file_selector, average_over_runs, get_scaninfo, init_temporally_crop_run_wf, pickfirst
+from ..utils import average_over_runs, get_scaninfo, init_temporally_crop_run_wf, pickfirst
 
 from ..motion_correction.workflows import create_motion_correction_workflow
 from ..unwarping.topup.workflows import create_bids_topup_workflow
@@ -80,7 +80,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
         T1-weighted EPI with same distortions as bold_epi.
         
     """
-    
+
+
     wf = pe.Workflow(name=name)
     
     fields = ['bold_epi', 'T1w']
