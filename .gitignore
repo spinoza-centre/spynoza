@@ -61,4 +61,19 @@ target/
 *.swp*
 # notebook stuff
 *.ipynb_checkpoints*
+
+
+*.nii.gz
+*.mat
+*.tsv
+
+*.DS_Store
+data
+Untitled*
+
 crash*
+
+notebooks/zooi
+notebooks
+ANTS-2.2.0.zip
+
