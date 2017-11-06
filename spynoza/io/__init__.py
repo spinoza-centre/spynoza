@@ -1,1 +1,1 @@
-from .bids import BIDSGrabber
+from .bids_interfaces import BIDSGrabber
