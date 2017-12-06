@@ -345,12 +345,12 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                     registration_wf = create_epi_to_T1_workflow(package='ants',
                                                                 parameter_file=linear_registration_parameters,
                                                                 init_reg_file=init_reg_file[ix],
-                                                                num_threads=num_threads_ants)
+                                                                num_threads_ants=num_threads_ants)
                 else:
                     registration_wf = create_epi_to_T1_workflow(package='ants',
                                                                 parameter_file=linear_registration_parameters,
                                                                 init_reg_file=init_reg_file,
-                                                                num_threads=num_threads_ants)
+                                                                num_threads_ants=num_threads_ants)
 
                 run_wf.connect(topup_wf, 'outputspec.bold_epi_corrected', registration_wf, 'inputspec.EPI_space_file')
                 wf.connect(inputspec, 'T1w', run_wf, 'epi_to_T1.inputspec.T1_file')
