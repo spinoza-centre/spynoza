@@ -11,7 +11,7 @@ from ..unwarping.topup.workflows import create_bids_topup_workflow
 from ..unwarping.t1w_epi.workflows import create_t1w_epi_registration_workflow
 from ..registration.sub_workflows import create_epi_to_T1_workflow
 
-from spynoza.io.bids import collect_data
+from spynoza.io.bids_interfaces import collect_data
 
 def init_hires_unwarping_wf(name="unwarp_hires",
                             method='topup',
