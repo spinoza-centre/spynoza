@@ -290,17 +290,17 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                                                                    output_mask=True,
                                                                    method='FSL',
                                                                    lightweight=True)
-
                 run_wf.connect(select_bold_epi, 'out', mc_wf_bold_epi, 'inputspec.in_files')
                 run_wf.connect(select_bold_epi, ('out', pickfirst), mc_wf_bold_epi, 'inputspec.which_file_is_EPI_space')
                 wf.connect(inputspec, 'bold_epi', run_wf, 'select_bold_epi_%s.inlist' % ix)
-                    
+                mc_wf_bold_epi.inputs.create_bold_mask.connected=False
 
                 mc_wf_epi_op = create_motion_correction_workflow(name='mc_wf_epi_ops',
                                                                  method='FSL',
                                                                  output_mask=True,
                                                                  lightweight=True)
-                
+                mc_wf_epi_op.inputs.create_bold_mask.connected=False
+
                 run_wf.connect(select_epi_op, 'out', mc_wf_epi_op, 'inputspec.in_files')
                 run_wf.connect(select_epi_op, ('out', pickfirst), mc_wf_epi_op, 'inputspec.which_file_is_EPI_space')
                 wf.connect(inputspec, 'epi_op', run_wf, 'select_epi_op_%s.inlist' % ix)
