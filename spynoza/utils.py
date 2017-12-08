@@ -443,6 +443,9 @@ class ComputeEPIMaskInputSpec(BaseInterfaceInputSpec):
     in_file = File(exists=True, desc="3D or 4D EPI file")
     lower_cutoff = traits.Float(0.2, desc='lower cutoff', usedefault=True)
     upper_cutoff = traits.Float(0.85, desc='upper cutoff', usedefault=True)
+    connected = traits.Bool(True, desc='if connected is True, only the largest connect component is kept.', usedefault=True)
+    opening = traits.Int(2, desc='if opening is True, a morphological opening is performed,'
+                                 'to keep only large structures.', usedefault=True)
 
 
 class ComputeEPIMaskOutputSpec(TraitedSpec):
@@ -454,7 +457,8 @@ class ComputeEPIMask(BaseInterface):
     output_spec = ComputeEPIMaskOutputSpec
 
     def _run_interface(self, runtime):
-        mask_nii = compute_epi_mask(self.inputs.in_file, lower_cutoff=self.inputs.lower_cutoff, upper_cutoff=self.inputs.upper_cutoff)
+        mask_nii = compute_epi_mask(self.inputs.in_file, lower_cutoff=self.inputs.lower_cutoff, upper_cutoff=self.inputs.upper_cutoff,
+                                    connected=self.inputs.connected, opening=self.inputs.opening)
         mask_nii.to_filename("mask_file.nii.gz")
 
         self._mask_file = os.path.abspath("mask_file.nii.gz")
