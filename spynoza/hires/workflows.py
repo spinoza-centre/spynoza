@@ -151,6 +151,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                                                                lightweight=True)
             
             mc_wf_bold_epi.inputs.inputspec.which_file_is_EPI_space = register_to
+            mc_wf_bold_epi.inputs.create_bold_mask.connected=False
             
             
             wf.connect(inputspec, 'bold_epi', mc_wf_bold_epi, 'inputspec.in_files')
@@ -162,6 +163,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                                                              lightweight=True)
             
             mc_wf_epi_op.inputs.inputspec.which_file_is_EPI_space = register_to
+            mc_wf_epi_op.inputs.create_bold_mask.connected = False
+
             wf.connect(inputspec, 'epi_op', mc_wf_epi_op, 'inputspec.in_files')
             
 
