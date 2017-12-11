@@ -13,6 +13,45 @@ from ..registration.sub_workflows import create_epi_to_T1_workflow
 
 from spynoza.io.bids_interfaces import collect_data
 
+# MONKEY PATCH
+# =========================
+
+from nipype.interfaces.ants.base import ANTSCommand, ANTSCommandInputSpec
+from nipype.interfaces.base import TraitedSpec, File, traits, InputMultiPath
+
+class ComposeMultiTransformInputSpec(ANTSCommandInputSpec):
+    dimension = traits.Enum(3, 2, argstr='%d', usedefault=True, position=0,
+                            desc='image dimension (2 or 3)')
+    output_transform = File(argstr='%s', position=1, name_source=['transforms'],
+                            name_template='%s_composed', keep_ext=True,
+                            desc='the name of the resulting transform.')
+    reference_image = File(argstr='-R %s', position=2,
+                           desc='Reference image (only necessary when output is warpfield)')
+    transforms = InputMultiPath(File(exists=True), argstr='%s', mandatory=True,
+                                position=3, desc='transforms to average')
+
+
+class ComposeMultiTransformOutputSpec(TraitedSpec):
+    output_transform = File(exists=True, desc='Composed transform file')
+
+
+class ComposeMultiTransform(ANTSCommand):
+    """
+    Take a set of transformations and convert them to a single transformation matrix/warpfield.
+    Examples
+    --------
+    >>> from nipype.interfaces.ants import ComposeMultiTransform
+    >>> compose_transform = ComposeMultiTransform()
+    >>> compose_transform.inputs.dimension = 3
+    >>> compose_transform.inputs.transforms = ['struct_to_template.mat', 'func_to_struct.mat']
+    >>> compose_transform.cmdline # doctest: +ALLOW_UNICODE
+    'ComposeMultiTransform 3 struct_to_template_composed struct_to_template.mat func_to_struct.mat'
+    """
+    _cmd = 'ComposeMultiTransform'
+    input_spec = ComposeMultiTransformInputSpec
+    output_spec = ComposeMultiTransformOutputSpec
+
+# ========================
 def init_hires_unwarping_wf(name="unwarp_hires",
                             method='topup',
                             bids_layout=None,
@@ -450,7 +489,12 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
             wf.connect(inputspec, 'T1w', within_epi_reg_wf, 'inputspec.T1w')
             wf.connect(pre_outputnode, 'bold_epi_mean', within_epi_reg_wf, 'inputspec.bold_epi')
-            wf.connect(pre_outputnode, 'bold_epi_to_T1w_transforms', within_epi_reg_wf, 'inputspec.initial_transforms')
+
+            # COMPOSE COMPOSITE TRANSFORM
+            compose_epi_to_t1w_transform = pe.Node(ComposeMultiTransform(dimension=3), name='compose_epi_to_t1w_transform')
+            wf.connect(pre_outputnode, 'bold_epi_to_T1w_transforms', compose_epi_to_t1w_transform, 'transforms')
+            wf.connect(pre_outputnode, 'mean_epi_in_T1w_space', compose_epi_to_t1w_transform, 'reference_image')
+            wf.connect(compose_epi_to_t1w_transform, 'output_transform', within_epi_reg_wf, 'inputspec.initial_transforms')
 
             wf.connect(within_epi_reg_wf, 'outputspec.bold_epi_to_T1w_transforms', pre_outputnode2, 'bold_epi_to_T1w_transforms')
             wf.connect(within_epi_reg_wf, 'outputspec.mean_epi_in_T1w_space', pre_outputnode2, 'mean_epi_in_T1w_space')
@@ -464,8 +508,12 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
             wf.connect(inputspec, 'T1w', polish_wf, 'inputspec.T1w')
             wf.connect(pre_outputnode, 'bold_epi_mean', polish_wf, 'inputspec.bold_epi')
-            wf.connect(pre_outputnode2, 'bold_epi_to_T1w_transforms', polish_wf, 'inputspec.initial_transforms')
 
+            compose_epi_to_t1w_transform2 = pe.Node(ComposeMultiTransform(dimension=3), name='compose_epi_to_t1w_transform2')
+            wf.connect(pre_outputnode2, 'bold_epi_to_T1w_transforms', compose_epi_to_t1w_transform2, 'transforms')
+            wf.connect(pre_outputnode, 'mean_epi_in_T1w_space', compose_epi_to_t1w_transform2, 'reference_image')
+
+            wf.connect(compose_epi_to_t1w_transform2, 'output_transform', polish_wf, 'inputspec.initial_transforms')
             wf.connect(polish_wf, 'outputspec.bold_epi_to_T1w_transforms', pre_outputnode3, 'bold_epi_to_T1w_transforms')
             wf.connect(polish_wf, 'outputspec.mean_epi_in_T1w_space', pre_outputnode3, 'mean_epi_in_T1w_space')
         else:
