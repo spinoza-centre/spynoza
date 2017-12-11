@@ -84,7 +84,7 @@ def create_t1w_epi_registration_workflow(name='3d_epi_registration',
             reg.inputs.initial_moving_transform = init_reg_file
 
     else:
-        register_t1wepi_to_t1w = pe.Node(ants.Registration(from_file=t1w_registration_json), name='register_t1wepi_to_t1w')        
+        register_t1wepi_to_t1w = pe.Node(ants.Registration(from_file=t1w_registration_json, num_threads=num_threads_ants), name='register_t1wepi_to_t1w')        
     
     workflow.connect(mask_T1w_EPI, 'out_file', register_t1wepi_to_t1w, 'moving_image')
     workflow.connect(inputspec, 'T1w', register_t1wepi_to_t1w, 'fixed_image')
