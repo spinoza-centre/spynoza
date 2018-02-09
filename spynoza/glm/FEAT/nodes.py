@@ -139,6 +139,15 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
         f_con = ('f_all', 'F', cons)
         cons.append(f_con)
         contrasts = cons
+    elif isinstance(contrasts, list):  # assume nipype style contrasts
+        for i, con in enumerate(contrasts):
+            weights = np.zeros(n_orig_evs)
+            this_i = 0
+            for ii, ev in enumerate(session_info.conditions):
+                if ev in con[2]:
+                    weights[ii] = con[3][this_i]
+                    this_i += 1
+            contrasts[i] = (con[0], con[1], con[2], weights.tolist()) 
 
     t_contrasts = [con for con in contrasts if con[1] == 'T']
     f_contrasts = [con for con in contrasts if con[1] == 'F']
