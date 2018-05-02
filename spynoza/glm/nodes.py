@@ -4,6 +4,7 @@ from nipype.interfaces.utility import Function
 def events_file_to_bunch(in_file, single_trial=False, sort_by_onset=False,
                          exclude=None):
     import pandas as pd
+    import numpy as np
     from nipype.interfaces.base import Bunch
 
     events = pd.read_csv(in_file, sep=str('\t'))
@@ -12,7 +13,7 @@ def events_file_to_bunch(in_file, single_trial=False, sort_by_onset=False,
         events['weight'] = np.ones(len(events))
 
     if exclude is not None:  # not tested
-        events.drop(exclude, axis=1, inplace=True)
+        events = events.loc[~events['trial_type'].isin(exclude)]
 
     if sort_by_onset:
         events = events.sort_values(by='onset')

@@ -111,7 +111,7 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
     from nipype.interfaces.fsl import Info
     import numpy as np
     import spynoza
-
+    
     if isinstance(session_info, list):
 
         if len(session_info) == 1:
@@ -144,9 +144,9 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
             weights = np.zeros(n_orig_evs)
             this_i = 0
             for ii, ev in enumerate(session_info.conditions):
-                if ev in con[2]:
-                    weights[ii] = con[3][this_i]
-                    this_i += 1
+                for iii, this_entry in enumerate(con[2]):
+                    if ev == this_entry:
+                        weights[ii] = con[3][iii]
             contrasts[i] = (con[0], con[1], con[2], weights.tolist()) 
 
     t_contrasts = [con for con in contrasts if con[1] == 'T']
@@ -154,7 +154,7 @@ def custom_level1design_feat(func_file, highres_file=None, session_info=None, ou
     n_con = len(t_contrasts)
     n_ftest = len(f_contrasts)
     n_real_evs = n_orig_evs
-
+    
     if temp_deriv:
         n_real_evs *= 2
     elif hrf == 'gammabasisfunctions':
