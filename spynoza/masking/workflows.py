@@ -3,7 +3,7 @@ import nipype.interfaces.io as nio
 from nipype.interfaces import fsl
 from nipype.interfaces import freesurfer
 from nipype.interfaces.utility import IdentityInterface, Merge
-from .nodes import FS_aseg_file, FS_label_list_glob
+from .nodes import FS_aseg_file, FS_LabelNode
 
 
 def create_transform_aseg_to_EPI_workflow(name = 'transform_aseg_to_EPI'):
@@ -221,7 +221,7 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
         'masks'])), name='outputspec')
 
     # housekeeping function for finding label files in FS directory
-    FS_label_list_node = pe.Node(interface=FS_label_list_glob_node,
+    FS_label_list_node = pe.Node(interface=FS_LabelNode,
                                  name='FS_label_list_node')
 
     label_2_vol_node = pe.MapNode(interface=freesurfer.Label2Vol(), name='l2v',
