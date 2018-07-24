@@ -62,3 +62,6 @@ target/
 # notebook stuff
 *.ipynb_checkpoints*
 crash*
+
+# apple stuff
+*.DS_Store
