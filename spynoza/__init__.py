@@ -2,6 +2,7 @@ __version__ = '0.0.1'
 
 import os.path as op
 
+from . import conversion
 from . import denoising
 from . import filtering
 from . import glm
@@ -16,4 +17,5 @@ test_data_path = op.join(root_dir, 'data', 'test_data')
 
 __all__ = ['unwarping', 'uniformization', 'registration',
            'retroicor', 'masking', 'ica_fix', 'glm',
-           'filtering', 'test_data_path', 'root_dir']
+           'filtering', 'test_data_path', 'root_dir',
+           'conversion']

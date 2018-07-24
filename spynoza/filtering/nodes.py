@@ -77,3 +77,37 @@ sgfilter = pe.MapNode(interface=Function(input_names=['in_file', 'window_length'
                                 function=savgol_filter),
                                 name='sgfilter',
                                 iterfield=['in_file'])
+
+def savgol_filter_confounds(confounds, tr, polyorder=3, deriv=0, window_length=120):
+    import pandas as pd
+    from scipy.signal import savgol_filter
+    import numpy as np
+    import os
+
+    confounds_table = pd.read_table(confounds)
+
+    confounds_table.fillna(method='bfill', inplace=True)
+
+
+    window = np.int(window_length / tr)
+
+    # Window must be odd
+    if window % 2 == 0:
+        window += 1
+
+    confounds_filt = savgol_filter(confounds_table, window_length=window, polyorder=polyorder,
+                              deriv=deriv, axis=0, mode='nearest')
+
+
+    new_name = os.path.basename(confounds).split('.')[:-1][0] + '_sg.tsv'
+    out_file = os.path.abspath(new_name)
+
+    (confounds_table - confounds_filt).to_csv(out_file, sep='\t', index=False)
+
+    return out_file
+
+
+Savgol_filter_confounds = Function(function=savgol_filter_confounds,
+                         input_names=['confounds', 'tr', 'polyorder', 'deriv',
+                                      'window_length'],
+                         output_names=['out_file'])

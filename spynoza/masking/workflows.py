@@ -206,7 +206,8 @@ def create_masks_from_surface_workflow(name = 'masks_from_surface'):
     import nipype.interfaces.io as nio
     import nipype.interfaces.utility as niu
     import os.path as op
-
+    from .nodes import FS_label_list_glob_node
+    
     input_node = pe.Node(IdentityInterface(
         fields=['EPI_space_file', 
         'output_directory', 
