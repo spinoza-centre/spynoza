@@ -72,9 +72,7 @@ Savgol_filter = Function(function=savgol_filter,
                                       'window_length', 'tr'],
                          output_names=['out_file'])
                          
-sgfilter = pe.MapNode(interface=Function(input_names=['in_file', 'window_length', 'polyorder'],
-                                output_names=['out_file'],
-                                function=savgol_filter),
+sgfilter = pe.MapNode(interface=Savgol_filter,
                                 name='sgfilter',
                                 iterfield=['in_file'])
 
@@ -111,3 +109,7 @@ Savgol_filter_confounds = Function(function=savgol_filter_confounds,
                          input_names=['confounds', 'tr', 'polyorder', 'deriv',
                                       'window_length'],
                          output_names=['out_file'])
+
+sgfilter_confounds = e.MapNode(interface=Savgol_filter_confounds,
+                                name='sgfilter_confounds',
+                                iterfield=['confounds'])
