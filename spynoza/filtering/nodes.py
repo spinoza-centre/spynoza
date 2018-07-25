@@ -110,6 +110,6 @@ Savgol_filter_confounds = Function(function=savgol_filter_confounds,
                                       'window_length'],
                          output_names=['out_file'])
 
-sgfilter_confounds = e.MapNode(interface=Savgol_filter_confounds,
+sgfilter_confounds = pe.MapNode(interface=Savgol_filter_confounds,
                                 name='sgfilter_confounds',
                                 iterfield=['confounds'])
