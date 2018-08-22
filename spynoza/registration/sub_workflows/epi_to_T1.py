@@ -177,7 +177,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
                 epi_to_T1_workflow.connect(convert_to_ants, 'out_itk', ants_registration, 'initial_moving_transform')
             
             else:
-                reg.inputs.initial_moving_transform = init_reg_file
+                ants_registration.inputs.initial_moving_transform = init_reg_file
 
 
 
