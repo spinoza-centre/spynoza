@@ -48,12 +48,28 @@ def create_bids_topup_workflow(mode='average',
         workflow.connect(topup_node, ('out_warps', _pick_first), cphdr_warp, 'in_file')
 
     elif package == 'afni':
-        qwarp = pe.Node(afni.QwarpPlusMinus(pblur=[0.05, 0.05],
+
+        def get_nodis_args(bold_metadata):
+            bold_file_pe = bold_metadata["PhaseEncodingDirection"]
+
+            args = '-noXdis -noYdis -noZdis'
+            rm_arg = {'i': '-noXdis',
+                      'j': '-noYdis',
+                      'k': '-noZdis'}[bold_file_pe[0]]
+
+            args = args.replace(rm_arg, '')
+
+            return args
+
+        qwarp = pe.Node(QwarpPlusMinus(pblur=[0.05, 0.05],
                                             blur=[-1, -1],
                                             noweight=True,
                                             minpatch=9,
-                                            nopadWARP=True,), name='qwarp')
+                                            nopadWARP=True,
+                                            outputtype='NIFTI_GZ',
+                                            verb=True), name='qwarp')
 
+        workflow.connect(inputspec, ('bold_epi_metadata', get_nodis_args), qwarp, 'args')
         workflow.connect(inputspec, 'bold_epi', qwarp, 'in_file')
         workflow.connect(inputspec, 'epi_op', qwarp, 'base_file')
         workflow.connect(qwarp, 'source_warp', cphdr_warp, 'in_file')
