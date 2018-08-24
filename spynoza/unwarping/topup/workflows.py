@@ -54,7 +54,7 @@ def create_bids_topup_workflow(mode='average',
                                             minpatch=9,
                                             nopadWARP=True,), name='qwarp')
 
-        workflow.connect(inputspec, 'bold_epi', qwarp, 'source_file')
+        workflow.connect(inputspec, 'bold_epi', qwarp, 'in_file')
         workflow.connect(inputspec, 'epi_op', qwarp, 'base_file')
         workflow.connect(qwarp, 'source_warp', cphdr_warp, 'in_file')
 
