@@ -67,6 +67,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                             inv2_epi=None,
                             crop_bold_epis=True,
                             topup_package='afni',
+                            epi_to_t1_package='ants',
                             within_epi_reg=True,
                             polish=True,
                             num_threads_ants=4):
@@ -254,7 +255,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             wf.connect(inputspec, ('bold_epi_metadata', pickfirst), topup_wf, 'inputspec.bold_epi_metadata')
             wf.connect(inputspec, ('epi_op_metadata', pickfirst), topup_wf, 'inputspec.epi_op_metadata')
 
-            registration_wf = create_epi_to_T1_workflow(package='ants',
+            registration_wf = create_epi_to_T1_workflow(package=epi_to_t1_package,
                                                         num_threads_ants=num_threads_ants,
                                                         parameter_file=linear_registration_parameters,
                                                         init_reg_file=init_reg_file)
@@ -384,12 +385,12 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
 
                 if type(init_reg_file) is list:
-                    registration_wf = create_epi_to_T1_workflow(package='ants',
+                    registration_wf = create_epi_to_T1_workflow(package=epi_to_t1_package,
                                                                 parameter_file=linear_registration_parameters,
                                                                 init_reg_file=init_reg_file[ix],
                                                                 num_threads_ants=num_threads_ants)
                 else:
-                    registration_wf = create_epi_to_T1_workflow(package='ants',
+                    registration_wf = create_epi_to_T1_workflow(package=epi_to_t1_package,
                                                                 parameter_file=linear_registration_parameters,
                                                                 init_reg_file=init_reg_file,
                                                                 num_threads_ants=num_threads_ants)
