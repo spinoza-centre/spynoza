@@ -1,4 +1,4 @@
-from .nodes import TopupScanParameters
+from .nodes import TopupScanParameters, QwarpPlusMinus
 from ...io import BIDSGrabber
 from ...utils import ComputeEPIMask, CopyHeader
 
