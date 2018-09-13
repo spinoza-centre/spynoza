@@ -3,6 +3,7 @@ from nipype.interfaces import fsl
 from nipype.interfaces import freesurfer
 from nipype.interfaces import ants
 from nipype.interfaces.utility import Function, IdentityInterface
+from nipype.interfaces.c3 import C3dAffineTool
 from ...utils import pick_last
 import pkg_resources
 
@@ -139,19 +140,31 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
         else:
             epi_to_T1_workflow.connect(input_node, 'T1_file', flirt_e2t, 'reference')
 
-        epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', output_node, 'EPI_T1_matrix_file')
+        convert_fsl_to_ants_epi_to_t1 = pe.Node(C3dAffineTool(), name='convert_fsl_to_ants_epi_to_t1')
+        convert_fsl_to_ants_epi_to_t1.inputs.fsl2ras = True
+        convert_fsl_to_ants_epi_to_t1.inputs.itk_transform = True
+        epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', convert_fsl_to_ants_epi_to_t1, 'transform_file')
+        epi_to_T1_workflow.connect(input_node, 'EPI_space_file', convert_fsl_to_ants_epi_to_t1, 'source_file')
+        epi_to_T1_workflow.connect(input_node, 'T1_file', convert_fsl_to_ants_epi_to_t1, 'reference_file')
+        epi_to_T1_workflow.connect(convert_fsl_to_ants_epi_to_t1, 'itk_transform', output_node, 'EPI_T1_matrix_file')
+
 
         # the final invert node
         invert_EPI_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name='invert_EPI_N')
         epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', invert_EPI_N, 'in_file')
         epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', output_node, 'T1_EPI_matrix_file')
 
+        convert_fsl_to_ants_t1_to_epi = pe.Node(C3dAffineTool(), name='convert_fsl_to_ants_t1_to_epi')
+        convert_fsl_to_ants_t1_to_epi.inputs.fsl2ras = True
+        convert_fsl_to_ants_t1_to_epi.inputs.itk_transform = True
+        epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', convert_fsl_to_ants_t1_to_epi, 'transform_file')
+        epi_to_T1_workflow.connect(input_node, 'EPI_space_file', convert_fsl_to_ants_t1_to_epi, 'reference_file')
+        epi_to_T1_workflow.connect(input_node, 'T1_file', convert_fsl_to_ants_t1_to_epi, 'source_file')
+        epi_to_T1_workflow.connect(convert_fsl_to_ants_t1_to_epi, 'itk_transform', output_node, 'T1_to_EPI_matrix_file')
+
+
         if apply_transform:
-            applier = pe.Node(fsl.ApplyXFM(), name='applier')
-            epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', applier, 'in_matrix_file')
-            epi_to_T1_workflow.connect(input_node, 'EPI_space_file', applier, 'in_file')
-            epi_to_T1_workflow.connect(input_node, 'T1_file', applier, 'reference')
-            epi_to_T1_workflow.connect(applier, 'out_file', output_node, 'transformed_EPI_space_file')
+            raise NotImplementedError
     
     elif package == 'ants':
 
