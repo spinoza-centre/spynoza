@@ -13,6 +13,8 @@ from ..registration.sub_workflows import create_epi_to_T1_workflow
 
 from spynoza.io.bids_interfaces import collect_data
 
+from niworkflows.interfaces.utils import CopyXForm
+
 # MONKEY PATCH
 # =========================
 
@@ -378,17 +380,40 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                     run_wf.connect(mc_wf_bold_epi, 'outputspec.motion_corrected_files', mean_bold_epi1, 'in_file')
             
             
+                biasfield_correct_bold_epi = pe.Node(ants.N4BiasFieldCorrection(
+                                                dimension=3, copy_header=True),
+                                                     name='biasfield_correct_bold_epi')
+
+                correct_header_bold_epi_biasfield = pe.Node(CopyXForm(),
+                                                            name='correct_header_bold_epi_biasfield') 
+
+
+                run_wf.connect(mean_bold_epi1, ('out_file', pickfirst), correct_header_bold_epi_biasfield, 'hdr_file') 
+                run_wf.connect(mean_bold_epi1, ('out_file', pickfirst), biasfield_correct_bold_epi, 'input_image') 
+
+                run_wf.connect(biasfield_correct_bold_epi, 'output_image', correct_header_bold_epi_biasfield, 'in_file') 
+
                 applymask_bold_epi = pe.Node(fsl.ApplyMask(),
                                                 name="applymask_bold_epi")
-                run_wf.connect(mean_bold_epi1, ('out_file', pickfirst), applymask_bold_epi, 'in_file') 
+                run_wf.connect(correct_header_bold_epi_biasfield, 'out_file', applymask_bold_epi, 'in_file') 
                 run_wf.connect(mc_wf_bold_epi, 'outputspec.EPI_space_mask', applymask_bold_epi, 'mask_file') 
 
+                biasfield_correct_epi_op = pe.Node(ants.N4BiasFieldCorrection(
+                                              dimension=3, copy_header=True),
+                                                     name='biasfield_correct_epi_op')
+
+                correct_header_epi_op_biasfield = pe.Node(CopyXForm(),
+                                                            name='correct_header_epi_biasfield') 
+                run_wf.connect(mc_wf_epi_op, 'outputspec.EPI_space_file', correct_header_epi_op_biasfield, 'hdr_file') 
+                run_wf.connect(biasfield_correct_epi_op, 'output_image', correct_header_epi_op_biasfield, 'in_file') 
+
+                run_wf.connect(mc_wf_epi_op, 'outputspec.EPI_space_file', biasfield_correct_epi_op, 'input_image') 
                 applymask_epi_op = pe.Node(fsl.ApplyMask(), name="applymask_epi_op")
-                run_wf.connect(mc_wf_epi_op, 'outputspec.EPI_space_file', applymask_epi_op, 'in_file') 
+                run_wf.connect(correct_header_epi_op_biasfield, 'out_file', applymask_epi_op, 'in_file') 
                 run_wf.connect(mc_wf_epi_op, 'outputspec.EPI_space_mask', applymask_epi_op, 'mask_file') 
 
-
                 topup_wf = create_bids_topup_workflow(package=topup_package)
+                topup_wf.get_node('qwarp').inputs.minpatch = 5
 
                 run_wf.connect(applymask_bold_epi, 'out_file', topup_wf, 'inputspec.bold_epi')
                 run_wf.connect(applymask_epi_op, 'out_file', topup_wf, 'inputspec.epi_op')
