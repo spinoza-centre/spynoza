@@ -7,12 +7,16 @@ from nipype.interfaces.c3 import C3dAffineTool
 from ...utils import pick_last
 import pkg_resources
 
+import os
+
 
 def create_epi_to_T1_workflow(name='epi_to_T1', 
                               package='freesurfer',
                               init_reg_file=None,
                               do_BET=False,
                               do_FAST=False,
+                              dof=12,
+                              cost_func='bbr',
                               parameter_file='linear_precise.json',
                               num_threads_ants=4,
                               apply_transform=False):
@@ -32,6 +36,8 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
         whether to use FSL's BET to brain-extract the T1-weighted image
     do_FAST : bool
         whether to apply FSL's FAST (segmentation into CSF/GM/WM) to T1-weighted image
+    dof: int
+        Degrees-of-freedom for registration (only when using fsl's FLIRT)
     parameter_file : string
         file in spynoza/spynoza/data/ants_json to initialize ANTS with
     apply_transform : bool
@@ -102,9 +108,13 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
             bet = pe.Node(fsl.BET(), name='bet')
             epi_to_T1_workflow.connect(input_node, 'T1_file', bet, 'in_file')
 
-        flirt_e2t = pe.Node(fsl.FLIRT(cost_func='bbr', output_type='NIFTI_GZ',
-                                    dof=12, interp='sinc'),
+        flirt_e2t = pe.Node(fsl.FLIRT(cost_func=cost_func, output_type='NIFTI_GZ',
+                                    dof=dof, interp='sinc'),
                           name ='flirt_e2t')
+
+        if cost_func == 'bbr':
+            flirt_e2t.inputs.schedule = os.path.join(os.getenv('FSLDIR'), 'etc/flirtsch/bbr.sch')
+
 
 
         if init_reg_file is not None:
