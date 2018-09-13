@@ -67,6 +67,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                             wm_seg=None,
                             cost_func=None,
                             inv2_epi=None,
+                            dof=6,
                             crop_bold_epis=True,
                             topup_package='afni',
                             epi_to_t1_package='ants',
@@ -271,6 +272,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
             registration_wf = create_epi_to_T1_workflow(package=epi_to_t1_package,
                                                         num_threads_ants=num_threads_ants,
+                                                        dof=dof,
                                                         cost_func=cost_func,
                                                         parameter_file=linear_registration_parameters,
                                                         init_reg_file=init_reg_file)
@@ -406,12 +408,14 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                     registration_wf = create_epi_to_T1_workflow(package=epi_to_t1_package,
                                                                 parameter_file=linear_registration_parameters,
                                                                 init_reg_file=init_reg_file[ix],
+                                                                dof=dof,
                                                                 cost_func=cost_func,
                                                                 num_threads_ants=num_threads_ants)
                 else:
                     registration_wf = create_epi_to_T1_workflow(package=epi_to_t1_package,
                                                                 parameter_file=linear_registration_parameters,
                                                                 init_reg_file=init_reg_file,
+                                                                dof=dof,
                                                                 cost_func=cost_func,
                                                                 num_threads_ants=num_threads_ants)
 
