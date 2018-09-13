@@ -83,7 +83,7 @@ def create_bids_topup_workflow(mode='average',
 
     workflow.connect(inputspec, 'bold_epi', cphdr_warp, 'hdr_file')
 
-    to_ants = pe.Node(util.Function(function=_add_dimension), name='to_ants')
+    to_ants = pe.Node(util.Function(function=_fix_hdr), name='to_ants')
     workflow.connect(cphdr_warp, 'out_file', to_ants, 'in_file')
 
     unwarp_bold_epi = pe.Node(ants.ApplyTransforms(dimension=3,
@@ -103,23 +103,17 @@ def create_bids_topup_workflow(mode='average',
 # Helper functions
 # --------------------
 
-def _add_dimension(in_file):
+def _fix_hdr(in_file, newpath=None):
     import nibabel as nb
-    import numpy as np
-    import os
+    from nipype.utils.filemanip import fname_presuffix
 
     nii = nb.load(in_file)
     hdr = nii.header.copy()
-    hdr.set_data_dtype(np.dtype('<f4'))
+    hdr.set_data_dtype('<f4')
     hdr.set_intent('vector', (), '')
-
-    field = nii.get_data()
-    field = field[:, :, :, np.newaxis, :]
-
-    out_file = os.path.abspath("warpfield.nii.gz")
-
-    nb.Nifti1Image(field.astype(np.dtype('<f4')), nii.affine, hdr).to_filename(out_file)
-
+    out_file = fname_presuffix(in_file, "_warpfield", newpath=newpath)
+    nb.Nifti1Image(nii.get_data().astype('<f4'), nii.affine, hdr).to_filename(
+        out_file)
     return out_file
 
 
