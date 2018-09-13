@@ -64,6 +64,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                             epi_op=None,
                             t1w_epi=None,
                             t1w=None,
+                            wm_seg=None,
+                            cost_func=None,
                             inv2_epi=None,
                             crop_bold_epis=True,
                             topup_package='afni',
@@ -116,6 +118,13 @@ def init_hires_unwarping_wf(name="unwarp_hires",
     crop_epi : bool
         Whether or not to crop the BOLD EPIs to the size of their corresponding
         EPI_op.
+    t1w : filename
+        T1-weighted structural image
+    wm_seg : bool
+        whether to use wm_seg
+    cost_func : 'mutualinfo', 'bbr', or 'corratio'...
+        Cost funtion to use for FSL. By default uses BBR, when wm_seg is given,
+        otherwise mutualinfo
     t1w_epi : list/filename
         T1-weighted EPI with same distortions as bold_epi.
         
@@ -124,7 +133,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
     wf = pe.Workflow(name=name)
     
-    fields = ['bold_epi', 'T1w']
+    fields = ['bold_epi', 'T1w', 'wm_seg']
     
     if method == 'topup':
         fields += ['epi_op',
@@ -165,6 +174,10 @@ def init_hires_unwarping_wf(name="unwarp_hires",
     if t1w:
         inputspec.inputs.T1w = t1w
 
+    if wm_seg:
+        cost_func = 'bbr'
+    else:
+        cost_func = 'mutualinfo'
             
     out_fields = ['bold_epi_mc',
                   'bold_epi_mask',
@@ -174,6 +187,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
     
     pre_outputnode = pe.Node(niu.IdentityInterface(fields=out_fields),
                              name='pre_outputnode')
+
     
     #  *** TOPUP ***
     if method == 'topup':
@@ -257,8 +271,11 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
             registration_wf = create_epi_to_T1_workflow(package=epi_to_t1_package,
                                                         num_threads_ants=num_threads_ants,
+                                                        cost_func=cost_func,
                                                         parameter_file=linear_registration_parameters,
                                                         init_reg_file=init_reg_file)
+
+            wf.connect(inputspec, 'wm_seg', registration_wf, 'inputspec.wm_seg_file')
 
             wf.connect(topup_wf, 'outputspec.bold_epi_corrected', registration_wf, 'inputspec.EPI_space_file')
             wf.connect(inputspec, 'T1w', registration_wf, 'inputspec.T1_file')
@@ -326,6 +343,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                 select_epi_op = pe.Node(niu.Select(index=ix), 
                                           name='select_epi_op_%s' % ix)
 
+                
                 mc_wf_bold_epi = create_motion_correction_workflow(name='mc_wf_bold_epi',
                                                                    output_mask=True,
                                                                    method='FSL',
@@ -388,15 +406,19 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                     registration_wf = create_epi_to_T1_workflow(package=epi_to_t1_package,
                                                                 parameter_file=linear_registration_parameters,
                                                                 init_reg_file=init_reg_file[ix],
+                                                                cost_func=cost_func,
                                                                 num_threads_ants=num_threads_ants)
                 else:
                     registration_wf = create_epi_to_T1_workflow(package=epi_to_t1_package,
                                                                 parameter_file=linear_registration_parameters,
                                                                 init_reg_file=init_reg_file,
+                                                                cost_func=cost_func,
                                                                 num_threads_ants=num_threads_ants)
 
+                wf.connect(inputspec, 'wm_seg', registration_wf, 'inputspec.wm_seg_file')
                 run_wf.connect(topup_wf, 'outputspec.bold_epi_corrected', registration_wf, 'inputspec.EPI_space_file')
                 wf.connect(inputspec, 'T1w', run_wf, 'epi_to_T1.inputspec.T1_file')
+
                     
                 ix1 = ix + 1
 
