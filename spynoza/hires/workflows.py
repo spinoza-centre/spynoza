@@ -66,6 +66,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                             epi_op=None,
                             t1w_epi=None,
                             t1w=None,
+                            dura_mask=None,
                             wm_seg=None,
                             cost_func=None,
                             inv2_epi=None,
@@ -123,6 +124,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
         EPI_op.
     t1w : filename
         T1-weighted structural image
+    dura_mask : filename, optional
+        Mask of dura
     wm_seg : bool
         whether to use wm_seg
     cost_func : 'mutualinfo', 'bbr', or 'corratio'...
@@ -136,7 +139,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
     wf = pe.Workflow(name=name)
     
-    fields = ['bold_epi', 'T1w', 'wm_seg']
+    fields = ['bold_epi', 'T1w', 'wm_seg', 'dura_mask']
     
     if method == 'topup':
         fields += ['epi_op',
@@ -176,6 +179,9 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
     if t1w:
         inputspec.inputs.T1w = t1w
+
+    if dura_mask:
+        inputspec.inputs.dura_mask = dura_mask
 
     if wm_seg:
         cost_func = 'bbr'
@@ -282,7 +288,16 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             wf.connect(inputspec, 'wm_seg', registration_wf, 'inputspec.wm_seg_file')
 
             wf.connect(topup_wf, 'outputspec.bold_epi_corrected', registration_wf, 'inputspec.EPI_space_file')
-            wf.connect(inputspec, 'T1w', registration_wf, 'inputspec.T1_file')
+
+            
+            if dura_mask:
+                dura_masker = pe.Node(fsl.ApplyMask(), name='dura_masker')
+                wf.connect(inputspec, 'T1w', dura_masker, 'in_file')
+                wf.connect(inputspec, ('dura_mask', invert_mask), dura_masker, 'mask_file')
+                wf.connect(dura_masker, 'out_file', registration_wf, 'inputspec.T1_file')
+
+            else:
+                wf.connect(inputspec, 'T1w', registration_wf, 'inputspec.T1_file')
             
             merge_bold_epi_to_T1w = pe.Node(niu.Merge(2), name='merge_bold_epi_to_T1w')
             wf.connect(topup_wf, 'outputspec.bold_epi_unwarp_field', merge_bold_epi_to_T1w, 'in1')
@@ -446,8 +461,15 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
                 wf.connect(inputspec, 'wm_seg', registration_wf, 'inputspec.wm_seg_file')
                 run_wf.connect(topup_wf, 'outputspec.bold_epi_corrected', registration_wf, 'inputspec.EPI_space_file')
-                wf.connect(inputspec, 'T1w', run_wf, 'epi_to_T1.inputspec.T1_file')
 
+                if dura_mask:
+                    dura_masker = pe.Node(fsl.ApplyMask(), name='dura_masker')
+                    wf.connect(inputspec, 'T1w', dura_masker, 'in_file')
+                    wf.connect(inputspec, ('dura_mask', invert_mask), dura_masker, 'mask_file')
+                    wf.connect(dura_masker, 'out_file', registration_wf, 'inputspec.T1_file')
+
+                else:
+                    wf.connect(inputspec, 'T1w', registration_wf, 'inputspec.T1_file')
                     
                 ix1 = ix + 1
 
@@ -766,3 +788,17 @@ def argmax(in_values):
 def reverse(in_values):
     return in_values[::-1]
 
+
+def invert_mask(mask_file):
+    from nilearn import image
+    import os
+    from nipype.utils.filemanip import split_filename
+
+    d, fn, ext = split_filename(mask_file)
+
+    mask = image.math_img('(mask -1) * -1', mask=mask_file)
+    new_fn = os.path.abspath(fn + '_inv' + ext)
+
+    mask.to_filename(new_fn)
+
+    return new_fn
