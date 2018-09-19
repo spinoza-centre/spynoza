@@ -352,6 +352,11 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             merge_epi_masks = pe.Node(niu.Merge(len(epi_op)),
                                       name='merge_epi_masks')
 
+            if dura_mask:
+                dura_masker = pe.Node(fsl.ApplyMask(), name='dura_masker')
+                wf.connect(inputspec, 'T1w', dura_masker, 'in_file')
+                wf.connect(inputspec, ('dura_mask', invert_mask), dura_masker, 'mask_file')
+
             for ix in range(len(epi_op)):
 
 
@@ -463,9 +468,6 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                 run_wf.connect(topup_wf, 'outputspec.bold_epi_corrected', registration_wf, 'inputspec.EPI_space_file')
 
                 if dura_mask:
-                    dura_masker = pe.Node(fsl.ApplyMask(), name='dura_masker')
-                    wf.connect(inputspec, 'T1w', dura_masker, 'in_file')
-                    wf.connect(inputspec, ('dura_mask', invert_mask), dura_masker, 'mask_file')
                     wf.connect(dura_masker, 'out_file', registration_wf, 'inputspec.T1_file')
 
                 else:
