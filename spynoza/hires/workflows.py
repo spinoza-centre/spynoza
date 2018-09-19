@@ -452,15 +452,19 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                 wf.connect(inputspec, 'epi_op_metadata', run_wf, 'select_epi_op_metadata_%s.inlist' % ix)
 
 
+                reg_wf_name = 'epi_to_T1_{:d}'.format(ix)
+
                 if type(init_reg_file) is list:
-                    registration_wf = create_epi_to_T1_workflow(package=epi_to_t1_package,
+                    registration_wf = create_epi_to_T1_workflow(name=reg_wf_name,
+                                                                package=epi_to_t1_package,
                                                                 parameter_file=linear_registration_parameters,
                                                                 init_reg_file=init_reg_file[ix],
                                                                 dof=dof,
                                                                 cost_func=cost_func,
                                                                 num_threads_ants=num_threads_ants)
                 else:
-                    registration_wf = create_epi_to_T1_workflow(package=epi_to_t1_package,
+                    registration_wf = create_epi_to_T1_workflow(name=reg_wf_name,
+                                                                package=epi_to_t1_package,
                                                                 parameter_file=linear_registration_parameters,
                                                                 init_reg_file=init_reg_file,
                                                                 dof=dof,
@@ -481,7 +485,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                 wf.connect(run_wf, 'bids_topup_workflow.outputspec.bold_epi_unwarp_field', \
                            merge_topup_corrections_runs, 'in%s' % ix1)
 
-                wf.connect(run_wf, 'epi_to_T1.outputspec.EPI_T1_matrix_file', \
+                wf.connect(run_wf, '{}.outputspec.EPI_T1_matrix_file'.format(reg_wf_name), \
                            merge_epi_to_T1w_transforms_runs, 'in%s' % ix1)
 
                 wf.connect(run_wf, 'applymask_bold_epi.out_file', \
