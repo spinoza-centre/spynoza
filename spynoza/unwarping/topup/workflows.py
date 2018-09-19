@@ -13,6 +13,7 @@ from nipype.interfaces import afni
 def create_bids_topup_workflow(mode='average',
                                package='fsl',
                                name='bids_topup_workflow', 
+                               omp_nthreads=1,
                                base_dir='/home/neuro/workflow_folders'):
 
     inputspec = pe.Node(util.IdentityInterface(fields=['bold_epi',
@@ -66,8 +67,12 @@ def create_bids_topup_workflow(mode='average',
                                             noweight=True,
                                             minpatch=9,
                                             nopadWARP=True,
-                                            outputtype='NIFTI_GZ',
-                                            verb=True), name='qwarp')
+                                            environ={'OMP_NUM_THREADS': '%d' % omp_nthreads},
+
+                                        outputtype='NIFTI_GZ',
+                                        verb=True),
+                        n_procs=omp_nthreads,
+                        name='qwarp')
 
         workflow.connect(inputspec, ('bold_epi_metadata', get_nodis_args), qwarp, 'args')
         workflow.connect(inputspec, 'bold_epi', qwarp, 'in_file')

@@ -76,6 +76,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                             epi_to_t1_package='ants',
                             within_epi_reg=True,
                             polish=True,
+                            omp_nthreads=4,
                             num_threads_ants=4):
     
     """ Use an EPI with opposite phase-encoding (EPI_op) or a 
@@ -271,7 +272,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             wf.connect(mean_epis_op1, 'out_file', mean_epi_op2, 'in_files') 
 
 
-            topup_wf = create_bids_topup_workflow(package=topup_package)
+            topup_wf = create_bids_topup_workflow(package=topup_package,
+                                                  omp_nthreads=omp_nthreads)
 
             wf.connect(mean_bold_epis2, 'out', topup_wf, 'inputspec.bold_epi')
             wf.connect(applymask_epi_op, 'out_file', topup_wf, 'inputspec.epi_op')
@@ -432,7 +434,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                 run_wf.connect(correct_header_epi_op_biasfield, 'out_file', applymask_epi_op, 'in_file') 
                 run_wf.connect(mc_wf_epi_op, 'outputspec.EPI_space_mask', applymask_epi_op, 'mask_file') 
 
-                topup_wf = create_bids_topup_workflow(package=topup_package)
+                topup_wf = create_bids_topup_workflow(package=topup_package,
+                                                      omp_nthreads=omp_nthreads)
                 topup_wf.get_node('qwarp').inputs.minpatch = 5
 
                 run_wf.connect(applymask_bold_epi, 'out_file', topup_wf, 'inputspec.bold_epi')
