@@ -64,7 +64,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
     """
 
     input_node = pe.Node(IdentityInterface(
-        fields=['EPI_space_file', 'freesurfer_subject_ID',
+        fields=['EPI_space_file', 'freesurfer_subject_ID', 'init_transform',
                 'freesurfer_subject_dir', 'T1_file', 'wm_seg_file']), name='inputspec')
 
     # Idea: also output FAST outputs for later use?
@@ -124,11 +124,12 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
                                            name='convert_init_reg_to_fsl')
                 epi_to_T1_workflow.connect(input_node, 'EPI_space_file', convert_init_reg, 'source_file')
                 epi_to_T1_workflow.connect(input_node, 'T1_file', convert_init_reg, 'target_file')
-                epi_to_T1_workflow.connect(convert_init_reg, 'out_fsl', flirt_e2t, 'in_matrix_file')
+                epi_to_T1_workflow.connect(convert_init_reg, 'out_fsl', input_node, 'init_transform')
             else:
-                flirt_e2t.inputs.in_matrix_file = init_reg_file
+                input_node.inputs.init_transform = init_reg_file
 
 
+        epi_to_T1_workflow.connect(input_node, 'init_transform', flirt_e2t, 'in_matrix_file')
         epi_to_T1_workflow.connect(input_node, 'EPI_space_file', flirt_e2t, 'in_file')
 
         if do_FAST:
@@ -162,7 +163,6 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
         # the final invert node
         invert_EPI_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name='invert_EPI_N')
         epi_to_T1_workflow.connect(flirt_e2t, 'out_matrix_file', invert_EPI_N, 'in_file')
-        epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', output_node, 'T1_EPI_matrix_file')
 
         convert_fsl_to_ants_t1_to_epi = pe.Node(C3dAffineTool(), name='convert_fsl_to_ants_t1_to_epi')
         convert_fsl_to_ants_t1_to_epi.inputs.fsl2ras = True
@@ -170,7 +170,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
         epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', convert_fsl_to_ants_t1_to_epi, 'transform_file')
         epi_to_T1_workflow.connect(input_node, 'EPI_space_file', convert_fsl_to_ants_t1_to_epi, 'reference_file')
         epi_to_T1_workflow.connect(input_node, 'T1_file', convert_fsl_to_ants_t1_to_epi, 'source_file')
-        epi_to_T1_workflow.connect(convert_fsl_to_ants_t1_to_epi, 'itk_transform', output_node, 'T1_to_EPI_matrix_file')
+        epi_to_T1_workflow.connect(convert_fsl_to_ants_t1_to_epi, 'itk_transform', output_node, 'T1_EPI_matrix_file')
 
 
         if apply_transform:
@@ -197,7 +197,7 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
                 epi_to_T1_workflow.connect(input_node, 'EPI_space_file', convert_to_ants, 'source_file')
                 epi_to_T1_workflow.connect(input_node, 'T1_file', convert_to_ants, 'target_file')
                 
-                epi_to_T1_workflow.connect(convert_to_ants, 'out_itk', ants_registration, 'initial_moving_transform')
+                epi_to_T1_workflow.connect(convert_to_ants, 'out_itk', input_node, 'initial_moving_transform')
             
             else:
                 ants_registration.inputs.initial_moving_transform = init_reg_file
