@@ -611,3 +611,22 @@ def init_temporally_crop_run_wf(name='temporally_crop_wf',
     return wf
     
     
+
+def crop_anat_and_bold(bold, anat):
+    from nilearn import image
+    import os
+    from nipype.utils.filemanip import split_filename
+
+    _, bold_fn, bold_ext = split_filename(bold)
+    _, t1w_fn, t1w_ext = split_filename(t1w)
+
+    bold_crop = image.crop_img(bold)
+    anat_crop = image.resample_to_img(anat, bold_crop)
+    
+    bold_filename = os.path.abspath('{}_crop{}'.format(bold_fn, bold_ext))
+    t1w_filename = os.path.abspath('{}_crop{}'.format(t1w_fn, t1w_ext))
+
+    bold_crop.to_filename(bold_filename)
+    t1w_crop.to_filename(t1w_filename)
+
+    return bold_filename, t1w_filename
