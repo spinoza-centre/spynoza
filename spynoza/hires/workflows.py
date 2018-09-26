@@ -186,7 +186,13 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             if dura_mask:
                 dura_masker = pe.Node(fsl.ApplyMask(), name='dura_masker')
                 wf.connect(inputspec, 'T1w', dura_masker, 'in_file')
-                wf.connect(inputspec, ('dura_mask', invert_mask), dura_masker, 'mask_file')
+
+                mask_inverter = pe.Node(niu.Function(function=invert_mask,
+                                                   input_names=['mask_file'],
+                                                   output_names=['mask_inv']),
+                                      name='invert_mask')
+                wf.connect(inputspec, 'dura_mask', mask_inverter, 'mask_file')
+                wf.connect(mask_inverter, 'mask_inv', dura_masker, 'mask_file')
 
             for ix in range(len(epi_op)):
 
