@@ -10,14 +10,14 @@ import nipype.interfaces.io as nio
 from nipype.interfaces import ants
 from nipype.interfaces import afni
 
-def create_bids_topup_workflow(mode='average',
-                               package='fsl',
-                               name='bids_topup_workflow', 
-                               omp_nthreads=1,
-                               base_dir='/home/neuro/workflow_folders'):
+def create_topup_workflow(mode='average',
+                          package='fsl',
+                          name='topup_workflow', 
+                          omp_nthreads=1,
+                          base_dir='/home/neuro/workflow_folders'):
 
-    inputspec = pe.Node(util.IdentityInterface(fields=['bold_epi',
-                                                       'bold_epi_metadata',
+    inputspec = pe.Node(util.IdentityInterface(fields=['bold',
+                                                       'bold_metadata',
                                                        'epi_op',
                                                        'epi_op_metadata']),
                         name='inputspec')
@@ -31,7 +31,7 @@ def create_bids_topup_workflow(mode='average',
         # Create the parameter file that steers TOPUP
         topup_parameters = pe.Node(TopupScanParameters, name='topup_scanparameters')
         topup_parameters.inputs.mode = mode
-        workflow.connect(inputspec, 'bold_epi_metadata', topup_parameters, 'bold_epi_metadata')
+        workflow.connect(inputspec, 'bold_metadata', topup_parameters, 'bold_metadata')
         workflow.connect(inputspec, 'epi_op_metadata', topup_parameters, 'epi_op_metadata')
 
         topup_node = pe.Node(fsl.TOPUP(args='-v'),
@@ -40,7 +40,7 @@ def create_bids_topup_workflow(mode='average',
         workflow.connect(topup_parameters, 'encoding_file', topup_node, 'encoding_file')
 
         merge_list = pe.Node(util.Merge(2), name='merge_lists')
-        workflow.connect(inputspec, 'bold_epi', merge_list, 'in1')
+        workflow.connect(inputspec, 'bold', merge_list, 'in1')
         workflow.connect(inputspec, 'epi_op', merge_list, 'in2')
 
         merger = pe.Node(fsl.Merge(dimension='t'), name='merger')
@@ -74,34 +74,34 @@ def create_bids_topup_workflow(mode='average',
                         n_procs=omp_nthreads,
                         name='qwarp')
 
-        workflow.connect(inputspec, ('bold_epi_metadata', get_nodis_args), qwarp, 'args')
-        workflow.connect(inputspec, 'bold_epi', qwarp, 'in_file')
+        workflow.connect(inputspec, ('bold_metadata', get_nodis_args), qwarp, 'args')
+        workflow.connect(inputspec, 'bold', qwarp, 'in_file')
         workflow.connect(inputspec, 'epi_op', qwarp, 'base_file')
         workflow.connect(qwarp, 'source_warp', cphdr_warp, 'in_file')
 
 
-    outputspec = pe.Node(util.IdentityInterface(fields=['bold_epi_corrected',
-                                                        'bold_epi_unwarp_field',]),
+    outputspec = pe.Node(util.IdentityInterface(fields=['bold_corrected',
+                                                        'bold_unwarp_field',]),
                          name='outputspec')
 
 
 
-    workflow.connect(inputspec, 'bold_epi', cphdr_warp, 'hdr_file')
+    workflow.connect(inputspec, 'bold', cphdr_warp, 'hdr_file')
 
     to_ants = pe.Node(util.Function(function=_fix_hdr), name='to_ants')
     workflow.connect(cphdr_warp, 'out_file', to_ants, 'in_file')
 
-    unwarp_bold_epi = pe.Node(ants.ApplyTransforms(dimension=3,
+    unwarp_bold = pe.Node(ants.ApplyTransforms(dimension=3,
                                                         float=True,
                                                         interpolation='LanczosWindowedSinc'),
-                               name='unwarp_bold_epi')
+                               name='unwarp_bold')
 
-    workflow.connect(inputspec, 'bold_epi', unwarp_bold_epi, 'input_image')
-    workflow.connect(to_ants, 'out', unwarp_bold_epi, 'transforms')
-    workflow.connect(inputspec, 'bold_epi', unwarp_bold_epi, 'reference_image')
+    workflow.connect(inputspec, 'bold', unwarp_bold, 'input_image')
+    workflow.connect(to_ants, 'out', unwarp_bold, 'transforms')
+    workflow.connect(inputspec, 'bold', unwarp_bold, 'reference_image')
 
-    workflow.connect(to_ants, 'out', outputspec, 'bold_epi_unwarp_field')
-    workflow.connect(unwarp_bold_epi, 'output_image', outputspec, 'bold_epi_corrected')
+    workflow.connect(to_ants, 'out', outputspec, 'bold_unwarp_field')
+    workflow.connect(unwarp_bold, 'output_image', outputspec, 'bold_corrected')
 
     return workflow
 
