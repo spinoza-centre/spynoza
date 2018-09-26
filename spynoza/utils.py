@@ -262,6 +262,7 @@ def average_over_runs(in_files, func='mean', output_filename=None):
     import numpy as np
     import os
     import bottleneck as bn
+    from nipype.utils.filemanip import split_filename
 
     template_data = nib.load(in_files[0])
     dims = template_data.shape
@@ -285,8 +286,9 @@ def average_over_runs(in_files, func='mean', output_filename=None):
     img = nib.Nifti1Image(av_data, affine=affine, header=header)
 
     if output_filename == None:
-        new_name = os.path.basename(in_files[0]).split('.')[:-2][
-                       0] + '_av.nii.gz'
+
+        d, fn, ext = split_filename(in_files[0])
+        new_name = '{fn}_av{ext}'.format(fn=fn, ext=ext)
         out_file = os.path.abspath(new_name)
     else:
         out_file = os.path.abspath(output_filename)
