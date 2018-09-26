@@ -421,9 +421,10 @@ def init_crop_and_report_registration_wf(name='crop_and_report'):
                                                       'wm_seg']),
                         name='inputnode')
 
-    crop_anat = pe.Node(niu.Function(function=crop_anat_and_bold,
+    crop_anat = pe.MapNode(niu.Function(function=crop_anat_and_bold,
                                 input_names=['bold', 'anat'],
                                 output_names=['bold_cropped', 'anat_cropped']),
+                           iterfield=['bold'],
                    name='crop_anat')
     wf.connect(inputnode, 'bold', crop_anat, 'bold')
     wf.connect(inputnode, 'anat', crop_anat, 'anat')
@@ -432,7 +433,7 @@ def init_crop_and_report_registration_wf(name='crop_and_report'):
                                 input_names=['bold', 'anat'],
                                 output_names=['bold_cropped', 'anat_cropped']),
                    name='crop_wm_seg')
-    wf.connect(inputnode, 'bold', crop_wm_seg, 'bold')
+    wf.connect(inputnode, ('bold', pickfirst), crop_wm_seg, 'bold')
     wf.connect(inputnode, 'wm_seg', crop_wm_seg, 'anat')
 
 
