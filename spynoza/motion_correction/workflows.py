@@ -12,6 +12,7 @@ def create_motion_correction_workflow(name='moco',
                                       method='AFNI',
                                       extend_moco_params=False,
                                       output_mask=False,
+                                      return_mat_files=False,
                                       lightweight=False):
     """uses sub-workflows to perform different registration steps.
     Requires fsl and freesurfer tools
@@ -55,8 +56,11 @@ def create_motion_correction_workflow(name='moco',
     out_fields = ['motion_corrected_files', 'EPI_space_file']
     
     if not lightweight:
-        out_fields += ['motion_correction_plots', 'motion_correction_parameters',
-                  'extended_motion_correction_parameters', 'new_motion_correction_parameters']
+        out_fields += ['motion_correction_plots', 'extended_motion_correction_parameters',
+                       'new_motion_correction_parameters']
+
+    if return_mat_files:
+        out_fields += ['mat_files']
 
     if output_mask:
         out_fields += ['EPI_space_mask']
@@ -158,6 +162,9 @@ def create_motion_correction_workflow(name='moco',
         # output node:
         motion_correction_workflow.connect(mean_bold, 'out_file', output_node, 'EPI_space_file')
         motion_correction_workflow.connect(motion_correct_all, 'out_file', output_node, 'motion_corrected_files')
+
+        if return_mat_files:
+            motion_correction_workflow.connect(motion_correct_all, 'mat_file', output_node, 'mat_files')
 
 
     ########################################################################################
