@@ -618,15 +618,15 @@ def crop_anat_and_bold(bold, anat):
     from nipype.utils.filemanip import split_filename
 
     _, bold_fn, bold_ext = split_filename(bold)
-    _, t1w_fn, t1w_ext = split_filename(t1w)
+    _, anat_fn, anat_ext = split_filename(anat)
 
     bold_crop = image.crop_img(bold)
     anat_crop = image.resample_to_img(anat, bold_crop)
     
-    bold_filename = os.path.abspath('{}_crop{}'.format(bold_fn, bold_ext))
-    t1w_filename = os.path.abspath('{}_crop{}'.format(t1w_fn, t1w_ext))
+    bold_fn = os.path.abspath('{}_crop{}'.format(bold_fn, bold_ext))
+    anat_fn = os.path.abspath('{}_crop{}'.format(anat_fn, anat_ext))
 
-    bold_crop.to_filename(bold_filename)
-    t1w_crop.to_filename(t1w_filename)
+    bold_crop.to_filename(bold_fn)
+    anat_crop.to_filename(anat_fn)
 
-    return bold_filename, t1w_filename
+    return bold_fn, anat_fn
