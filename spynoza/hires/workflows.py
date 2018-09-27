@@ -16,7 +16,7 @@ from spynoza.io.bids_interfaces import collect_data
 from niworkflows.interfaces.utils import CopyXForm
 
 from nipype.interfaces.ants.utils import ComposeMultiTransform
-
+from niworkflows.interfaces import SimpleBeforeAfter
 
 def init_hires_unwarping_wf(name="unwarp_hires",
                             method='topup',
@@ -415,18 +415,13 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     wf.connect(merge_transforms, ('out', reverse), transform_bold_to_T1w, 'transforms')
     
     # REPORT ON PEPOLAR UNWARP
-    report_unwarp_wf = init_fmap_unwarp_report_wf()
-    
+    report_unwarp_wf = init_fmap_report_wf()
     wf.connect(applymask_bold, 'out_file', report_unwarp_wf, 'inputnode.in_pre')
     wf.connect(topup_wf, 'outputspec.bold_corrected', report_unwarp_wf, 'inputnode.in_post')
 
     # Fmriprep wf expects something like dtissue
-    wm_seg_to_dtissue = pe.Node(fsl.ImageMaths(op_string='-mul 3'), name='wm_seg_to_dtissue')
-    wf.connect(inputnode, 'wm_seg', wm_seg_to_dtissue, 'in_file')
-    wf.connect(wm_seg_to_dtissue, 'out_file', report_unwarp_wf, 'inputnode.in_seg')
-    wf.connect(inputnode, 'bold', report_unwarp_wf, 'ds_report_sdc.source_file')
-
-    wf.connect(registration_wf, 'outputspec.T1_EPI_matrix_file', report_unwarp_wf, 'inputnode.in_xfm')
+    wf.connect(inputnode, 'wm_seg', report_unwarp_wf, 'inputnode.wm_seg')
+    wf.connect(registration_wf, 'outputspec.T1_EPI_matrix_file', report_unwarp_wf, 'inputnode.T1w_to_epi_xfm')
 
 
     # REPORT ON REGISTRATION
@@ -437,16 +432,19 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     
     # OUTPUTNODE
     outputnode = pe.Node(niu.IdentityInterface(fields=['unwarp_field',
-                                                       'epi_to_t1w',
+                                                       'bold_to_t1w_linear',
+                                                       'motion_correct_itk',
                                                        'unwarp_report',
-                                                       'registration_report']),
+                                                       'registration_report',
+                                                       'ref_bold']),
                          name='outputnode')
 
 
     wf.connect(topup_wf, 'outputspec.bold_unwarp_field', outputnode, 'unwarp_field')
-    wf.connect(registration_wf, 'outputspec.EPI_T1_matrix_file', outputnode, 'epi_to_t1w')
-    wf.connect(report_unwarp_wf, 'bold_rpt.out_report', outputnode, 'unwarp_report')
+    wf.connect(registration_wf, 'outputspec.EPI_T1_matrix_file', outputnode, 'bold_to_t1w_linear')
+    wf.connect(report_unwarp_wf, 'outputnode.unwarp_rpt', outputnode, 'unwarp_report')
     wf.connect(report_reg_wf, 'outputnode.reg_rpt', outputnode, 'registration_report')
+    wf.connect(applymask_bold, 'out_file', outputnode, 'ref_bold')
 
     return wf
 
@@ -476,8 +474,10 @@ def init_crop_and_report_registration_wf(name='crop_and_report'):
     wf.connect(inputnode, 'wm_seg', crop_wm_seg, 'anat')
 
 
-    reg_rpt = pe.Node(SimpleBeforeAfter(), name='reg_rpt',
-                                              mem_gb=0.1)
+    reg_rpt = pe.MapNode(SimpleBeforeAfter(), 
+                         iterfield=['before', 'after'],
+                         name='reg_rpt', mem_gb=0.1)
+
     wf.connect(crop_anat, 'anat_cropped', reg_rpt, 'before')
     wf.connect(crop_anat, 'bold_cropped', reg_rpt, 'after')
     wf.connect(crop_wm_seg, 'anat_cropped', reg_rpt, 'wm_seg')
@@ -486,6 +486,40 @@ def init_crop_and_report_registration_wf(name='crop_and_report'):
                          name='outputnode')
 
     wf.connect(reg_rpt, 'out_report', outputnode, 'reg_rpt')
+
+    return wf
+
+def init_fmap_report_wf(name='fmap_report'):
+
+    wf = pe.Workflow(name=name)
+
+    inputnode = pe.Node(niu.IdentityInterface(fields=['in_post',
+                                                      'in_pre',
+                                                      'wm_seg',
+                                                      'T1w_to_epi_xfm']),
+                        name='inputnode')
+
+    
+    transform_wm_seg = pe.Node(ants.ApplyTransforms(dimension=3, 
+                                                    float=True, 
+                                                    interpolation='MultiLabel'),
+                               name='transform_wm_seg')
+    
+    unwarp_rpt = pe.MapNode(SimpleBeforeAfter(), 
+                         iterfield=['before', 'after'],
+                         name='unwarp_rpt', mem_gb=0.1)
+
+    outputnode = pe.Node(niu.IdentityInterface(fields=['unwarp_rpt']),
+                         name='outputnode')
+
+    wf.connect([
+        (inputnode, transform_wm_seg, [('wm_seg', 'input_image'),
+                                       ('T1w_to_epi_xfm', 'transforms'),
+                                       ('in_post', 'reference_image')]),
+        (inputnode, unwarp_rpt, [('in_pre', 'before'),
+                              ('in_post', 'after')]),
+        (unwarp_rpt, outputnode, [('out_report', 'unwarp_rpt')])
+    ])
 
     return wf
 
