@@ -18,8 +18,7 @@ def create_topup_workflow(mode='average',
 
     inputspec = pe.Node(util.IdentityInterface(fields=['bold',
                                                        'bold_metadata',
-                                                       'epi_op',
-                                                       'epi_op_metadata']),
+                                                       'epi_op']),
                         name='inputspec')
 
     workflow = pe.Workflow(name=name, base_dir=base_dir)
@@ -32,7 +31,6 @@ def create_topup_workflow(mode='average',
         topup_parameters = pe.Node(TopupScanParameters, name='topup_scanparameters')
         topup_parameters.inputs.mode = mode
         workflow.connect(inputspec, 'bold_metadata', topup_parameters, 'bold_metadata')
-        workflow.connect(inputspec, 'epi_op_metadata', topup_parameters, 'epi_op_metadata')
 
         topup_node = pe.Node(fsl.TOPUP(args='-v'),
                                 name='topup')
