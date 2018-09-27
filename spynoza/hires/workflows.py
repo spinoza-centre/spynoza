@@ -179,7 +179,23 @@ def init_hires_unwarping_wf(name="unwarp_hires",
         # *** only ONE warpfield ***
         if single_warpfield:
 
-            raise NotImplementedError
+            correct_wf = create_pepolar_reg_wf('unwarp_reg_wf',
+                                               dof=dof,
+                                               registration_parameters=linear_registration_parameters)
+
+            correct_wf.inputs.inputnode.init_transform = init_transform
+
+            print(inputspec.inputs)
+
+            wf.connect(inputspec, 'bold', correct_wf, 'inputnode.bold')
+            wf.connect(inputspec, 'epi_op', correct_wf, 'inputnode.epi_op')
+            wf.connect(inputspec, ('bold_metadata', pickfirst), correct_wf, 'inputnode.bold_metadata')
+            wf.connect(inputspec, 'wm_seg', correct_wf, 'inputnode.wm_seg')
+
+            if dura_mask:
+                wf.connect(dura_masker, 'out_file', correct_wf, 'inputnode.T1w')
+            else:
+                wf.connect(inputspec, 'T1w', correct_wf, 'inputnode.T1w')
 
         # SEPERATE warpfields for each run
         else:
