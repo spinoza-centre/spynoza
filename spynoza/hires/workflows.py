@@ -207,18 +207,13 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             
             if not (len(inputspec.inputs.bold) == len(inputspec.inputs.epi_op)):
                 raise Exception ("Number of bold and epi_op runs should be identical")
-
-
-            if dura_mask:
-                dura_masker = pe.Node(fsl.ApplyMask(), name='dura_masker')
-                wf.connect(inputspec, 'T1w', dura_masker, 'in_file')
-
-                mask_inverter = pe.Node(niu.Function(function=invert_mask,
-                                                   input_names=['mask_file'],
-                                                   output_names=['mask_inv']),
-                                      name='invert_mask')
-                wf.connect(inputspec, 'dura_mask', mask_inverter, 'mask_file')
-                wf.connect(mask_inverter, 'mask_inv', dura_masker, 'mask_file')
+            
+            merge_ref_bold = pe.Node(niu.Merge(len(bold)),
+                                               name='merge_ref_bold')
+            merge_bold_to_t1w_linear = pe.Node(niu.Merge(len(bold)),
+                                               name='merge_bold_to_t1w_linear')
+            merge_unwarp_field = pe.Node(niu.Merge(len(bold)),
+                                               name='merge_unwarp_field')
 
             for ix in range(len(epi_op)):
 
@@ -228,8 +223,6 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                                           name='select_epi_op_%s' % ix)
                 select_bold_metadata = pe.Node(niu.Select(index=ix), 
                                           name='select_bold_metadata_%s' % ix)
-                select_epi_op_metadata = pe.Node(niu.Select(index=ix), 
-                                          name='select_epi_op_metadata_%s' % ix)
 
                 correct_wf = create_pepolar_reg_wf('unwarp_reg_wf_{}'.format(ix),
                                                    dof=dof,
@@ -240,12 +233,10 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                 wf.connect(inputspec, 'epi_op', select_epi_op, 'inlist')
 
                 wf.connect(inputspec, 'bold_metadata', select_bold_metadata, 'inlist')
-                wf.connect(inputspec, 'epi_op_metadata', select_epi_op_metadata, 'inlist')
 
                 wf.connect(select_bold, 'out', correct_wf, 'inputnode.bold')
                 wf.connect(select_epi_op, 'out', correct_wf, 'inputnode.epi_op')
                 wf.connect(select_bold_metadata, 'out', correct_wf, 'inputnode.bold_metadata')
-                wf.connect(select_epi_op_metadata, 'out', correct_wf, 'inputnode.epi_op_metadata')
 
                 wf.connect(inputspec, 'wm_seg', correct_wf, 'inputnode.wm_seg')
 
@@ -254,6 +245,29 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
                 else:
                     wf.connect(inputspec, 'T1w', correct_wf, 'inputnode.T1w')
+
+                wf.connect(correct_wf, 'outputnode.ref_bold', merge_ref_bold, 'in{}'.format(ix+1))
+                wf.connect(correct_wf, 'outputnode.bold_to_t1w_linear', merge_bold_to_t1w_linear, 'in{}'.format(ix+1))
+                wf.connect(correct_wf, 'outputnode.unwarp_field', merge_unwarp_field, 'in{}'.format(ix+1))
+
+            if within_epi_reg:
+                within_epi_wf = init_within_epi_reg_EPI_registrations_wf()
+
+                wf.connect(merge_ref_bold, 'out', within_epi_wf, 'inputnode.ref_bold')
+
+                if dura_mask:
+                    wf.connect(dura_masker, 'out_file', within_epi_wf, 'inputnode.T1w')
+
+                else:
+                    wf.connect(inputspec, 'T1w', within_epi_wf, 'inputnode.T1w')
+                
+                merge_transforms1 = pe.MapNode(niu.Merge(2),
+                                               iterfield=['in1', 'in2'],
+                                            name='merge_transforms1')
+
+                wf.connect(merge_bold_to_t1w_linear, 'out', merge_transforms1, 'in1')
+                wf.connect(merge_unwarp_field, 'out', merge_transforms1, 'in2')
+                wf.connect(merge_transforms1, 'out', within_epi_wf, 'inputnode.init_transforms')
 
             
     return wf
@@ -384,7 +398,7 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     wf.connect(inputnode, 'init_transform', registration_wf, 'inputspec.init_transform')
 
 
-    # MERGE TRANSFORMS
+    #  MERGE TRANSFORMS
     merge_transforms = pe.Node(niu.Merge(2), name='merge_transforms')
     wf.connect(topup_wf, 'outputspec.bold_unwarp_field', merge_transforms, 'in1')
     wf.connect(registration_wf, 'outputspec.EPI_T1_matrix_file', merge_transforms, 'in2')
