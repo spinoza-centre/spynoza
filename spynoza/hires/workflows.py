@@ -288,7 +288,7 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     wf = pe.Workflow(name=name)
 
     inputnode = pe.Node(niu.IdentityInterface(fields=['bold', 'epi_op', 
-                                                      'bold_metadata', 'epi_op_metadata',
+                                                      'bold_metadata',
                                                       'wm_seg', 'T1w',
                                                       'init_transform']),
                          name='inputnode')
@@ -383,7 +383,6 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     wf.connect(applymask_epi_op, 'out_file', topup_wf, 'inputspec.epi_op')
 
     wf.connect(inputnode, 'bold_metadata', topup_wf, 'inputspec.bold_metadata')
-    wf.connect(inputnode, 'epi_op_metadata', topup_wf, 'inputspec.epi_op_metadata')
 
 
     registration_wf = create_epi_to_T1_workflow(name='epi_to_T1',
