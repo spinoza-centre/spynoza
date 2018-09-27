@@ -524,12 +524,9 @@ def init_fmap_report_wf(name='fmap_report'):
     return wf
 
 
-def create_within_epi_reg_EPI_registrations_wf(method='best-run',
-                                          epi_runs=None,
-                                          apply_transform=False,
-                                          initial_transforms=None,
-                                          num_threads_ants=4,
-                                          linear_registration_parameters='linear_hires.json'):
+def init_within_epi_reg_EPI_registrations_wf(method='best-run',
+                                              num_threads_ants=4,
+                                              linear_registration_parameters='linear_hires.json'):
     """ Given a set of EPI runs registered to a
     T1w-image. Register the EPI runs to each other, to maximize overlap.
     The EPI that has the highest Mutual Information with the T1-weighted image is
@@ -539,87 +536,74 @@ def create_within_epi_reg_EPI_registrations_wf(method='best-run',
     if method != 'best-run':
         raise NotImplementedError('Nope.')
     
-    in_fields = ['bold', 'T1w', 'initial_transforms']
+    in_fields = ['ref_bold', 'T1w', 'init_transforms']
 
-    inputspec = pe.Node(niu.IdentityInterface(fields=in_fields),
-                        name='inputspec')
-
-    if epi_runs:
-        inputspec.inputs.bold = epi_runs
+    inputnode = pe.Node(niu.IdentityInterface(fields=in_fields),
+                        name='inputnode')
 
     wf = pe.Workflow(name='within_epi_reg_registration')
-
-    mean_epis = pe.Node(niu.Function(function=average_over_runs),
-                         name='mean_epis')
-
-    epi_masker = pe.Node(afni.Automask(outputtype='NIFTI_GZ'),
-                        name='epi_masker')
 
     measure_similarity = pe.MapNode(ants.MeasureImageSimilarity(metric='MI',
                                                                 dimension=3,
                                                                 metric_weight=1.0,
-                                                                radius_or_number_of_bins=5,
+                                                                radius_or_number_of_bins=25,
                                                                 sampling_strategy='Regular',
                                                                 num_threads=num_threads_ants,
                                                                 sampling_percentage=1.0),
                                     iterfield=['moving_image'],
                                     name='measure_similarity')
 
+    mean_epis = pe.Node(niu.Function(function=average_over_runs),
+                                                 name='mean_epis')
+    epi_masker = pe.Node(afni.Automask(outputtype='NIFTI_GZ'),
+                                                 name='epi_masker')
+
     bold_registration_json = pkg_resources.resource_filename('spynoza.data.ants_json', linear_registration_parameters)
 
     select_reference_epi = pe.Node(niu.Select(),
                                    name='select_reference_epi')
 
-    outputspec = pe.Node(niu.IdentityInterface(fields=['mean_epi_in_T1w_space',
-                                                       'bold_to_T1w_transforms']),
-                         name='outputspec')
+    outputnode = pe.Node(niu.IdentityInterface(fields=['bold_to_T1w_transforms']),
+                         name='outputnode')
 
-    if initial_transforms:
-        inputspec.inputs.initial_transforms = initial_transforms
+    transform_inputs = pe.MapNode(ants.ApplyTransforms(num_threads=num_threads_ants),
+                                 iterfield=['input_image',
+                                            'transforms'],
+                                 name='transform_input')
 
-        ants_registration = pe.MapNode(ants.Registration(from_file=bold_registration_json,
-                                                         num_threads=4,
-                                                  output_warped_image=apply_transform), 
-                                   iterfield=['moving_image',
-                                              'initial_moving_transform'],
-                                name='ants_registration')
-        transform_inputs = pe.MapNode(ants.ApplyTransforms(num_threads=num_threads_ants),
-                                     iterfield=['input_image',
-                                                'transforms'],
-                                     name='transform_input')
-        wf.connect(inputspec, 'initial_transforms', transform_inputs, 'transforms')
-        wf.connect(inputspec, 'bold', transform_inputs, 'input_image')
-        wf.connect(inputspec, 'T1w', transform_inputs, 'reference_image')
-        wf.connect(transform_inputs, 'output_image', mean_epis, 'in_files')
-        wf.connect(transform_inputs, 'output_image', measure_similarity, 'moving_image')
-        wf.connect(inputspec, 'initial_transforms', ants_registration, 'initial_moving_transform')
+    ants_registration = pe.MapNode(ants.Registration(from_file=bold_registration_json,
+                                                     num_threads=4,
+                                                     write_composite_transform=False,
+                                                     collapse_output_transforms=False,
+                                              output_warped_image=True), 
+                               iterfield=['moving_image',
+                                          'initial_moving_transform'],
+                            name='ants_registration')
 
-        wf.connect(transform_inputs, 'output_image', select_reference_epi, 'inlist')
-        wf.connect(select_reference_epi, ('out', pickfirst), ants_registration, 'fixed_image')
+    wf.connect(inputnode, 'init_transforms', transform_inputs, 'transforms')
+    wf.connect(inputnode, 'ref_bold', transform_inputs, 'input_image')
+    wf.connect(inputnode, 'T1w', transform_inputs, 'reference_image')
 
-    else:
-        ants_registration = pe.MapNode(ants.Registration(from_file=bold_registration_json,
-                                                         num_threads=num_threads_ants,
-                                                  output_warped_image=apply_transform), 
-                                   iterfield=['moving_image'],
-                                name='ants_registration')
-        wf.connect(inputspec, 'bold', select_reference_epi, 'inlist')
-        wf.connect(inputspec, 'bold', mean_epis, 'in_files')
-        wf.connect(inputspec, 'bold', measure_similarity, 'moving_image')
-        wf.connect(select_reference_epi, ('out', pickfirst), ants_registration, 'fixed_image')
+    wf.connect(transform_inputs, 'output_image', mean_epis, 'in_files')
+    wf.connect(transform_inputs, 'output_image', measure_similarity, 'moving_image')
+
+    wf.connect(inputnode, 'init_transforms', ants_registration, 'initial_moving_transform')
+
+    wf.connect(transform_inputs, 'output_image', select_reference_epi, 'inlist')
+    wf.connect(select_reference_epi, ('out', pickfirst), ants_registration, 'fixed_image')
 
 
     wf.connect(mean_epis, 'out', epi_masker, 'in_file')
     wf.connect(epi_masker, 'out_file', measure_similarity, 'fixed_image_mask')
-    wf.connect(inputspec, 'T1w', measure_similarity, 'fixed_image')
+    wf.connect(inputnode, 'T1w', measure_similarity, 'fixed_image')
 
     wf.connect(measure_similarity, ('similarity', argmax), select_reference_epi, 'index')
 
     wf.connect(epi_masker, 'out_file', ants_registration, 'fixed_image_masks')
-    wf.connect(inputspec, 'bold', ants_registration, 'moving_image')
+    wf.connect(inputnode, 'ref_bold', ants_registration, 'moving_image')
 
-    wf.connect(ants_registration, 'warped_image', outputspec, 'mean_epi_in_T1w_space')
-    wf.connect(ants_registration, 'forward_transforms', outputspec, 'bold_to_T1w_transforms')
+    wf.connect(ants_registration, 'warped_image', outputnode, 'mean_epi_in_T1w_space')
+    wf.connect(ants_registration, 'forward_transforms', outputnode, 'bold_to_T1w_transforms')
 
     return wf
 
