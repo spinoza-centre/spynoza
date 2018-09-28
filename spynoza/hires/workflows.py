@@ -10,6 +10,7 @@ from ..motion_correction.workflows import create_motion_correction_workflow
 from ..unwarping.topup.workflows import create_topup_workflow
 from ..unwarping.t1w_epi.workflows import create_t1w_epi_registration_workflow
 from ..registration.sub_workflows import create_epi_to_T1_workflow
+from ..conversion.nodes import percent_signal_change
 
 from spynoza.io.bids_interfaces import collect_data
 
@@ -17,10 +18,13 @@ from niworkflows.interfaces.utils import CopyXForm
 
 from nipype.interfaces.ants.utils import ComposeMultiTransform
 from niworkflows.interfaces import SimpleBeforeAfter
+from fmriprep.interfaces import MultiApplyTransforms, DerivativesDataSink
+from fmriprep.interfaces.nilearn import Merge as MergeImages
 
 def init_hires_unwarping_wf(name="unwarp_hires",
                             method='topup',
                             bids_layout=None,
+                            derivatives_dir='/derivatives',
                             single_warpfield=False,
                             register_to='last',
                             init_transform=None,
@@ -115,6 +119,9 @@ def init_hires_unwarping_wf(name="unwarp_hires",
     
     inputspec = pe.Node(niu.IdentityInterface(fields=fields),
                         name='inputspec')
+
+    if within_epi_reg and single_warpfield:
+        raise Exception('You cannot use a single warpfield and register within!')
     
     if bold:
         inputspec.inputs.bold = bold
@@ -210,10 +217,14 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             
             merge_ref_bold = pe.Node(niu.Merge(len(bold)),
                                                name='merge_ref_bold')
+            merge_ref_mask = pe.Node(niu.Merge(len(bold)),
+                                               name='merge_ref_mask')
             merge_bold_to_t1w_linear = pe.Node(niu.Merge(len(bold)),
                                                name='merge_bold_to_t1w_linear')
             merge_unwarp_field = pe.Node(niu.Merge(len(bold)),
                                                name='merge_unwarp_field')
+            merge_hmc_itk = pe.Node(niu.Merge(len(bold)),
+                                               name='merge_hmc_itk')
 
             for ix in range(len(epi_op)):
 
@@ -249,6 +260,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                 wf.connect(correct_wf, 'outputnode.ref_bold', merge_ref_bold, 'in{}'.format(ix+1))
                 wf.connect(correct_wf, 'outputnode.bold_to_t1w_linear', merge_bold_to_t1w_linear, 'in{}'.format(ix+1))
                 wf.connect(correct_wf, 'outputnode.unwarp_field', merge_unwarp_field, 'in{}'.format(ix+1))
+                wf.connect(correct_wf, 'outputnode.hmc_itk', merge_hmc_itk, 'in{}'.format(ix+1))
+                wf.connect(correct_wf, 'outputnode.ref_mask', merge_ref_mask, 'in{}'.format(ix+1))
 
             if within_epi_reg:
                 within_epi_wf = init_within_epi_reg_EPI_registrations_wf()
@@ -270,6 +283,49 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                 wf.connect(merge_transforms1, 'out', within_epi_wf, 'inputnode.init_transforms')
 
             
+
+        # RESAMPLE ORIGINAL BOLD
+        resample_wf = init_resample_wf(omp_nthreads=omp_nthreads,
+                                       derivatives_dir=derivatives_dir)
+
+        if within_epi_reg:
+            wf.connect(merge_ref_bold, 'out', resample_wf, 'inputnode.ref_bold')
+            wf.connect(merge_ref_mask, 'out', resample_wf, 'inputnode.ref_mask')
+
+            combine_transforms = pe.MapNode(niu.Merge(4), 
+                                            iterfield=['in1', 'in2', 'in3', 'in4'],
+                                            name='combine_transforms')
+
+            wf.connect(merge_hmc_itk, 'out', combine_transforms, 'in1')
+            wf.connect(merge_bold_to_t1w_linear, 'out', combine_transforms, 'in3')
+            wf.connect(merge_unwarp_field, 'out', combine_transforms, 'in2')
+
+            pick_final_transforms = pe.MapNode(niu.Function(function=pick_from,
+                                                         input_names=['in_list', 'n'],
+                                                          output_names=['out_list']),
+                                               iterfield=['in_list'],
+                                            name='pick_final_transforms')
+            pick_final_transforms.inputs.n = 2
+            wf.connect(within_epi_wf, 'outputnode.bold_to_T1w_transforms', pick_final_transforms, 'in_list')
+            wf.connect(pick_final_transforms, 'out_list', combine_transforms, 'in4')
+
+        else:
+            wf.connect(correct_wf, 'outputnode.ref_bold', resample_wf, 'inputnode.ref_bold')
+            wf.connect(correct_wf, 'outputnode.ref_mask', resample_wf, 'inputnode.ref_mask')
+
+            combine_transforms = pe.MapNode(niu.Merge(3), 
+                                            iterfield=['in1'],
+                                            name='combine_transforms')
+            wf.connect(correct_wf, 'outputnode.hmc_itk', combine_transforms, 'in1')
+            wf.connect(correct_wf, 'outputnode.unwarp_field', combine_transforms, 'in2')
+            wf.connect(correct_wf, 'outputnode.bold_to_t1w_linear', combine_transforms, 'in3')
+
+        wf.connect(combine_transforms, 'out', resample_wf, 'inputnode.transforms')
+        wf.connect(inputspec, 'bold', resample_wf, 'inputnode.bold')
+        wf.connect(inputspec, 'bold_metadata', resample_wf, 'inputnode.bold_metadata')
+        wf.connect(inputspec, 'T1w', resample_wf, 'inputnode.T1w')
+
+
     return wf
 
 
@@ -433,10 +489,11 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     # OUTPUTNODE
     outputnode = pe.Node(niu.IdentityInterface(fields=['unwarp_field',
                                                        'bold_to_t1w_linear',
-                                                       'motion_correct_itk',
+                                                       'hmc_itk',
                                                        'unwarp_report',
                                                        'registration_report',
-                                                       'ref_bold']),
+                                                       'ref_bold',
+                                                       'ref_mask']),
                          name='outputnode')
 
 
@@ -445,6 +502,8 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     wf.connect(report_unwarp_wf, 'outputnode.unwarp_rpt', outputnode, 'unwarp_report')
     wf.connect(report_reg_wf, 'outputnode.reg_rpt', outputnode, 'registration_report')
     wf.connect(applymask_bold, 'out_file', outputnode, 'ref_bold')
+    wf.connect(mcflirt_to_itk, 'out_file', outputnode, 'hmc_itk')
+    wf.connect(mc_wf_bold, 'outputspec.EPI_space_mask', outputnode, 'ref_mask') 
 
     return wf
 
@@ -597,7 +656,7 @@ def init_within_epi_reg_EPI_registrations_wf(method='best-run',
     wf.connect(epi_masker, 'out_file', measure_similarity, 'fixed_image_mask')
     wf.connect(inputnode, 'T1w', measure_similarity, 'fixed_image')
 
-    wf.connect(measure_similarity, ('similarity', argmax), select_reference_epi, 'index')
+    wf.connect(measure_similarity, ('similarity', argmin), select_reference_epi, 'index')
 
     wf.connect(epi_masker, 'out_file', ants_registration, 'fixed_image_masks')
     wf.connect(inputnode, 'ref_bold', ants_registration, 'moving_image')
@@ -679,6 +738,127 @@ def polish_bold_runs_in_T1w_space(name='polish_bold_in_T1w_space',
     wf.connect(transform_outputs, 'output_image', outputspec, 'mean_epi_in_T1w_space')
     wf.connect(merge_transforms, 'out', outputspec, 'bold_to_T1w_transforms')
 
+
+    return wf
+
+def init_resample_wf(name='resample_bold',
+                     derivatives_dir='/derivatives',
+                     convert_to_psc=True,
+                     omp_nthreads=4):
+    from niworkflows.interfaces.utils import GenerateSamplingReference
+
+
+    wf = pe.Workflow(name=name)
+
+    inputnode = pe.Node(niu.IdentityInterface(fields=['bold',
+                                                      'ref_bold',
+                                                      'ref_mask',
+                                                      'transforms',
+                                                      'bold_metadata',
+                                                      'T1w']),
+                        name='inputnode')
+
+    reverse_transforms = pe.MapNode(niu.Function(function=reverse,
+                                               input_names=['in_values'],
+                                               output_names=['reverse_list']),
+                                    iterfield=['in_values'],
+                                    name='reverse_transforms')
+
+    wf.connect(inputnode, 'transforms', reverse_transforms, 'in_values')
+
+    split_bold = pe.MapNode(fsl.Split(dimension='t'),
+                            iterfield='in_file',
+                         name='split_bold')
+    wf.connect(inputnode, 'bold', split_bold, 'in_file')
+
+    transform_ref_mask = pe.Node(ants.ApplyTransforms(dimension=3, 
+                                                         float=True, 
+                                                         interpolation='MultiLabel'),
+                               name='transform_ref_mask')
+
+    wf.connect(inputnode, ('ref_mask', pickfirst), transform_ref_mask, 'input_image')
+    wf.connect(inputnode, 'T1w', transform_ref_mask, 'reference_image')
+
+    remove_hmc = pe.Node(niu.Function(function=pick_until,
+                                      input_names=['in_list', 'n'],
+                                      output_names=['out_list']),
+                         name='remove_hmc')
+    remove_hmc.inputs.n = -1
+
+    wf.connect(reverse_transforms, ('reverse_list', pickfirst), remove_hmc, 'in_list')
+    wf.connect(remove_hmc,  'out_list', transform_ref_mask, 'transforms')
+
+    crop_mask = pe.Node(niu.Function(function=crop_anat_and_bold,
+                                input_names=['bold', 'anat'],
+                                output_names=['bold_cropped', 'anat_cropped']),
+                   name='crop_mask')
+    wf.connect(transform_ref_mask,  'output_image', crop_mask, 'bold')
+    wf.connect(inputnode,  'T1w', crop_mask, 'anat')
+
+    gen_ref = pe.Node(GenerateSamplingReference(),
+                      name='gen_ref')
+
+    wf.connect(crop_mask, 'anat_cropped', gen_ref, 'fixed_image')
+    wf.connect(inputnode, ('ref_bold', pickfirst), gen_ref, 'moving_image')
+
+    transform_bold_to_t1w = pe.MapNode(
+                MultiApplyTransforms(interpolation="LanczosWindowedSinc", float=True, copy_dtype=True),
+                iterfield=['input_image', 'transforms'],
+                name='transform_bold_to_t1w', n_procs=omp_nthreads)
+
+    wf.connect(split_bold, 'out_files', transform_bold_to_t1w, 'input_image')
+    wf.connect(gen_ref, 'out_file', transform_bold_to_t1w, 'reference_image')
+    wf.connect(reverse_transforms, 'reverse_list', transform_bold_to_t1w, 'transforms')
+
+    get_TR = pe.MapNode(niu.Function(function=_get_TR,
+                                     input_names=['bold_metadata'],
+                                     output_names=['tr']),
+                        iterfield=['bold_metadata'],
+                        name='get_TR')
+    
+    wf.connect(inputnode, 'bold_metadata', get_TR, 'bold_metadata')
+
+    merge = pe.MapNode(fsl.Merge(dimension='t'), iterfield=['in_files', 'tr'], name='merge')
+    wf.connect(transform_bold_to_t1w, 'out_files', merge, 'in_files')
+    wf.connect(get_TR, 'tr', merge, 'tr')
+
+    ds_bold_t1w = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
+                                                    suffix='space-T1w',
+                                                    base_directory=derivatives_dir),
+                                iterfield=['in_file', 'source_file'],
+                                name='ds_bold_t1w')
+
+    wf.connect(inputnode, 'bold', ds_bold_t1w, 'source_file')
+
+
+    if convert_to_psc:
+        psc_convert = pe.MapNode(niu.Function(function=percent_signal_change,
+                                              input_names=['in_file'],
+                                              output_names=['out_file']),
+                                 iterfield=['in_file'],
+                                 name='psc_convert')
+
+        wf.connect(merge, 'merged_file', psc_convert, 'in_file')
+        wf.connect(psc_convert, 'out_file', ds_bold_t1w, 'in_file')
+
+    else:
+        wf.connect(merge, 'merged_file', ds_bold_t1w, 'in_file')
+
+    ds_ref_mask_t1w = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
+                                                    suffix='mask_space-T1w',
+                                                    base_directory=derivatives_dir),
+                                iterfield=['in_file', 'source_file'],
+                                name='ds_ref_mask_t1w')
+
+    wf.connect(inputnode, 'bold', ds_ref_mask_t1w, 'source_file')
+    wf.connect(crop_mask, 'anat_cropped', ds_ref_mask_t1w, 'in_file')
+
+    outputnode = pe.Node(niu.IdentityInterface(fields=['bold_in_T1w',
+                                                       'ref_mask_in_T1w']),
+                         name='outputnode')
+
+    wf.connect(ds_bold_t1w, 'out_file', outputnode, 'bold_in_t1w')
+
     return wf
 
 
@@ -690,9 +870,21 @@ def argmax(in_values):
     import numpy as np
     return np.argmax(in_values)
 
+def argmin(in_values):
+    import numpy as np
+    return np.argmin(in_values)
+
 def reverse(in_values):
     return in_values[::-1]
 
+def get_last(in_list, n=3):
+    return in_list[-n:]
+
+def pick_from(in_list, n=2):
+    return in_list[n:]
+
+def pick_until(in_list, n=-1):
+    return in_list[:n]
 
 def invert_mask(mask_file):
     from nilearn import image
@@ -707,3 +899,5 @@ def invert_mask(mask_file):
     mask.to_filename(new_fn)
 
     return new_fn
+def _get_TR(bold_metadata):
+    return bold_metadata['RepetitionTime']
