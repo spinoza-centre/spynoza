@@ -5,6 +5,7 @@ from nipype.interfaces.base import isdefined
 import pkg_resources
 
 from ..utils import average_over_runs, get_scaninfo, init_temporally_crop_run_wf, pickfirst, crop_anat_and_bold
+from ..filtering.nodes import savgol_filter
 
 from ..motion_correction.workflows import create_motion_correction_workflow
 from ..unwarping.topup.workflows import create_topup_workflow
@@ -743,7 +744,7 @@ def polish_bold_runs_in_T1w_space(name='polish_bold_in_T1w_space',
 
 def init_resample_wf(name='resample_bold',
                      derivatives_dir='/derivatives',
-                     convert_to_psc=True,
+                     highpass=True,
                      omp_nthreads=4):
     from niworkflows.interfaces.utils import GenerateSamplingReference
 
@@ -779,14 +780,26 @@ def init_resample_wf(name='resample_bold',
     wf.connect(inputnode, ('ref_mask', pickfirst), transform_ref_mask, 'input_image')
     wf.connect(inputnode, 'T1w', transform_ref_mask, 'reference_image')
 
-    remove_hmc = pe.Node(niu.Function(function=pick_until,
+    remove_hmc = pe.MapNode(niu.Function(function=pick_until,
                                       input_names=['in_list', 'n'],
                                       output_names=['out_list']),
+                            iterfield=['in_list'],
                          name='remove_hmc')
     remove_hmc.inputs.n = -1
 
-    wf.connect(reverse_transforms, ('reverse_list', pickfirst), remove_hmc, 'in_list')
-    wf.connect(remove_hmc,  'out_list', transform_ref_mask, 'transforms')
+    wf.connect(reverse_transforms, 'reverse_list', remove_hmc, 'in_list')
+    wf.connect(remove_hmc,  ('out_list', pickfirst), transform_ref_mask, 'transforms')
+
+
+    transform_ref_bold = pe.MapNode(ants.ApplyTransforms(dimension=3, 
+                                                         float=True, 
+                                                         interpolation='LanczosWindowedSinc'),
+                                    iterfield=['input_image', 'transforms'],
+                               name='transform_ref_bold')
+
+    wf.connect(remove_hmc,  'out_list', transform_ref_bold, 'transforms')
+    wf.connect(inputnode, 'ref_bold', transform_ref_bold, 'input_image')
+    wf.connect(inputnode, 'T1w', transform_ref_bold, 'reference_image')
 
     crop_mask = pe.Node(niu.Function(function=crop_anat_and_bold,
                                 input_names=['bold', 'anat'],
@@ -798,7 +811,7 @@ def init_resample_wf(name='resample_bold',
     gen_ref = pe.Node(GenerateSamplingReference(),
                       name='gen_ref')
 
-    wf.connect(crop_mask, 'anat_cropped', gen_ref, 'fixed_image')
+    wf.connect(crop_mask, 'bold_cropped', gen_ref, 'fixed_image')
     wf.connect(inputnode, ('ref_bold', pickfirst), gen_ref, 'moving_image')
 
     transform_bold_to_t1w = pe.MapNode(
@@ -823,7 +836,7 @@ def init_resample_wf(name='resample_bold',
     wf.connect(get_TR, 'tr', merge, 'tr')
 
     ds_bold_t1w = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
-                                                    suffix='space-T1w',
+                                                    suffix='preproc',
                                                     base_directory=derivatives_dir),
                                 iterfield=['in_file', 'source_file'],
                                 name='ds_bold_t1w')
@@ -831,27 +844,45 @@ def init_resample_wf(name='resample_bold',
     wf.connect(inputnode, 'bold', ds_bold_t1w, 'source_file')
 
 
-    if convert_to_psc:
-        psc_convert = pe.MapNode(niu.Function(function=percent_signal_change,
-                                              input_names=['in_file'],
+    if highpass:
+        filter_node = pe.MapNode(niu.Function(function=savgol_filter,
+                                              input_names=['in_file',
+                                                           'polyorder',
+                                                           'deriv',
+                                                           'window_length',
+                                                           'tr'],
                                               output_names=['out_file']),
-                                 iterfield=['in_file'],
-                                 name='psc_convert')
+                                 iterfield=['in_file', 'tr'],
+                                 name='filter_node')
 
-        wf.connect(merge, 'merged_file', psc_convert, 'in_file')
-        wf.connect(psc_convert, 'out_file', ds_bold_t1w, 'in_file')
+        wf.connect(merge, 'merged_file', filter_node, 'in_file')
+        wf.connect(get_TR, 'tr', filter_node, 'tr')
+        filter_node.inputs.polyorder = 3
+        filter_node.inputs.deriv = 0
+        filter_node.inputs.window_length = 128
+
+        wf.connect(filter_node, 'out_file', ds_bold_t1w, 'in_file')
 
     else:
         wf.connect(merge, 'merged_file', ds_bold_t1w, 'in_file')
 
     ds_ref_mask_t1w = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
-                                                    suffix='mask_space-T1w',
+                                                    suffix='mask',
                                                     base_directory=derivatives_dir),
-                                iterfield=['in_file', 'source_file'],
+                                iterfield=['in_file'],
                                 name='ds_ref_mask_t1w')
 
-    wf.connect(inputnode, 'bold', ds_ref_mask_t1w, 'source_file')
-    wf.connect(crop_mask, 'anat_cropped', ds_ref_mask_t1w, 'in_file')
+    wf.connect(inputnode, ('bold', pickfirst), ds_ref_mask_t1w, 'source_file')
+    wf.connect(crop_mask, ('anat_cropped', pickfirst), ds_ref_mask_t1w, 'in_file')
+
+    ds_ref_bold_t1w = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
+                                                    suffix='reference',
+                                                    base_directory=derivatives_dir),
+                                iterfield=['in_file', 'source_file'],
+                                name='ds_ref_bold_t1w')
+
+    wf.connect(inputnode, 'bold', ds_ref_bold_t1w, 'source_file')
+    wf.connect(transform_ref_bold, 'output_image', ds_ref_bold_t1w, 'in_file')
 
     outputnode = pe.Node(niu.IdentityInterface(fields=['bold_in_T1w',
                                                        'ref_mask_in_T1w']),
