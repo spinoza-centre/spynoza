@@ -791,15 +791,6 @@ def init_resample_wf(name='resample_bold',
     wf.connect(remove_hmc,  ('out_list', pickfirst), transform_ref_mask, 'transforms')
 
 
-    transform_ref_bold = pe.MapNode(ants.ApplyTransforms(dimension=3, 
-                                                         float=True, 
-                                                         interpolation='LanczosWindowedSinc'),
-                                    iterfield=['input_image', 'transforms'],
-                               name='transform_ref_bold')
-
-    wf.connect(remove_hmc,  'out_list', transform_ref_bold, 'transforms')
-    wf.connect(inputnode, 'ref_bold', transform_ref_bold, 'input_image')
-    wf.connect(inputnode, 'T1w', transform_ref_bold, 'reference_image')
 
     crop_mask = pe.Node(niu.Function(function=crop_anat_and_bold,
                                 input_names=['bold', 'anat'],
@@ -814,6 +805,15 @@ def init_resample_wf(name='resample_bold',
     wf.connect(crop_mask, 'bold_cropped', gen_ref, 'fixed_image')
     wf.connect(inputnode, ('ref_bold', pickfirst), gen_ref, 'moving_image')
 
+    transform_ref_mask2 = pe.Node(ants.ApplyTransforms(dimension=3, 
+                                                         float=True, 
+                                                         interpolation='MultiLabel'),
+                               name='transform_ref_mask2')
+
+    wf.connect(inputnode, ('ref_mask', pickfirst), transform_ref_mask2, 'input_image')
+    wf.connect(gen_ref, 'out_file', transform_ref_mask2, 'reference_image')
+    wf.connect(remove_hmc,  ('out_list', pickfirst), transform_ref_mask2, 'transforms')
+
     transform_bold_to_t1w = pe.MapNode(
                 MultiApplyTransforms(interpolation="LanczosWindowedSinc", float=True, copy_dtype=True),
                 iterfield=['input_image', 'transforms'],
@@ -822,6 +822,16 @@ def init_resample_wf(name='resample_bold',
     wf.connect(split_bold, 'out_files', transform_bold_to_t1w, 'input_image')
     wf.connect(gen_ref, 'out_file', transform_bold_to_t1w, 'reference_image')
     wf.connect(reverse_transforms, 'reverse_list', transform_bold_to_t1w, 'transforms')
+
+    transform_ref_bold = pe.MapNode(ants.ApplyTransforms(dimension=3, 
+                                                         float=True, 
+                                                         interpolation='LanczosWindowedSinc'),
+                                    iterfield=['input_image', 'transforms'],
+                               name='transform_ref_bold')
+
+    wf.connect(remove_hmc,  'out_list', transform_ref_bold, 'transforms')
+    wf.connect(inputnode, 'ref_bold', transform_ref_bold, 'input_image')
+    wf.connect(gen_ref, 'out_file', transform_ref_bold, 'reference_image')
 
     get_TR = pe.MapNode(niu.Function(function=_get_TR,
                                      input_names=['bold_metadata'],
@@ -861,7 +871,14 @@ def init_resample_wf(name='resample_bold',
         filter_node.inputs.deriv = 0
         filter_node.inputs.window_length = 128
 
-        wf.connect(filter_node, 'out_file', ds_bold_t1w, 'in_file')
+        psc_convert = pe.MapNode(niu.Function(function=percent_signal_change,
+                                              input_names=['in_file'],
+                                              output_names=['out_file']),
+                                 iterfield=['in_file'],
+                                 name='psc_convert')
+
+        wf.connect(filter_node, 'out_file', psc_convert, 'in_file')
+        wf.connect(psc_convert, 'out_file', ds_bold_t1w, 'in_file') 
 
     else:
         wf.connect(merge, 'merged_file', ds_bold_t1w, 'in_file')
@@ -873,7 +890,7 @@ def init_resample_wf(name='resample_bold',
                                 name='ds_ref_mask_t1w')
 
     wf.connect(inputnode, ('bold', pickfirst), ds_ref_mask_t1w, 'source_file')
-    wf.connect(crop_mask, ('anat_cropped', pickfirst), ds_ref_mask_t1w, 'in_file')
+    wf.connect(transform_ref_mask2, 'output_image', ds_ref_mask_t1w, 'in_file')
 
     ds_ref_bold_t1w = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
                                                     suffix='reference',
