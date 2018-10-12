@@ -2,11 +2,13 @@ import nipype.pipeline as pe
 import nipype.interfaces.fsl as fsl
 import nipype.interfaces.afni.preprocess as afni
 import nipype.interfaces.io as nio
+from nipype.algorithms import confounds as nac
 from nipype.interfaces.utility import Rename
 from nipype.interfaces.utility import IdentityInterface
 import nipype.interfaces.utility as niu
 from ..utils import Set_postfix, Remove_extension, ComputeEPIMask, epi_file_selector
-
+from niworkflows.interfaces import NormalizeMotionParams
+from fmriprep.interfaces import GatherConfounds, AddTSVHeader
 
 def create_motion_correction_workflow(name='moco',
                                       method='AFNI',
@@ -53,8 +55,8 @@ def create_motion_correction_workflow(name='moco',
                                             name='inputspec')
 
 
-    out_fields = ['motion_corrected_files', 'EPI_space_file']
-    
+    out_fields = ['motion_corrected_files', 'EPI_space_file', 'hmc_confounds']
+
     if not lightweight:
         out_fields += ['motion_correction_plots', 'extended_motion_correction_parameters',
                        'new_motion_correction_parameters']
@@ -64,7 +66,7 @@ def create_motion_correction_workflow(name='moco',
 
     if output_mask:
         out_fields += ['EPI_space_mask']
-
+    
     output_node = pe.Node(IdentityInterface(fields=out_fields), 
                                             name='outputspec')
 
@@ -165,6 +167,31 @@ def create_motion_correction_workflow(name='moco',
 
         if return_mat_files:
             motion_correction_workflow.connect(motion_correct_all, 'mat_file', output_node, 'mat_files')
+
+        
+        normalize_motion = pe.MapNode(NormalizeMotionParams(format='FSL'),
+                                      iterfield=['in_file'],
+                                      name="normalize_motion")
+        motion_correction_workflow.connect(motion_correct_all, 'par_file', normalize_motion, 'in_file')
+
+        fdisp = pe.MapNode(nac.FramewiseDisplacement(parameter_source="SPM"),
+                           iterfield=['in_file'],
+                           name="fdisp")
+
+        motion_correction_workflow.connect(normalize_motion, 'out_file', fdisp, 'in_file')
+
+        add_header = pe.MapNode(AddTSVHeader(columns=["X", "Y", "Z", "RotX", "RotY", "RotZ"]),
+                                iterfield=['in_file'],
+                                name="add_header")
+        motion_correction_workflow.connect(normalize_motion, 'out_file', add_header, 'in_file')
+
+        concat = pe.MapNode(GatherConfounds(),
+                         iterfield=['fd', 'motion'],
+                         name="concat")
+        motion_correction_workflow.connect(fdisp, 'out_file', concat, 'fd')
+        motion_correction_workflow.connect(add_header, 'out_file', concat, 'motion')
+
+        motion_correction_workflow.connect(concat, 'confounds_file', output_node, 'hmc_confounds')
 
 
     ########################################################################################
