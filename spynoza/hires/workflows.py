@@ -188,6 +188,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
         if single_warpfield:
 
             correct_wf = create_pepolar_reg_wf('unwarp_reg_wf',
+                                               derivatives_dir=derivatives_dir,
                                                dof=dof,
                                                registration_parameters=linear_registration_parameters)
 
@@ -226,6 +227,10 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                                                name='merge_unwarp_field')
             merge_hmc_itk = pe.Node(niu.Merge(len(bold)),
                                                name='merge_hmc_itk')
+            merge_reg_rpt = pe.Node(niu.Merge(len(bold)),
+                                               name='merge_reg_rpt')
+            merge_confounds = pe.Node(niu.Merge(len(bold)),
+                                               name='merge_confounds')
 
             for ix in range(len(epi_op)):
 
@@ -237,6 +242,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                                           name='select_bold_metadata_%s' % ix)
 
                 correct_wf = create_pepolar_reg_wf('unwarp_reg_wf_{}'.format(ix),
+                                                   derivatives_dir=derivatives_dir,
                                                    dof=dof,
                                                    registration_parameters=linear_registration_parameters)
                 correct_wf.inputs.inputnode.init_transform = init_transform
@@ -331,6 +337,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
 
 def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
+                          derivatives_dir='/derivatives',
                           crop_bolds=True,
                           topup_package='afni',
                           epi_to_t1_package='fsl',
@@ -487,6 +494,25 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     wf.connect(inputnode, 'T1w', report_reg_wf, 'inputnode.anat')
     wf.connect(inputnode, 'wm_seg', report_reg_wf, 'inputnode.wm_seg')
     
+    ds_reg_report = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
+                                                    suffix='epi2t1w_report',
+                                                    base_directory=derivatives_dir),
+                                iterfield=['in_file', 'source_file'],
+                                name='ds_reg_report')
+
+    wf.connect(inputnode, 'bold', ds_reg_report, 'source_file')
+    wf.connect(report_reg_wf, 'outputnode.reg_rpt', ds_reg_report, 'in_file')
+
+    # HMC confounds
+    ds_hmc_confounds = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
+                                                    suffix='confounds',
+                                                    base_directory=derivatives_dir),
+                                iterfield=['in_file', 'source_file'],
+                                name='ds_hmc_confounds')
+
+    wf.connect(inputnode, 'bold', ds_hmc_confounds, 'source_file')
+    wf.connect(mc_wf_bold, 'outputspec.hmc_confounds', ds_hmc_confounds, 'in_file')
+
     # OUTPUTNODE
     outputnode = pe.Node(niu.IdentityInterface(fields=['unwarp_field',
                                                        'bold_to_t1w_linear',
@@ -494,7 +520,8 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
                                                        'unwarp_report',
                                                        'registration_report',
                                                        'ref_bold',
-                                                       'ref_mask']),
+                                                       'ref_mask',
+                                                       'hmc_confounds']),
                          name='outputnode')
 
 
@@ -505,6 +532,7 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     wf.connect(applymask_bold, 'out_file', outputnode, 'ref_bold')
     wf.connect(mcflirt_to_itk, 'out_file', outputnode, 'hmc_itk')
     wf.connect(mc_wf_bold, 'outputspec.EPI_space_mask', outputnode, 'ref_mask') 
+    wf.connect(mc_wf_bold, 'outputspec.hmc_confounds', outputnode, 'hmc_confounds') 
 
     return wf
 
@@ -900,6 +928,7 @@ def init_resample_wf(name='resample_bold',
 
     wf.connect(inputnode, 'bold', ds_ref_bold_t1w, 'source_file')
     wf.connect(transform_ref_bold, 'output_image', ds_ref_bold_t1w, 'in_file')
+
 
     outputnode = pe.Node(niu.IdentityInterface(fields=['bold_in_T1w',
                                                        'ref_mask_in_T1w']),
