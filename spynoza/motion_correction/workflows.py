@@ -15,6 +15,7 @@ def create_motion_correction_workflow(name='moco',
                                       extend_moco_params=False,
                                       output_mask=False,
                                       return_mat_files=False,
+                                      cost_func='normcorr',
                                       lightweight=False):
     """uses sub-workflows to perform different registration steps.
     Requires fsl and freesurfer tools
@@ -128,14 +129,14 @@ def create_motion_correction_workflow(name='moco',
                                           iterfield=['in_file'])
 
         motion_correct_EPI_space = pe.Node(interface=fsl.MCFLIRT(
-            cost='normcorr',
+            cost=cost_func,
             interpolation='sinc',
             mean_vol=True
         ), name='motion_correct_EPI_space')
 
         motion_correct_all = pe.MapNode(interface=fsl.MCFLIRT(save_mats=True,
                                                               save_plots=True,
-                                                              cost='normcorr',
+                                                              cost=cost_func,
                                                               interpolation='sinc',
                                                               stats_imgs=True),
                                         name='motion_correct_all',
