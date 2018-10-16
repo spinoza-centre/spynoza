@@ -45,6 +45,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                             epi_to_t1_package='ants',
                             within_epi_reg=True,
                             polish=True,
+                            mc_cost_func='normcorr',
+                            out_path_base='spynoza',
                             omp_nthreads=4,
                             num_threads_ants=4):
     
@@ -190,6 +192,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
             correct_wf = create_pepolar_reg_wf('unwarp_reg_wf',
                                                derivatives_dir=derivatives_dir,
                                                dof=dof,
+                                               mc_cost_func=mc_cost_func,
+                                               out_path_base=out_path_base,
                                                registration_parameters=linear_registration_parameters)
 
             correct_wf.inputs.inputnode.init_transform = init_transform
@@ -244,6 +248,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                 correct_wf = create_pepolar_reg_wf('unwarp_reg_wf_{}'.format(ix),
                                                    derivatives_dir=derivatives_dir,
                                                    dof=dof,
+                                                   mc_cost_func=mc_cost_func,
+                                                   out_path_base=out_path_base,
                                                    registration_parameters=linear_registration_parameters)
                 correct_wf.inputs.inputnode.init_transform = init_transform
 
@@ -293,6 +299,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
 
         # RESAMPLE ORIGINAL BOLD
         resample_wf = init_resample_wf(omp_nthreads=omp_nthreads,
+                                       out_path_base=out_path_base,
                                        derivatives_dir=derivatives_dir)
 
         if within_epi_reg:
@@ -344,6 +351,8 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
                           registration_parameters='linear_hires.json',
                           dof=6,
                           cost_func='bbr',
+                          mc_cost_func='normcorr',
+                          out_path_base='spynoza',
                           omp_nthreads=4):
 
     from fmriprep.interfaces import MCFLIRT2ITK
@@ -361,6 +370,7 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
                                                   output_mask=True,
                                                    return_mat_files=True,
                                                   method='FSL',
+                                                   cost_func=mc_cost_func,
                                                   lightweight=True)
 
     wf.connect(inputnode, 'bold', mc_wf_bold, 'inputspec.in_files')
@@ -494,7 +504,7 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     wf.connect(inputnode, 'T1w', report_reg_wf, 'inputnode.anat')
     wf.connect(inputnode, 'wm_seg', report_reg_wf, 'inputnode.wm_seg')
     
-    ds_reg_report = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
+    ds_reg_report = pe.MapNode(DerivativesDataSink(out_path_base=out_path_base,
                                                     suffix='epi2t1w_report',
                                                     base_directory=derivatives_dir),
                                 iterfield=['in_file', 'source_file'],
@@ -504,7 +514,7 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     wf.connect(report_reg_wf, 'outputnode.reg_rpt', ds_reg_report, 'in_file')
 
     # HMC confounds
-    ds_hmc_confounds = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
+    ds_hmc_confounds = pe.MapNode(DerivativesDataSink(out_path_base=out_path_base,
                                                     suffix='confounds',
                                                     base_directory=derivatives_dir),
                                 iterfield=['in_file', 'source_file'],
@@ -772,6 +782,7 @@ def polish_bold_runs_in_T1w_space(name='polish_bold_in_T1w_space',
 
 def init_resample_wf(name='resample_bold',
                      derivatives_dir='/derivatives',
+                     out_path_base='spynoza',
                      highpass=True,
                      omp_nthreads=4):
     from niworkflows.interfaces.utils import GenerateSamplingReference
@@ -873,7 +884,7 @@ def init_resample_wf(name='resample_bold',
     wf.connect(transform_bold_to_t1w, 'out_files', merge, 'in_files')
     wf.connect(get_TR, 'tr', merge, 'tr')
 
-    ds_bold_t1w = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
+    ds_bold_t1w = pe.MapNode(DerivativesDataSink(out_path_base=out_path_base,
                                                     suffix='preproc',
                                                     base_directory=derivatives_dir),
                                 iterfield=['in_file', 'source_file'],
@@ -911,7 +922,7 @@ def init_resample_wf(name='resample_bold',
     else:
         wf.connect(merge, 'merged_file', ds_bold_t1w, 'in_file')
 
-    ds_ref_mask_t1w = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
+    ds_ref_mask_t1w = pe.MapNode(DerivativesDataSink(out_path_base=out_path_base,
                                                     suffix='mask',
                                                     base_directory=derivatives_dir),
                                 iterfield=['in_file'],
@@ -920,7 +931,7 @@ def init_resample_wf(name='resample_bold',
     wf.connect(inputnode, ('bold', pickfirst), ds_ref_mask_t1w, 'source_file')
     wf.connect(transform_ref_mask2, 'output_image', ds_ref_mask_t1w, 'in_file')
 
-    ds_ref_bold_t1w = pe.MapNode(DerivativesDataSink(out_path_base='spynoza',
+    ds_ref_bold_t1w = pe.MapNode(DerivativesDataSink(out_path_base=out_path_base,
                                                     suffix='reference',
                                                     base_directory=derivatives_dir),
                                 iterfield=['in_file', 'source_file'],
