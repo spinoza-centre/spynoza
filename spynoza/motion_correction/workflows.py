@@ -43,9 +43,6 @@ def create_motion_correction_workflow(name='moco',
     """
 
 
-    if lightweight and (method == 'AFNI'):
-        raise NotImplementedError('lightweight workflow currently only supports FSL')
-
     ### NODES
     in_fields = ['in_files', 'which_file_is_EPI_space']
 
@@ -170,36 +167,13 @@ def create_motion_correction_workflow(name='moco',
             motion_correction_workflow.connect(motion_correct_all, 'mat_file', output_node, 'mat_files')
 
         
-        normalize_motion = pe.MapNode(NormalizeMotionParams(format='FSL'),
-                                      iterfield=['in_file'],
-                                      name="normalize_motion")
-        motion_correction_workflow.connect(motion_correct_all, 'par_file', normalize_motion, 'in_file')
-
-        fdisp = pe.MapNode(nac.FramewiseDisplacement(parameter_source="SPM"),
-                           iterfield=['in_file'],
-                           name="fdisp")
-
-        motion_correction_workflow.connect(normalize_motion, 'out_file', fdisp, 'in_file')
-
-        add_header = pe.MapNode(AddTSVHeader(columns=["X", "Y", "Z", "RotX", "RotY", "RotZ"]),
-                                iterfield=['in_file'],
-                                name="add_header")
-        motion_correction_workflow.connect(normalize_motion, 'out_file', add_header, 'in_file')
-
-        concat = pe.MapNode(GatherConfounds(),
-                         iterfield=['fd', 'motion'],
-                         name="concat")
-        motion_correction_workflow.connect(fdisp, 'out_file', concat, 'fd')
-        motion_correction_workflow.connect(add_header, 'out_file', concat, 'motion')
-
-        motion_correction_workflow.connect(concat, 'confounds_file', output_node, 'hmc_confounds')
 
 
     ########################################################################################
     # Plot the estimated motion parameters
     ########################################################################################
 
-    if not lightweight:
+    if method == 'FSL' and not lightweight:
         # rename:
         motion_correction_workflow.connect(mean_bold, 'out_file', rename_mean_bold, 'in_file')
         motion_correction_workflow.connect(motion_correct_all, 'par_file', rename_motion_files, 'in_file')
@@ -231,25 +205,16 @@ def create_motion_correction_workflow(name='moco',
     if method == 'AFNI':
         motion_correct_EPI_space = pe.Node(interface=afni.Volreg(outputtype='NIFTI_GZ',
                                                                 zpad=5,
-                                                                args=' -cubic '  # -twopass -Fourier
+                                                                args=' -Fourier'
                                                                 ), 
                                             name='motion_correct_EPI_space')
 
         motion_correct_all = pe.MapNode(interface=afni.Volreg(outputtype='NIFTI_GZ',
                                                                 zpad=5,
-                                                                args=' -cubic '  # -twopass
+                                                                args=' -Fourier'
                                                                 ), 
                                         name='motion_correct_all',
                                         iterfield=['in_file'])
-
-        # for renaming *_volreg.nii.gz to *_mcf.nii.gz
-        set_postfix_mcf = pe.MapNode(interface=Set_postfix,
-                                     name='set_postfix_mcf', iterfield=['in_file'])
-        set_postfix_mcf.inputs.postfix = 'mcf'
-
-        rename_volreg = pe.MapNode(interface=Rename(keep_ext=True), 
-                                    name='rename_volreg',
-                                    iterfield=['in_file', 'format_string'])
 
         # curate for moco between sessions
         motion_correction_workflow.connect(EPI_file_selector_node, 'out_file', motion_correct_EPI_space, 'in_file')
@@ -258,33 +223,37 @@ def create_motion_correction_workflow(name='moco',
         # motion correction across runs
         motion_correction_workflow.connect(input_node, 'in_files', motion_correct_all, 'in_file')
         motion_correction_workflow.connect(mean_bold, 'out_file', motion_correct_all, 'basefile')
-        # motion_correction_workflow.connect(mean_bold, 'out_file', motion_correct_all, 'rotparent')
-        # motion_correction_workflow.connect(mean_bold, 'out_file', motion_correct_all, 'gridparent')
 
-        # output node:
-        motion_correction_workflow.connect(mean_bold, 'out_file', output_node, 'EPI_space_file')
-        motion_correction_workflow.connect(motion_correct_all, 'md1d_file', output_node, 'max_displacement_info')
-        motion_correction_workflow.connect(motion_correct_all, 'oned_file', output_node, 'motion_correction_parameter_info')
-        motion_correction_workflow.connect(motion_correct_all, 'oned_matrix_save', output_node, 'motion_correction_parameter_matrix')
-        motion_correction_workflow.connect(input_node, 'in_files', set_postfix_mcf, 'in_file')
-        motion_correction_workflow.connect(set_postfix_mcf, 'out_file', rename_volreg, 'format_string')
-        motion_correction_workflow.connect(motion_correct_all, 'out_file', rename_volreg, 'in_file')
-        motion_correction_workflow.connect(rename_volreg, 'out_file', output_node, 'motion_corrected_files')
+    normalize_motion = pe.MapNode(NormalizeMotionParams(format=method),
+                                  iterfield=['in_file'],
+                                  name="normalize_motion")
+    if method == 'FSL':
+        motion_correction_workflow.connect(motion_correct_all, 'par_file', normalize_motion, 'in_file')
+    elif method == 'AFNI':
+        motion_correction_workflow.connect(motion_correct_all, 'oned_file', normalize_motion, 'in_file')
 
+    fdisp = pe.MapNode(nac.FramewiseDisplacement(parameter_source="SPM"),
+                       iterfield=['in_file'],
+                       name="fdisp")
 
-        # datasink:
-        motion_correction_workflow.connect(mean_bold, 'out_file', rename_mean_bold, 'in_file')
-        motion_correction_workflow.connect(rename_mean_bold, 'out_file', datasink, 'reg')
-        motion_correction_workflow.connect(rename_volreg, 'out_file', datasink, 'mcf')
-        motion_correction_workflow.connect(motion_correct_all, 'md1d_file', datasink, 'mcf.max_displacement_info')
-        motion_correction_workflow.connect(motion_correct_all, 'oned_file', datasink, 'mcf.parameter_info')
-        motion_correction_workflow.connect(motion_correct_all, 'oned_matrix_save', datasink, 'mcf.motion_pars')
-        
+    motion_correction_workflow.connect(normalize_motion, 'out_file', fdisp, 'in_file')
+
+    add_header = pe.MapNode(AddTSVHeader(columns=["X", "Y", "Z", "RotX", "RotY", "RotZ"]),
+                            iterfield=['in_file'],
+                            name="add_header")
+    motion_correction_workflow.connect(normalize_motion, 'out_file', add_header, 'in_file')
+
+    concat = pe.MapNode(GatherConfounds(),
+                     iterfield=['fd', 'motion'],
+                     name="concat")
+    motion_correction_workflow.connect(fdisp, 'out_file', concat, 'fd')
+    motion_correction_workflow.connect(add_header, 'out_file', concat, 'motion')
+
+    motion_correction_workflow.connect(concat, 'confounds_file', output_node, 'hmc_confounds')
+
     if output_mask:
         create_bold_mask = pe.Node(ComputeEPIMask(upper_cutoff=0.8), name='create_bold_mask')
         motion_correction_workflow.connect(motion_correct_EPI_space, 'out_file', create_bold_mask, 'in_file')
         motion_correction_workflow.connect(create_bold_mask, 'mask_file', output_node, 'EPI_space_mask')
 
     return motion_correction_workflow
-
-
