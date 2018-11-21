@@ -9,6 +9,7 @@ import nipype.interfaces.utility as niu
 import os
 import nibabel as nb
 from nipype.utils.filemanip import fname_presuffix
+from bids.grabbids import BIDSLayout
 
 
 
@@ -630,3 +631,77 @@ def crop_anat_and_bold(bold, anat):
     anat_crop.to_filename(anat_fn)
 
     return bold_fn, anat_fn
+
+
+
+def collect_data(dataset, participant_label, task=None):
+    """
+    Uses grabbids to retrieve the input data for a given participant
+    >>> bids_root, _ = collect_data('ds054', '100185')
+    >>> bids_root['fmap']  # doctest: +ELLIPSIS
+    ['.../ds054/sub-100185/fmap/sub-100185_magnitude1.nii.gz', \
+'.../ds054/sub-100185/fmap/sub-100185_magnitude2.nii.gz', \
+'.../ds054/sub-100185/fmap/sub-100185_phasediff.nii.gz']
+    >>> bids_root['bold']  # doctest: +ELLIPSIS
+    ['.../ds054/sub-100185/func/sub-100185_task-machinegame_run-01_bold.nii.gz', \
+'.../ds054/sub-100185/func/sub-100185_task-machinegame_run-02_bold.nii.gz', \
+'.../ds054/sub-100185/func/sub-100185_task-machinegame_run-03_bold.nii.gz', \
+'.../ds054/sub-100185/func/sub-100185_task-machinegame_run-04_bold.nii.gz', \
+'.../ds054/sub-100185/func/sub-100185_task-machinegame_run-05_bold.nii.gz', \
+'.../ds054/sub-100185/func/sub-100185_task-machinegame_run-06_bold.nii.gz']
+    >>> bids_root['sbref']  # doctest: +ELLIPSIS
+    ['.../ds054/sub-100185/func/sub-100185_task-machinegame_run-01_sbref.nii.gz', \
+'.../ds054/sub-100185/func/sub-100185_task-machinegame_run-02_sbref.nii.gz', \
+'.../ds054/sub-100185/func/sub-100185_task-machinegame_run-03_sbref.nii.gz', \
+'.../ds054/sub-100185/func/sub-100185_task-machinegame_run-04_sbref.nii.gz', \
+'.../ds054/sub-100185/func/sub-100185_task-machinegame_run-05_sbref.nii.gz', \
+'.../ds054/sub-100185/func/sub-100185_task-machinegame_run-06_sbref.nii.gz']
+    >>> bids_root['t1w']  # doctest: +ELLIPSIS
+    ['.../ds054/sub-100185/anat/sub-100185_T1w.nii.gz']
+    >>> bids_root['t2w']  # doctest: +ELLIPSIS
+    []
+    """
+    layout = BIDSLayout(dataset, exclude=['derivatives', 'sourcedata'])
+    queries = {
+        'fmap': {'subject': participant_label, 'modality': 'fmap',
+                 'extensions': ['nii', 'nii.gz']},
+        'bold': {'subject': participant_label, 'modality': 'func', 'type': 'bold',
+                 'extensions': ['nii', 'nii.gz']},
+        'sbref': {'subject': participant_label, 'modality': 'func', 'type': 'sbref',
+                  'extensions': ['nii', 'nii.gz']},
+        'flair': {'subject': participant_label, 'modality': 'anat', 'type': 'FLAIR',
+                  'extensions': ['nii', 'nii.gz']},
+        't2w': {'subject': participant_label, 'modality': 'anat', 'type': 'T2w',
+                'extensions': ['nii', 'nii.gz']},
+        't1w': {'subject': participant_label, 'modality': 'anat', 'type': 'T1w',
+                'extensions': ['nii', 'nii.gz']},
+        'roi': {'subject': participant_label, 'modality': 'anat', 'type': 'roi',
+                'extensions': ['nii', 'nii.gz']},
+        'mprage': {'subject': participant_label, 'modality': 'anat', 'type': 'MPRAGE',
+                    'extensions': ['nii', 'nii.gz']},
+    }
+
+    if task:
+        queries['bold']['task'] = task
+
+    subj_data = {modality: [x.filename for x in layout.get(**query)]
+                 for modality, query in queries.items()}
+
+    def _grp_echos(x):
+        if '_echo-' not in x:
+            return x
+        echo = re.search("_echo-\\d*", x).group(0)
+        return x.replace(echo, "_echo-?")
+
+    if subj_data["bold"] is not []:
+        bold_sess = subj_data["bold"]
+
+        if any(['_echo-' in bold for bold in bold_sess]):
+            ses_uids = [list(bold) for _, bold in groupby(bold_sess, key=_grp_echos)]
+            ses_uids = [x[0] if len(x) == 1 else x for x in ses_uids]
+        else:
+            ses_uids = bold_sess
+
+    subj_data.update({"bold": ses_uids})
+
+    return subj_data, layout
