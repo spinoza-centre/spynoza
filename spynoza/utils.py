@@ -9,7 +9,8 @@ import nipype.interfaces.utility as niu
 import os
 import nibabel as nb
 from nipype.utils.filemanip import fname_presuffix
-from bids.grabbids import BIDSLayout
+#from bids.grabbids import BIDSLayout
+from bids import BIDSLayout
 
 
 
