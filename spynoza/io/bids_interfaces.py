@@ -6,7 +6,6 @@ from nipype.interfaces.base import (
         traits, Str, BaseInterfaceInputSpec, TraitedSpec,
         File, Directory, OutputMultiPath, InputMultiPath,
         isdefined, DynamicTraitedSpec)
-#from bids.grabbids import BIDSLayout
 from bids import BIDSLayout
 import nibabel as nb
 import logging
