@@ -4,10 +4,14 @@ from nipype.interfaces import freesurfer
 from nipype.interfaces import ants
 from nipype.interfaces.utility import Function, IdentityInterface
 from nipype.interfaces.c3 import C3dAffineTool
+from nipype.interfaces.freesurfer.utils import LTAConvert
 from ...utils import pick_last
 import pkg_resources
 
 import os
+
+def _get_subject_args(subject):
+    return '--subject {}'.format(subject)
 
 
 def create_epi_to_T1_workflow(name='epi_to_T1', 
@@ -84,11 +88,19 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
 
     if package == 'freesurfer': # do BBRegister
         if init_reg_file is None:
-            bbregister_N = pe.Node(freesurfer.BBRegister(init = 'fsl', contrast_type = 't2', out_fsl_file = True ),
+            bbregister_N = pe.Node(freesurfer.BBRegister(init = 'fsl', contrast_type = 'bold', out_fsl_file = True ),
                                name = 'bbregister_N')
         else:
-            bbregister_N = pe.Node(freesurfer.BBRegister(init_reg_file=init_reg_file, contrast_type = 't2', out_fsl_file = True ),
+            lta_convert = pe.Node(LTAConvert(in_fsl=init_reg_file,
+                                             out_reg=True, out_lta=True), name='lta_convert')
+            epi_to_T1_workflow.connect(input_node, 'EPI_space_file', lta_convert, 'source_file')
+            epi_to_T1_workflow.connect(input_node, ('freesurfer_subject_ID', _get_subject_args), lta_convert, 'args')
+            epi_to_T1_workflow.connect(input_node, 'T1_file', lta_convert, 'target_file')
+            bbregister_N = pe.Node(freesurfer.BBRegister(contrast_type='bold',
+                                                         out_fsl_file = True,
+                                                         registered_file=True),
                                name = 'bbregister_N')
+            epi_to_T1_workflow.connect(lta_convert, 'out_lta', bbregister_N, 'init_reg_file')
 
         epi_to_T1_workflow.connect(input_node, 'EPI_space_file', bbregister_N, 'source_file')
         epi_to_T1_workflow.connect(input_node, 'freesurfer_subject_ID', bbregister_N, 'subject_id')
