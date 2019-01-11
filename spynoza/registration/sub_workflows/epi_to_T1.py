@@ -15,7 +15,7 @@ def _get_subject_args(subject):
 
 
 def create_epi_to_T1_workflow(name='epi_to_T1', 
-                              package='freesurfer',
+                              package='fsl',
                               init_reg_file=None,
                               do_BET=False,
                               do_FAST=False,
@@ -106,13 +106,26 @@ def create_epi_to_T1_workflow(name='epi_to_T1',
         epi_to_T1_workflow.connect(input_node, 'freesurfer_subject_ID', bbregister_N, 'subject_id')
         epi_to_T1_workflow.connect(input_node, 'freesurfer_subject_dir', bbregister_N, 'subjects_dir')
 
-        epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', output_node, 'EPI_T1_matrix_file')
-        epi_to_T1_workflow.connect(bbregister_N, 'out_reg_file', output_node, 'EPI_T1_register_file')
+        convert_fsl_to_ants_epi_to_t1 = pe.Node(C3dAffineTool(), name='convert_fsl_to_ants_epi_to_t1')
+        convert_fsl_to_ants_epi_to_t1.inputs.fsl2ras = True
+        convert_fsl_to_ants_epi_to_t1.inputs.itk_transform = True
+        epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', convert_fsl_to_ants_epi_to_t1, 'transform_file')
+        epi_to_T1_workflow.connect(input_node, 'EPI_space_file', convert_fsl_to_ants_epi_to_t1, 'source_file')
+        epi_to_T1_workflow.connect(input_node, 'T1_file', convert_fsl_to_ants_epi_to_t1, 'reference_file')
+        epi_to_T1_workflow.connect(convert_fsl_to_ants_epi_to_t1, 'itk_transform', output_node, 'EPI_T1_matrix_file')
+
 
         # the final invert node
-        invert_EPI_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name = 'invert_EPI_N')
+        invert_EPI_N = pe.Node(fsl.ConvertXFM(invert_xfm = True), name='invert_EPI_N')
         epi_to_T1_workflow.connect(bbregister_N, 'out_fsl_file', invert_EPI_N, 'in_file')
-        epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', output_node, 'T1_EPI_matrix_file')
+
+        convert_fsl_to_ants_t1_to_epi = pe.Node(C3dAffineTool(), name='convert_fsl_to_ants_t1_to_epi')
+        convert_fsl_to_ants_t1_to_epi.inputs.fsl2ras = True
+        convert_fsl_to_ants_t1_to_epi.inputs.itk_transform = True
+        epi_to_T1_workflow.connect(invert_EPI_N, 'out_file', convert_fsl_to_ants_t1_to_epi, 'transform_file')
+        epi_to_T1_workflow.connect(input_node, 'EPI_space_file', convert_fsl_to_ants_t1_to_epi, 'reference_file')
+        epi_to_T1_workflow.connect(input_node, 'T1_file', convert_fsl_to_ants_t1_to_epi, 'source_file')
+        epi_to_T1_workflow.connect(convert_fsl_to_ants_t1_to_epi, 'itk_transform', output_node, 'T1_EPI_matrix_file')
 
     elif package == 'fsl':  # do FAST + FLIRT
 

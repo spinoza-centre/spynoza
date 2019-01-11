@@ -1,3 +1,6 @@
+import os
+import os.path as op
+
 import nipype.pipeline.engine as pe
 import nipype.interfaces.utility as niu
 from nipype.interfaces import fsl, ants, afni
@@ -42,11 +45,12 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                             dof=6,
                             crop_bolds=True,
                             topup_package='afni',
-                            epi_to_t1_package='ants',
+                            epi_to_t1_package='freesurfer',
                             within_epi_reg=True,
                             polish=True,
                             mc_cost_func='normcorr',
                             out_path_base='spynoza',
+                            freesurfer_subject_id=None,
                             omp_nthreads=4,
                             num_threads_ants=4):
     
@@ -194,11 +198,10 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                                                dof=dof,
                                                mc_cost_func=mc_cost_func,
                                                out_path_base=out_path_base,
-                                               registration_parameters=linear_registration_parameters)
-
-            correct_wf.inputs.inputnode.init_transform = init_transform
-
-            print(inputspec.inputs)
+                                               registration_parameters=linear_registration_parameters,
+                                               init_reg_file=init_transform,
+                                               epi_to_t1_package=epi_to_t1_package,
+                                               freesurfer_subject_id=freesurfer_subject_id)
 
             wf.connect(inputspec, 'bold', correct_wf, 'inputnode.bold')
             wf.connect(inputspec, 'epi_op', correct_wf, 'inputnode.epi_op')
@@ -246,11 +249,14 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                                           name='select_bold_metadata_%s' % ix)
 
                 correct_wf = create_pepolar_reg_wf('unwarp_reg_wf_{}'.format(ix),
+                                                   init_reg_file=init_transform,
                                                    derivatives_dir=derivatives_dir,
                                                    dof=dof,
                                                    mc_cost_func=mc_cost_func,
                                                    out_path_base=out_path_base,
-                                                   registration_parameters=linear_registration_parameters)
+                                                   registration_parameters=linear_registration_parameters,
+                                                   epi_to_t1_package=epi_to_t1_package,
+                                                   freesurfer_subject_id=freesurfer_subject_id)
                 correct_wf.inputs.inputnode.init_transform = init_transform
 
                 wf.connect(inputspec, 'bold', select_bold, 'inlist')
@@ -349,8 +355,10 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
                           topup_package='afni',
                           epi_to_t1_package='fsl',
                           registration_parameters='linear_hires.json',
+                          init_reg_file=None,
                           dof=6,
                           cost_func='bbr',
+                          freesurfer_subject_id=None,
                           mc_cost_func='normcorr',
                           out_path_base='spynoza',
                           omp_nthreads=4):
@@ -460,10 +468,14 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
 
 
     registration_wf = create_epi_to_T1_workflow(name='epi_to_T1',
-                                                package=epi_to_t1_package,
-                                                parameter_file=registration_parameters,
                                                 dof=dof,
+                                                init_reg_file=init_reg_file,
+                                                epi_to_t1_package=epi_to_t1_package,
                                                 cost_func=cost_func)
+
+    if epi_to_t1_package == 'freesurfer':
+        registration_wf.inputs.inputspec.freesurfer_subject_dir = op.join(derivatives_dir, 'freesurfer')
+        registration_wf.inputs.inputspec.freesurfer_subject_ID = freesurfer_subject_id
 
     wf.connect(inputnode, 'wm_seg', registration_wf, 'inputspec.wm_seg_file')
     wf.connect(topup_wf, 'outputspec.bold_corrected', registration_wf, 'inputspec.EPI_space_file')
