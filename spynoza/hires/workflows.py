@@ -52,6 +52,7 @@ def init_hires_unwarping_wf(name="unwarp_hires",
                             out_path_base='spynoza',
                             freesurfer_subject_id=None,
                             omp_nthreads=4,
+                            highpass_filter=False,
                             num_threads_ants=4):
     
     """ Use an EPI with opposite phase-encoding (EPI_op) or a 
@@ -306,7 +307,8 @@ def init_hires_unwarping_wf(name="unwarp_hires",
         # RESAMPLE ORIGINAL BOLD
         resample_wf = init_resample_wf(omp_nthreads=omp_nthreads,
                                        out_path_base=out_path_base,
-                                       derivatives_dir=derivatives_dir)
+                                       derivatives_dir=derivatives_dir,
+                                       highpass=highpass_filter)
 
         if within_epi_reg:
             wf.connect(merge_ref_bold, 'out', resample_wf, 'inputnode.ref_bold')
