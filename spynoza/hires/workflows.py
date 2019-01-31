@@ -470,7 +470,7 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
     registration_wf = create_epi_to_T1_workflow(name='epi_to_T1',
                                                 dof=dof,
                                                 init_reg_file=init_reg_file,
-                                                epi_to_t1_package=epi_to_t1_package,
+                                                package=epi_to_t1_package,
                                                 cost_func=cost_func)
 
     if epi_to_t1_package == 'freesurfer':
