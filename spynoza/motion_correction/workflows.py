@@ -8,7 +8,8 @@ from nipype.interfaces.utility import IdentityInterface
 import nipype.interfaces.utility as niu
 from ..utils import Set_postfix, Remove_extension, ComputeEPIMask, epi_file_selector
 from niworkflows.interfaces import NormalizeMotionParams
-from fmriprep.interfaces import GatherConfounds, AddTSVHeader
+from fmriprep.interfaces import GatherConfounds
+from niworkflows.interfaces.utils import AddTSVHeader
 
 def create_motion_correction_workflow(name='moco',
                                       method='AFNI',

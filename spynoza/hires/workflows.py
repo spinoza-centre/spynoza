@@ -22,7 +22,8 @@ from niworkflows.interfaces.utils import CopyXForm
 
 from nipype.interfaces.ants.utils import ComposeMultiTransform
 from niworkflows.interfaces import SimpleBeforeAfter
-from fmriprep.interfaces import MultiApplyTransforms, DerivativesDataSink
+from fmriprep.interfaces import DerivativesDataSink
+from niworkflows.interfaces.itk import MultiApplyTransforms
 from fmriprep.interfaces.nilearn import Merge as MergeImages
 
 def init_hires_unwarping_wf(name="unwarp_hires",
@@ -365,7 +366,7 @@ def create_pepolar_reg_wf(name='unwarp_and_reg_to_T1',
                           out_path_base='spynoza',
                           omp_nthreads=4):
 
-    from fmriprep.interfaces import MCFLIRT2ITK
+    from niworkflows.interfaces.itk import MCFLIRT2ITK
     from fmriprep.workflows.fieldmap import init_fmap_unwarp_report_wf
 
     wf = pe.Workflow(name=name)
